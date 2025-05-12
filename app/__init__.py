@@ -39,6 +39,6 @@ def create_app():
 
 def create_database(app : Flask) -> None:
     with app.app_context():
-        from app.modals import Users, Products, Category
+        # from app.modals import Users, Products, Category
         db.create_all()
         print("Created Database!")

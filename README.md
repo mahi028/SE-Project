@@ -11,7 +11,7 @@ Add things here
 2. Import Repository via git
 
 ```bash
-git clone repo_name
+git clone https://github.com/mahi028/SE-Project.git
 git branch your_branch_name
 git checkout your_branch_name
 ```
@@ -63,6 +63,8 @@ py run.py
 ```bash
 py run.py init_db
 ```
+
+4. Check `http://localhost:5000/api` endpoint
 
 
 ## Things to consider before submitting a pull request
