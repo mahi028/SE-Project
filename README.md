@@ -32,6 +32,8 @@ git push orgin your_branch_name
 
 > Make sure you only add the files you contributed to. Never use `git add .` to add files.
 
+4. Make a pull request from github
+
 ## How to setup
 
 1. Create and activate virtual environment
