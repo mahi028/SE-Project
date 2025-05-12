@@ -12,13 +12,13 @@ Add things here
 
 ```bash
 git clone https://github.com/mahi028/SE-Project.git
-git branch your_branch_name
-git checkout your_branch_name
 ```
 
 3. Contribute
 
 ```bash
+git branch your_branch_name
+git checkout your_branch_name
 git add file_name
 ```
 
