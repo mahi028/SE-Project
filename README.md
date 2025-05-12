@@ -51,6 +51,7 @@ source ./env/bin/activate
 
 2. Install required dependencies
 ```bash
+py -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
