@@ -27,7 +27,7 @@ git commit -m "commit_msg"
 ```
 
 ```bash
-git push orgin your_branch_name
+git push origin your_branch_name
 ```
 
 > Make sure you only add the files you contributed to. Never use `git add .` to add files.
