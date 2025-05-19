@@ -3,4 +3,4 @@ from flask_restful import Resource
 
 class Index(Resource):
     def get(self):
-        return jsonify({"msg":"Hello World!"})
+        return jsonify({"msg":"Hello World"})
