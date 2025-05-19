@@ -45,6 +45,7 @@ htmlcov/
 .coverage
 .tox/
 .nox/
+*.pytest_cache/
 
 # Environment vars
 .env
@@ -73,3 +74,5 @@ build/
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+instance
