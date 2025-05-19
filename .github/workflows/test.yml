@@ -1,0 +1,58 @@
+name: CI for Flask and Vue Application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-tests:
+    name: Run Backend Tests (Flask)
+    runs-on: ubuntu-latest
+   
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install Dependencies
+        run: |
+          cd backend
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip  # Always upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Flask Tests
+        run: |
+          cd backend
+          source venv/bin/activate
+          pytest
+          
+  # frontend-tests:
+  #   name: Run Frontend Tests (Vue)
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+
+  #     - name: Install Dependencies
+  #       run: |
+  #         cd frontend
+  #         npm ci  # Use npm ci for faster and reliable installs
+
+  #     - name: Run Vue Tests
+  #       run: |
+  #         cd frontend
+  #         npm run test
