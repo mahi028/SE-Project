@@ -10,7 +10,10 @@ jobs:
   backend-tests:
     name: Run Backend Tests (Flask)
     runs-on: ubuntu-latest
-   
+    strategy:
+      matrix:
+        python-version: [3.12, 3.13]  # Multiple Python versions
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
         run: |
@@ -33,6 +36,7 @@ jobs:
           cd backend
           source venv/bin/activate
           pytest
+
           
   # frontend-tests:
   #   name: Run Frontend Tests (Vue)
