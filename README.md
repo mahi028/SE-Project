@@ -14,6 +14,8 @@ Add things here
 git clone https://github.com/mahi028/SE-Project.git
 ```
 
+> In case of fork, clone your forked repo
+
 3. Contribute
 
 ```bash
@@ -35,6 +37,12 @@ git push origin your_branch_name
 > Make sure your branch name corresponds to you github username
 
 4. Make a pull request from github
+
+5. Tests 
+
+There are tests in the project. Make sure you run them before submitting a pull request.
+
+After you have pushed your code and created a pull request, make sure all the tests are passing in workflow. Only after all test have passed, your pull request will be merged.
 
 ## SE-Project-Backend
 
@@ -76,6 +84,15 @@ py run.py init_db
 ### Things to consider before submitting a pull request
 
 Add things here directory-wise
+#### Tests
+After you have added your code, make sure to add tests for it.
+- Only add tests to the tests directory. Do not add any other code to this directory.
+- Only push the files after all tests are passing.
+- To run tests, run the following command:
+```bash
+pytest
+```
+
 
 ### Library used
 
