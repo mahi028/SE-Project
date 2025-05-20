@@ -1,3 +1,5 @@
+from . import client
+
 # Add tests here.
 
 def test_example_api(client):
