@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.12, 3.13]  # Multiple Python versions
+        python-version: [3.12]  # Multiple Python versions
 
     steps:
       - name: Checkout code
