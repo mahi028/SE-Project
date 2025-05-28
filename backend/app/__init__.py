@@ -1,16 +1,14 @@
 from flask import Flask, request
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
+from flask_graphql import GraphQLView
 from config import DevelopmentConfig, ProductionConfig
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
+from .api.graphql import schema
+from .modals import db
 import os
 import sys
 
-db = SQLAlchemy()
 migration = Migrate()
 csrf = CSRFProtect()
 
@@ -34,11 +32,19 @@ def create_app():
 
     from app.api import api
     api.init_app(app)
+
+    app.add_url_rule(
+        '/graphql',
+        view_func=GraphQLView.as_view(
+            'graphql',
+            schema=schema,
+            graphiql=True
+        )
+    )
     
     return app
 
 def create_database(app : Flask) -> None:
     with app.app_context():
-        # from app.modals import Users, Products, Category
         db.create_all()
         print("Created Database!")
