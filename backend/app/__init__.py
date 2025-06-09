@@ -4,8 +4,8 @@ from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
 from flask_graphql import GraphQLView
 from config import DevelopmentConfig, ProductionConfig
-from .api.graphql import schema
-from .modals import db
+from .graphql import schema
+from .models import db
 import os
 import sys
 
@@ -22,9 +22,6 @@ def create_app():
 
     db.init_app(app)
     migration.init_app(app, db, render_as_batch=True)
-
-    if sys.argv[-1] == 'init_db':
-        create_database(app)
 
     app.app_context().push()
 
@@ -43,8 +40,3 @@ def create_app():
     )
     
     return app
-
-def create_database(app : Flask) -> None:
-    with app.app_context():
-        db.create_all()
-        print("Created Database!")
