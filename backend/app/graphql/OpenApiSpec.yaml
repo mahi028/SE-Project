@@ -1,0 +1,344 @@
+openapi: 3.0.0
+info:
+  title: GraphQL Flask Server API
+  version: 1.0.0
+  description: |
+    GraphQL endpoint documentation for the Flask-based GraphQL server.
+    This API provides access to user and post data through GraphQL queries.
+    
+    ## Available Queries
+    - `allUsers` - Get all users with their posts
+    - `allPosts` - Get all posts with author information
+    - `user(id, username)` - Get a specific user by ID or username
+    - `postsByUser(userId)` - Get all posts by a specific user
+    
+    ## GraphiQL Interface
+    Interactive GraphQL playground available at `/graphql` endpoint.
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+paths:
+  /graphql:
+    get:
+      summary: GraphiQL Interface
+      description: Interactive GraphQL playground for testing queries
+      responses:
+        '200':
+          description: GraphiQL HTML interface
+          content:
+            text/html:
+              schema:
+                type: string
+    
+    post:
+      summary: GraphQL Query Endpoint
+      description: |
+        Send GraphQL queries to retrieve user and post data.
+        Supports queries for users, posts, and their relationships.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: The GraphQL query string
+                variables:
+                  type: object
+                  description: Optional variables for the GraphQL query
+                operationName:
+                  type: string
+                  description: Optional operation name for named queries
+            examples:
+              getAllUsers:
+                summary: Get all users
+                value:
+                  query: |
+                    {
+                      allUsers {
+                        id
+                        username
+                        email
+                        createdAt
+                        posts {
+                          id
+                          title
+                          content
+                          createdAt
+                        }
+                      }
+                    }
+              
+              getUserById:
+                summary: Get user by ID
+                value:
+                  query: |
+                    {
+                      user(id: 1) {
+                        id
+                        username
+                        email
+                        createdAt
+                        posts {
+                          title
+                          content
+                          createdAt
+                        }
+                      }
+                    }
+              
+              getUserByUsername:
+                summary: Get user by username
+                value:
+                  query: |
+                    {
+                      user(username: "john_doe") {
+                        id
+                        username
+                        email
+                        posts {
+                          id
+                          title
+                          content
+                        }
+                      }
+                    }
+              
+              getAllPosts:
+                summary: Get all posts with authors
+                value:
+                  query: |
+                    {
+                      allPosts {
+                        id
+                        title
+                        content
+                        createdAt
+                        author {
+                          id
+                          username
+                          email
+                        }
+                      }
+                    }
+              
+              getPostsByUser:
+                summary: Get posts by specific user
+                value:
+                  query: |
+                    {
+                      postsByUser(userId: 1) {
+                        id
+                        title
+                        content
+                        createdAt
+                        author {
+                          username
+                          email
+                        }
+                      }
+                    }
+              
+              complexQuery:
+                summary: Complex nested query
+                value:
+                  query: |
+                    {
+                      allUsers {
+                        username
+                        email
+                        posts {
+                          title
+                          createdAt
+                        }
+                      }
+                      allPosts {
+                        title
+                        author {
+                          username
+                        }
+                      }
+                    }
+
+      responses:
+        '200':
+          description: Successful GraphQL response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: The response data from the GraphQL query
+                  errors:
+                    type: array
+                    description: Any errors that occurred during query execution
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                        path:
+                          type: array
+                          items:
+                            type: string
+              examples:
+                usersResponse:
+                  summary: Response for allUsers query
+                  value:
+                    data:
+                      allUsers:
+                        - id: 1
+                          username: "john_doe"
+                          email: "john@example.com"
+                          createdAt: "2024-01-15T10:30:00Z"
+                          posts:
+                            - id: 1
+                              title: "Getting Started with Python"
+                              content: "Python is a great programming language for beginners..."
+                              createdAt: "2024-01-15T11:00:00Z"
+                            - id: 2
+                              title: "Web Development Tips"
+                              content: "Here are some tips for web development..."
+                              createdAt: "2024-01-15T12:00:00Z"
+                
+                userByIdResponse:
+                  summary: Response for user by ID query
+                  value:
+                    data:
+                      user:
+                        id: 1
+                        username: "john_doe"
+                        email: "john@example.com"
+                        createdAt: "2024-01-15T10:30:00Z"
+                        posts:
+                          - title: "Getting Started with Python"
+                            content: "Python is a great programming language for beginners..."
+                            createdAt: "2024-01-15T11:00:00Z"
+                
+                postsResponse:
+                  summary: Response for allPosts query
+                  value:
+                    data:
+                      allPosts:
+                        - id: 1
+                          title: "Getting Started with Python"
+                          content: "Python is a great programming language for beginners..."
+                          createdAt: "2024-01-15T11:00:00Z"
+                          author:
+                            id: 1
+                            username: "john_doe"
+                            email: "john@example.com"
+                        - id: 2
+                          title: "Machine Learning Basics"
+                          content: "Understanding the fundamentals of ML..."
+                          createdAt: "2024-01-15T14:00:00Z"
+                          author:
+                            id: 2
+                            username: "jane_smith"
+                            email: "jane@example.com"
+                
+                errorResponse:
+                  summary: Error response example
+                  value:
+                    errors:
+                      - message: "Cannot query field 'invalidField' on type 'User'"
+                        locations:
+                          - line: 3
+                            column: 5
+                        path: ["user"]
+
+        '400':
+          description: Bad Request - Invalid GraphQL query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+              example:
+                errors:
+                  - message: "Syntax Error: Expected Name, found }"
+
+  /:
+    get:
+      summary: Application Home Page
+      description: Landing page with GraphQL examples and links
+      responses:
+        '200':
+          description: HTML page with GraphQL examples
+          content:
+            text/html:
+              schema:
+                type: string
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user identifier
+        username:
+          type: string
+          description: User's username (unique)
+        email:
+          type: string
+          format: email
+          description: User's email address (unique)
+        createdAt:
+          type: string
+          format: date-time
+          description: User creation timestamp
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+          description: Posts created by this user
+    
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique post identifier
+        title:
+          type: string
+          description: Post title
+        content:
+          type: string
+          description: Post content
+        createdAt:
+          type: string
+          format: date-time
+          description: Post creation timestamp
+        userId:
+          type: integer
+          description: ID of the user who created the post
+        author:
+          $ref: '#/components/schemas/User'
+          description: User who created the post
+
+tags:
+  - name: GraphQL
+    description: GraphQL operations
+  - name: Web Interface
+    description: Web interface endpoints
