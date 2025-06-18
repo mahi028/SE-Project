@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory conatains and handel API logic such as login, user manegement and other thing.
+This directory conatains and handles API logic such as login, user manegement and other thing.
 
 ## How to contribute
 
