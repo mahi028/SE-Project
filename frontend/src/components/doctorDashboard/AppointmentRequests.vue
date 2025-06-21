@@ -13,7 +13,7 @@ onMounted(() => {
 });
 
 const visible = ref(false);
-const selectedAppointment = ref();
+const selectedAppointment = ref(null);
 
 const displayAppointment = (appointment) => {
     visible.value = false;
@@ -35,11 +35,11 @@ const confimrAcceptRequest = (event) => {
             label: 'Save'
         },
         accept: () => {
+            appointments.value = appointments.value.filter((appointemnt)=> {return appointemnt.sen_id != selectedAppointment.value.sen_id})
+            selectedAppointment.value = false;
+            visible.value = false;
             toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 });
         },
-        reject: () => {
-            toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 });
-        }
     });
 };
 const confirmRejectRequest = (event) => {
@@ -57,11 +57,11 @@ const confirmRejectRequest = (event) => {
             severity: 'danger'
         },
         accept: () => {
+            appointments.value = appointments.value.filter((appointemnt)=> {return appointemnt.sen_id != selectedAppointment.value.sen_id})
+            selectedAppointment.value = false;
+            visible.value = false;
             toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Record deleted', life: 3000 });
         },
-        reject: () => {
-            toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 });
-        }
     });
 };
 
