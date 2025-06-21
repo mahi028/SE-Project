@@ -54,3 +54,6 @@ class AddUser(graphene.Mutation):
             return ReturnType(message="Failure", status=500)
         else:
             return ReturnType(message="Success, User created successfully", status=201)
+        
+
+#Dev Gupta's Code to Akhil
