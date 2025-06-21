@@ -27,6 +27,7 @@ class GetUsers(graphene.ObjectType):
 class AddUser(graphene.Mutation):
     class Arguments:
         ez_id = graphene.String(required=True)  # Optional field for easy identification
+        role = graphene.String(required=True)  # Optional field for user role
         email = graphene.String(required=True)
         password = graphene.String(required=True)
         name = graphene.String(required=True)
@@ -39,10 +40,10 @@ class AddUser(graphene.Mutation):
 
     Output = ReturnType
 
-    def mutate(root, info, ez_id, email, password, name, gender, age, phone_num, pincode, profile_image_url, alternate_phone_num=None):
+    def mutate(root, info, ez_id, role, email, password, name, gender, age, phone_num, pincode, profile_image_url, alternate_phone_num=None):
         try:
             new_user = User(
-                ez_id=ez_id,
+                ez_id=ez_id, role=role,
                 email=email, password=password, name=name, phone_num=phone_num, pincode=pincode, profile_image_url=profile_image_url, alternate_phone_num=alternate_phone_num
             )
 
