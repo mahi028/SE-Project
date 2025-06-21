@@ -49,4 +49,6 @@
             </div>
         </RouterLink>
     </div>
+    <div class="col-span-12 lg:col-span-6 xl:col-span-3" v-for="fakeItem in props.page == 'doctor' ? doctorWidgets.length % 4 : seniorWidgets.length % 4">
+    </div>
 </template>
