@@ -13,7 +13,7 @@ onMounted(() => {
     <div class="card">
         <div class="font-semibold text-xl mb-4">Appointments</div>
         <DataTable :value="appointments" :rows="5" :paginator="true" responsiveLayout="scroll">
-            <Column field="label" header="Label" style="width: 30%"></Column>
+            <Column field="name" header="Name" style="width: 30%"></Column>
             <Column field="date" header="Date" :sortable="true" style="width: 30%"></Column>
             <Column field="time" header="TIme" style="width: 30%"></Column>
             <Column style="width: 15%" header="View">
