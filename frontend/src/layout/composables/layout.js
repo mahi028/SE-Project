@@ -9,7 +9,7 @@ const layoutConfig = reactive({
 });
 
 const layoutState = reactive({
-    staticMenuDesktopInactive: false,
+    staticMenuDesktopInactive: true,
     overlayMenuActive: false,
     profileSidebarVisible: false,
     configSidebarVisible: false,
@@ -43,11 +43,11 @@ export function useLayout() {
             layoutState.overlayMenuActive = !layoutState.overlayMenuActive;
         }
 
-        if (window.innerWidth > 991) {
-            layoutState.staticMenuDesktopInactive = !layoutState.staticMenuDesktopInactive;
-        } else {
-            layoutState.staticMenuMobileActive = !layoutState.staticMenuMobileActive;
-        }
+        // if (window.innerWidth > 991) {
+        //     layoutState.staticMenuDesktopInactive = !layoutState.staticMenuDesktopInactive;
+        // } else {
+        //     layoutState.staticMenuMobileActive = !layoutState.staticMenuMobileActive;
+        // }
     };
 
     const isSidebarActive = computed(() => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive);

@@ -17,10 +17,10 @@ const preset = ref(layoutConfig.preset);
 const presetOptions = ref(Object.keys(presets));
 
 const menuMode = ref(layoutConfig.menuMode);
-const menuModeOptions = ref([
-    { label: 'Static', value: 'static' },
-    { label: 'Overlay', value: 'overlay' }
-]);
+// const menuModeOptions = ref([
+//     { label: 'Static', value: 'static' },
+//     { label: 'Overlay', value: 'overlay' }
+// ]);
 
 const primaryColors = ref([
     { name: 'noir', palette: {} },
@@ -238,10 +238,10 @@ function onMenuModeChange() {
                 <span class="text-sm text-muted-color font-semibold">Presets</span>
                 <SelectButton v-model="preset" @change="onPresetChange" :options="presetOptions" :allowEmpty="false" />
             </div>
-            <div class="flex flex-col gap-2">
+            <!-- <div class="flex flex-col gap-2">
                 <span class="text-sm text-muted-color font-semibold">Menu Mode</span>
                 <SelectButton v-model="menuMode" @change="onMenuModeChange" :options="menuModeOptions" :allowEmpty="false" optionLabel="label" optionValue="value" />
-            </div>
+            </div> -->
         </div>
     </div>
 </template>

@@ -24,3 +24,19 @@ app.use(ToastService);
 app.use(ConfirmationService);
 
 app.mount('#app');
+
+router.beforeEach((to, from, next) => {
+//   const loginStore = LoginStore() //Simulating role based access control
+
+  if (to.meta.roles) {
+    // const userRole = loginStore.role
+
+    if ('hello') {
+      next()
+    } else {
+      next({ name: 'NotFound' })
+    }
+  } else {
+    next()
+  }
+})
