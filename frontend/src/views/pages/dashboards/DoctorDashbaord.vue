@@ -18,11 +18,15 @@ import Divider from 'primevue/divider';
         </div>
         <div class="col-span-12 xl:col-span-6">
             <DoctorAppointments />
+        </div>
+        <div class="col-span-12 xl:col-span-6">
             <AppointmentRequests />
         </div>
         <div class="col-span-12 xl:col-span-6">
-            <DoctorSchedule />
             <DoctorNotificationsWidget />
+        </div>
+        <div class="col-span-12 xl:col-span-6">
+            <DoctorSchedule />
         </div>
     </div>
 </template>
