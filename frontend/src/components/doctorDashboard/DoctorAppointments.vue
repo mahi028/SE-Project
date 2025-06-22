@@ -1,36 +1,26 @@
 <script setup>
-import { ProductService } from '@/service/ProductService';
+import { doctorAppointments } from '@/service/DoctorAppointments';
 import { onMounted, ref } from 'vue';
 
-const products = ref(null);
-
-function formatCurrency(value) {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-}
+const appointments = ref(null);
 
 onMounted(() => {
-    ProductService.getProductsSmall().then((data) => (products.value = data));
+    doctorAppointments.getAppointments().then((data) => (appointments.value = data));
 });
 </script>
 
 <template>
     <div class="card">
-        <div class="font-semibold text-xl mb-4">Recent Sales</div>
-        <DataTable :value="products" :rows="5" :paginator="true" responsiveLayout="scroll">
-            <Column style="width: 15%" header="Image">
-                <template #body="slotProps">
-                    <img :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`" :alt="slotProps.data.image" width="50" class="shadow" />
-                </template>
-            </Column>
-            <Column field="name" header="Name" :sortable="true" style="width: 35%"></Column>
-            <Column field="price" header="Price" :sortable="true" style="width: 35%">
-                <template #body="slotProps">
-                    {{ formatCurrency(slotProps.data.price) }}
-                </template>
-            </Column>
+        <div class="font-semibold text-xl mb-4">Appointments</div>
+        <DataTable :value="appointments" :rows="5" :paginator="true" responsiveLayout="scroll">
+            <Column field="name" header="Name" style="width: 30%"></Column>
+            <Column field="date" header="Date" :sortable="true" style="width: 30%"></Column>
+            <Column field="time" header="TIme" style="width: 30%"></Column>
             <Column style="width: 15%" header="View">
                 <template #body>
-                    <Button icon="pi pi-search" type="button" class="p-button-text"></Button>
+                    <RouterLink to="#"> <!-- :to="/sen/{{ ezId }}" -->
+                        <Button icon="pi pi-search" type="button" class="p-button-text"></Button>
+                    </RouterLink>
                 </template>
             </Column>
         </DataTable>
