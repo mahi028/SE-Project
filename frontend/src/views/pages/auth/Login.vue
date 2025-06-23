@@ -65,7 +65,7 @@ const login = ()=>{
                         </div>
                         <Button label="Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
                         <Divider layout="horizontal" class="!flex" align="center"><b>OR</b></Divider>
-                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
+                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard2"></Button>
                     </div>
                 </div>
             </div>
