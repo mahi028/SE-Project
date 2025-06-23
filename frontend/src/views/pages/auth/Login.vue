@@ -1,10 +1,18 @@
 <script setup>
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { ref } from 'vue';
+import Divider from 'primevue/divider';
 
 const email = ref('');
+const ezid = ref('');
 const password = ref('');
 const checked = ref(false);
+
+const value = ref('Email');
+const options = ref(['Email', 'EZID']);
+
+const login = ()=>{
+
+}
 </script>
 
 <template>
@@ -31,13 +39,19 @@ const checked = ref(false);
                                 />
                             </g>
                         </svg>
-                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to PrimeLand!</div>
-                        <span class="text-muted-color font-medium">Sign in to continue</span>
+                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to EZCare!</div>
+                        <span class="text-muted-color font-medium">Select option to Sign In</span>
                     </div>
 
                     <div>
-                        <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-                        <InputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" />
+                        <div class=" flex justify-center">
+                            <SelectButton v-model="value" :options="options" />
+                        </div>
+                        <label for="email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="value=='Email'">Email</label>
+                        <InputText id="email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" v-show="value=='Email'"/>
+
+                        <label for="ezid" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="value=='EZID'">EZ ID</label>
+                        <InputText id="ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="ezid" v-show="value=='EZID'"/>
 
                         <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                         <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
@@ -50,6 +64,8 @@ const checked = ref(false);
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                         </div>
                         <Button label="Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
+                        <Divider layout="horizontal" class="!flex" align="center"><b>OR</b></Divider>
+                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
                     </div>
                 </div>
             </div>
