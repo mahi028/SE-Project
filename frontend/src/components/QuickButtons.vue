@@ -46,14 +46,6 @@
             action: 'redirect',
             redirect: '#',
         },
-        {
-            id: 2,
-            label: '2nd',
-            desc: 'lorem ipsum dolar sit emmet.',
-            iconClass: 'pi pi-camera text-blue-500 !text-xl',
-            action: 'redirect',
-            redirect: '#',
-        },
     ])
 </script>
 <template>
