@@ -18,6 +18,14 @@
             action: 'overlay',
             type: 'patient-lookup',
         },
+        {
+            id: 2,
+            label: '2nd',
+            desc: 'lorem ipsum dolar sit emmet.',
+            iconClass: 'pi pi-camera text-blue-500 !text-xl',
+            action: 'redirect',
+            redirect: '#',
+        },
     ])
 
     const toggleOverlay = (type)=>{
@@ -50,8 +58,8 @@
 </script>
 <template>
     <div class="col-span-12 lg:col-span-6 xl:col-span-3" v-for="widget in props.page == 'doctor' ? doctorWidgets : seniorWidgets" key="id">
-        <div class="card mb-0" v-if="widget.action=='redirect'">
-            <RouterLink :to="widget.action">
+        <RouterLink v-if="widget.action=='redirect'" :to="widget.redirect">
+        <div class="card mb-0" >
                 <div class="flex justify-between mb-4">
                     <div>
                         <span class="block text-muted-color font-medium mb-4">{{ widget.label }}</span>
@@ -61,8 +69,8 @@
                     </div>
                 </div>
                 <span class="text-muted-color">{{ widget.desc }}</span>
-            </RouterLink>
-        </div>
+            </div>
+        </RouterLink>
         <div class="card mb-0" v-else-if="widget.action=='overlay'">
             <div class="flex justify-between mb-4">
                 <div>
