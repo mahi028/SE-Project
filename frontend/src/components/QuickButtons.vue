@@ -18,14 +18,6 @@
             action: 'overlay',
             type: 'patient-lookup',
         },
-        {
-            id: 2,
-            label: '2nd',
-            desc: 'lorem ipsum dolar sit emmet.',
-            iconClass: 'pi pi-camera text-blue-500 !text-xl',
-            action: 'redirect',
-            redirect: '#',
-        },
     ])
 
     const toggleOverlay = (type)=>{
@@ -41,6 +33,14 @@
         {
             id: 1,
             label: '1st ',
+            desc: 'lorem ipsum dolar sit emmet.',
+            iconClass: 'pi pi-camera text-blue-500 !text-xl',
+            action: 'redirect',
+            redirect: '#',
+        },
+        {
+            id: 2,
+            label: '2nd',
             desc: 'lorem ipsum dolar sit emmet.',
             iconClass: 'pi pi-camera text-blue-500 !text-xl',
             action: 'redirect',
