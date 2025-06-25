@@ -35,7 +35,7 @@ npmn<template>
                             <i class="pi pi-fw pi-clock !text-2xl text-cyan-700"></i>
                         </div>
                         <h5 class="mb-2 text-surface-900 dark:text-surface-0">Medication Alerts</h5>
-                        <span class="text-surface-600 dark:text-surface-200">Timely reminders to take your prescribed medicines without missing a dose."
+                        <span class="text-surface-600 dark:text-surface-200">Timely reminders to take your prescribed medicines without missing a dose.
                 </span>
                     </div>
                 </div>
@@ -50,7 +50,7 @@ npmn<template>
                             <i class="pi pi-fw pi-users !text-2xl text-indigo-700"></i>
                         </div>
                         <div class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold">Community Connections</div>
-                        <span class="text-surface-600 dark:text-surface-200">Meet peers nearby and participate in social activities to reduce isolation."
+                        <span class="text-surface-600 dark:text-surface-200">Meet peers nearby and participate in social activities to reduce isolation.
                 </span>
                     </div>
                 </div>
@@ -77,7 +77,7 @@ npmn<template>
 
                         </div>
                         <div class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold">Elder-Friendly Interface</div>
-                        <span class="text-surface-600 dark:text-surface-200">Large text, high contrast, and simple layouts for effortless daily use</span>
+                        <span class="text-surface-600 dark:text-surface-200">Large text, high contrast, and simple layouts for effortless daily use.</span>
                     </div>
                 </div>
             </div>
@@ -89,7 +89,7 @@ npmn<template>
                             <i class="pi pi-fw pi-share-alt !text-2xl text-pink-700"></i>
                         </div>
                         <div class="mt-6 mb-1 text-surface-900 dark:text-surface-0 text-xl font-semibold">Doctor Appointments</div>
-                        <span class="text-surface-600 dark:text-surface-200">Browse and book medical appointments by specialization easily."</span>
+                        <span class="text-surface-600 dark:text-surface-200">Browse and book medical appointments by specialization easily.</span>
                     </div>
                 </div>
             </div>
@@ -131,22 +131,22 @@ npmn<template>
                     </div>
                 </div>
             </div>
+           <div
+    class="col-span-12 mt-6 mb-6 p-4 md:p-10"
+    style="border-radius: 16px; background: linear-gradient(0deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, #efe1af 0%, #c3dcfa 100%)"
+>
+    <div class="flex flex-col justify-center items-center text-center px-2 py-2">
+        <div class="text-gray-900 mb-1 text-lg font-semibold">Mr. Sharma, 72</div>
+        <span class="text-gray-600 text-sm">New Delhi, India</span>
+        <p class="text-gray-900 text-base mt-3" style="max-width: 600px">
+            “This platform has been a true lifesaver. I was able to reach the nearest hospital within minutes during a health emergency. It's simple, fast, and incredibly reassuring.”
+        </p>
+        <img src="/images/senior_care.png" class="mt-4 w-10 h-auto" alt="Senior Care logo" />
+    </div>
+</div>
 
-            <div
-                class="col-span-12 mt-20 mb-20 p-2 md:p-20"
-                style="border-radius: 20px; background: linear-gradient(0deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, #efe1af 0%, #c3dcfa 100%)"
-            >
-                <div class="flex flex-col justify-center items-center text-center px-4 py-4 md:py-0">
-                    <div class="text-gray-900 mb-2 text-3xl font-semibold">Mr. Sharma, 72</div>
-                    <span class="text-gray-600 text-2xl">New Delhi, India</span>
-                    <p class="text-gray-900 sm:line-height-2 md:line-height-4 text-2xl mt-6" style="max-width: 800px">
-                     “This platform has been a true lifesaver. I was able to reach the nearest hospital within minutes during a health emergency. It's simple, fast, and incredibly reassuring.”
-                    </p>
-                    <img src="/images/senior_care.png" class="mt-6 w-12 h-auto" alt="Senior Care logo" />
-                    <img src="/images/EZCare.png" class="mt-6 w-12 h-auto" alt="Senior Care logo" />
 
-                </div>
-            </div>
+
         </div>
     </div>
 </template>

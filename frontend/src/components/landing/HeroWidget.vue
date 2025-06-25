@@ -15,11 +15,10 @@
                <p>
              Doctors get quick access to records, alerts, and scheduling — all in one trusted space.
             </p>
-            <Button label="Explore Features" as="router-link" to="/features" rounded class="!text-xl mt-8 !px-4" />
         </div>
         <div class="flex justify-center md:justify-end">
 
-            <img src="/images/hero-senior-doctor.png" alt="Hero Image" class="w-9/12 md:w-auto" />
+<img src="/images/hero-senior-doctor.png" alt="Hero Image" style="width: 100px; height: auto;" />
         </div>
     </div>
 </template>
