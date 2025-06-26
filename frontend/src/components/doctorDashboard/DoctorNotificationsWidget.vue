@@ -13,6 +13,9 @@ onMounted(() => {
 
 <template>
     <div class="card">
+        <div class="flex items-center justify-between mb-6">
+            <div class="font-semibold text-xl">Notifications</div>
+        </div>
         <span class="block text-muted-color font-medium mb-4">TODAY</span>
         <ul class="p-0 mx-0 mt-0 mb-6 list-none">
             <li class="flex items-center py-2 border-b border-surface" v-for="notification in notificationsToday || []">
