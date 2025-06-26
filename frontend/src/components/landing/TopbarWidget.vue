@@ -10,12 +10,12 @@ function smoothScroll(id) {
 
 <template>
     <!-- Logo and Brand -->
-    <a class="flex items-center cursor-pointer" href="#">
-        <svg viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-12 mr-2">
-            <circle cx="27" cy="20" r="18" fill="var(--primary-color)" />
-        </svg>
-        <span class="text-surface-900 dark:text-surface-0 font-semibold text-2xl leading-normal mr-20">EZCare</span>
-    </a>
+ <a class="flex items-center cursor-pointer" href="#">
+    <img src="/images/logo.png" alt="EZCare Logo" class="h-12 mr-2" />
+    <span class="text-surface-900 dark:text-surface-0 font-semibold text-2xl leading-normal mr-20">
+        EZCare
+    </span>
+</a>
 
     <!-- Mobile Menu Toggle -->
     <Button
@@ -41,7 +41,6 @@ function smoothScroll(id) {
             <li><a @click="smoothScroll('hero')" class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">Home</a></li>
             <li><a @click="smoothScroll('features')" class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">Features</a></li>
             <li><a @click="smoothScroll('highlights')" class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">Highlights</a></li>
-            <li><a @click="smoothScroll('pricing')" class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl">Plans</a></li>
         </ul>
 
         <!-- Auth Buttons -->
