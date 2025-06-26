@@ -2,9 +2,12 @@
 import AppointmentRequests from '@/components/doctorDashboard/AppointmentRequests.vue';
 import DoctorNotificationsWidget from '@/components/doctorDashboard/DoctorNotificationsWidget.vue';
 import DoctorAppointments from '@/components/doctorDashboard/DoctorAppointments.vue';
-import DoctorSchedule from '@/components/doctorDashboard/DoctorSchedule.vue';
 import QuickButtons from '@/components/QuickButtons.vue';
 import Divider from 'primevue/divider';
+import { ref } from 'vue';
+
+const value = ref('Appointments | Requests');
+const options = ref(['Appointments | Requests', 'Notifications']);
 </script>
 
 <template>
@@ -16,17 +19,19 @@ import Divider from 'primevue/divider';
                 <h3>Quick Widgets</h3>
             </Divider>
         </div>
-        <div class="col-span-12 xl:col-span-6">
+    </div>
+    <div class="flex">
+        <SelectButton v-model="value" :options="options" />
+    </div>
+    <div class="grid grid-cols-12 gap-8">
+        <div class="col-span-12 xl:col-span-6"  v-show="value==='Appointments | Requests'">
             <DoctorAppointments />
         </div>
-        <div class="col-span-12 xl:col-span-6">
+        <div class="col-span-12 xl:col-span-6" v-show="value==='Appointments | Requests'">
             <AppointmentRequests />
         </div>
-        <div class="col-span-12 xl:col-span-6">
+        <div class="col-span-12 xl:col-span-6" v-show="value==='Notifications'">
             <DoctorNotificationsWidget />
-        </div>
-        <div class="col-span-12 xl:col-span-6">
-            <DoctorSchedule />
         </div>
     </div>
 </template>
