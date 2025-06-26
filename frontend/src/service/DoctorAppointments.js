@@ -10,9 +10,9 @@ export const doctorAppointments = {
     },
     getAppointmentRequestData(){
         return [
-            {sen_id:'1', name: "Mr. Sharma", date:"Wed 16 May", time:"5:30 PM", reason:"I am facing frequent pain in my knee joint.", profile:"https://www.wockhardthospitals.com/wp-content/uploads/2023/05/shutterstock_365746949-scaled_11zon.webp"},
-            {sen_id:'2', name: "Mr. Gupta", date:"Wed 17 May", time:"5:00 PM", reason:"My Legs ache whenever I take a brief walk.", profile:"https://www.shutterstock.com/image-photo/portrait-smiling-senior-man-using-260nw-573623944.jpg"},
-            {sen_id:'3', name: "Mrs. Sheetal", date:"Thu 17 May", time:"5:30 PM", reason:"My back hurts everytime I do something,", profile:"https://manipaltrutest.s3.ap-south-1.amazonaws.com/package-images/package-images-1675573993564-280013-senior-citizen-women.jpg"},
+            {sen_id:'6', name: "Mr. Sharma", date:"Wed 16 May", time:"5:30 PM", reason:"I am facing frequent pain in my knee joint.", profile:"https://www.wockhardthospitals.com/wp-content/uploads/2023/05/shutterstock_365746949-scaled_11zon.webp"},
+            {sen_id:'7', name: "Mr. Gupta", date:"Wed 17 May", time:"5:00 PM", reason:"My Legs ache whenever I take a brief walk.", profile:"https://www.shutterstock.com/image-photo/portrait-smiling-senior-man-using-260nw-573623944.jpg"},
+            {sen_id:'8', name: "Mrs. Sheetal", date:"Thu 17 May", time:"5:30 PM", reason:"My back hurts everytime I do something,", profile:"https://manipaltrutest.s3.ap-south-1.amazonaws.com/package-images/package-images-1675573993564-280013-senior-citizen-women.jpg"},
         ]
     },
     getAppointments() {
