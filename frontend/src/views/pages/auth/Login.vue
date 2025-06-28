@@ -1,11 +1,19 @@
 <script setup>
 import { ref } from 'vue';
 import Divider from 'primevue/divider';
+import { useLoginStore } from '@/store/loginStore';
+import { doctorService } from '@/service/DoctorService';
+import { useToast } from 'primevue';
+import { useRouter } from 'vue-router';
+
+const loginStore = useLoginStore()
+const toast = useToast();
+const router = useRouter()
 
 const formData = ref({
-    email: '',
+    email: 'dr.rajesh@citycarehospital.com',
     ezid: '',
-    password: '',
+    password: 'dummyPassword123',
 })
 
 const checked = ref(false);
@@ -13,8 +21,20 @@ const checked = ref(false);
 const value = ref('Email');
 const options = ref(['Email', 'EZID']);
 
-const login = ()=>{
-
+const login = async ()=>{
+    try{
+        const userDeatils = await doctorService.getDoctor(formData.value)
+        loginStore.setLoginDetails(userDeatils)
+        toast.add({ severity: 'success', summary: 'Success', detail: 'You are Successfully Logged-In', life: 3000 });
+        if(userDeatils.role === 'doctor'){
+            router.push('/dashboard2')
+        }
+        if(userDeatils.role === 'senior'){
+            router.push('/dashboard')
+        }
+    }catch(err){
+        console.error('Something Went Wrong: ', err)
+    }
 }
 </script>
 
@@ -66,9 +86,9 @@ const login = ()=>{
                             </div>
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                         </div>
-                        <Button label="Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
+                        <Button label="Sign In" class="w-full" @click="login"></Button>
                         <Divider layout="horizontal" class="!flex" align="center"><b>OR</b></Divider>
-                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard2"></Button>
+                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
                     </div>
                 </div>
             </div>
