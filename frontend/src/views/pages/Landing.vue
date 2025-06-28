@@ -5,6 +5,16 @@ import HeroWidget from '@/components/landing/HeroWidget.vue';
 import HighlightsWidget from '@/components/landing/HighlightsWidget.vue';
 import PricingWidget from '@/components/landing/PricingWidget.vue';
 import TopbarWidget from '@/components/landing/TopbarWidget.vue';
+import { useLoginStore } from '@/store/loginStore';
+import { useRouter } from 'vue-router';
+if(useLoginStore().role){
+    if(useLoginStore().role === 'doctor'){
+        useRouter().push('/dashboard2')
+    }
+    if(useLoginStore().role === 'senior'){
+        useRouter().push('/dashboard')
+    }
+}
 </script>
 
 <template>
