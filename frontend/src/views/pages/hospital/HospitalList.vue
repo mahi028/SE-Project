@@ -71,6 +71,12 @@ function getTypeColor(type) {
 function getTimingsColor(timings) {
     return timings === '24/7' ? 'success' : 'info';
 }
+
+const openMapDirections = (coordinates) => {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${coordinates["lat"]},${coordinates["lng"]}`;
+  window.open(url, '_blank');
+};
+
 </script>
 <template>
   <div class="flex flex-col">
@@ -128,8 +134,10 @@ function getTimingsColor(timings) {
                                         <Chip v-if="item.services.length > 3" :label="`+${item.services.length - 3} more`" class="text-xs" severity="secondary" />
                                     </div>
                                     <div class="flex gap-2">
-                                        <Button icon="pi pi-phone" outlined size="small"></Button>
-                                        <Button icon="pi pi-directions" label="Directions" size="small" class="flex-auto md:flex-initial whitespace-nowrap"></Button>
+                                        <a :href="`tel:${item.phone}`">
+                                            <Button icon="pi pi-phone" outlined size="small"></Button>
+                                        </a>
+                                        <Button icon="pi pi-directions" label="Directions" size="small" class="flex-auto md:flex-initial whitespace-nowrap" @click="openMapDirections(item.coordinates)"></Button>
                                     </div>
                                 </div>
                             </div>
@@ -170,8 +178,10 @@ function getTimingsColor(timings) {
                                     </div>
                                 </div>
                                 <div class="flex gap-2 mt-6">
-                                    <Button icon="pi pi-directions" label="Directions" size="small" class="flex-auto whitespace-nowrap"></Button>
-                                    <Button icon="pi pi-phone" outlined size="small"></Button>
+                                    <Button icon="pi pi-directions" label="Directions" size="small" class="flex-auto whitespace-nowrap" @click="openMapDirections(item.coordinates)"></Button>
+                                    <a :href="`tel:${item.phone}`">
+                                        <Button icon="pi pi-phone" outlined size="small"></Button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
