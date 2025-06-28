@@ -11,7 +11,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 150,
                 "services": ["Emergency", "Cardiology", "Orthopedics", "Radiology", "Pharmacy"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6139, "lng": 77.2090 }
             },
             {
                 "hospital_id": "H002",
@@ -23,7 +24,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 20,
                 "services": ["General Medicine", "Pediatrics", "Dermatology"],
-                "timings": "9:00 AM - 9:00 PM"
+                "timings": "9:00 AM - 9:00 PM",
+                "coordinates": { "lat": 28.5562, "lng": 77.2046 }
             },
             {
                 "hospital_id": "H003",
@@ -35,7 +37,8 @@ export const hospitalService = {
                 "type": "Super-specialty",
                 "beds": 300,
                 "services": ["Neurology", "Nephrology", "Oncology", "ICU", "Emergency"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6289, "lng": 77.2065 }
             },
             {
                 "hospital_id": "H004",
@@ -47,7 +50,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 200,
                 "services": ["ENT", "Gastroenterology", "Orthopedics"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6692, "lng": 77.1750 }
             },
             {
                 "hospital_id": "H005",
@@ -59,7 +63,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 35,
                 "services": ["General Medicine", "Physiotherapy"],
-                "timings": "10:00 AM - 6:00 PM"
+                "timings": "10:00 AM - 6:00 PM",
+                "coordinates": { "lat": 28.6507, "lng": 77.1909 }
             },
 
             {
@@ -72,7 +77,8 @@ export const hospitalService = {
                 "type": "Super-specialty",
                 "beds": 250,
                 "services": ["Cardiology", "Neurology", "ICU"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6266, "lng": 77.3617 }
             },
             {
                 "hospital_id": "H007",
@@ -84,7 +90,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 40,
                 "services": ["Pediatrics", "Gynecology"],
-                "timings": "8:00 AM - 8:00 PM"
+                "timings": "8:00 AM - 8:00 PM",
+                "coordinates": { "lat": 28.5933, "lng": 77.3178 }
             },
             {
                 "hospital_id": "H008",
@@ -96,7 +103,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 100,
                 "services": ["Radiology", "Pathology", "General Surgery"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.5858, "lng": 77.3421 }
             },
             {
                 "hospital_id": "H009",
@@ -108,7 +116,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 180,
                 "services": ["Emergency", "Oncology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.5668, "lng": 77.3558 }
             },
             {
                 "hospital_id": "H010",
@@ -120,7 +129,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 25,
                 "services": ["Dentistry", "Skin Care"],
-                "timings": "10:00 AM - 6:00 PM"
+                "timings": "10:00 AM - 6:00 PM",
+                "coordinates": { "lat": 28.6063, "lng": 77.3638 }
             },
 
             {
@@ -133,7 +143,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 220,
                 "services": ["ICU", "Emergency", "Cardiology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6414, "lng": 77.3601 }
             },
             {
                 "hospital_id": "H012",
@@ -145,7 +156,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 30,
                 "services": ["Physiotherapy", "General Medicine"],
-                "timings": "8:00 AM - 4:00 PM"
+                "timings": "8:00 AM - 4:00 PM",
+                "coordinates": { "lat": 28.6692, "lng": 77.3539 }
             },
             {
                 "hospital_id": "H013",
@@ -157,11 +169,12 @@ export const hospitalService = {
                 "type": "Super-specialty",
                 "beds": 275,
                 "services": ["ICU", "Oncology", "Neurology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6869, "lng": 77.3419 }
             },
             {
                 "hospital_id": "H014",
-                "name": "Dr. Khanna’s Clinic",
+                "name": "Dr. Khanna's Clinic",
                 "address": "C-12, Patel Nagar",
                 "pincode": "201010",
                 "phone": "+91-9876500003",
@@ -169,7 +182,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 10,
                 "services": ["ENT", "Skin Care"],
-                "timings": "9:00 AM - 3:00 PM"
+                "timings": "9:00 AM - 3:00 PM",
+                "coordinates": { "lat": 28.6578, "lng": 77.3489 }
             },
             {
                 "hospital_id": "H015",
@@ -181,7 +195,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 150,
                 "services": ["Emergency", "General Surgery", "Radiology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6289, "lng": 77.3678 }
             },
 
             {
@@ -194,7 +209,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 50,
                 "services": ["Gynecology", "General Medicine"],
-                "timings": "9:00 AM - 5:00 PM"
+                "timings": "9:00 AM - 5:00 PM",
+                "coordinates": { "lat": 28.7041, "lng": 77.1025 }
             },
             {
                 "hospital_id": "H017",
@@ -206,7 +222,8 @@ export const hospitalService = {
                 "type": "Super-specialty",
                 "beds": 300,
                 "services": ["ICU", "Nephrology", "Oncology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.7321, "lng": 77.1152 }
             },
             {
                 "hospital_id": "H018",
@@ -218,7 +235,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 170,
                 "services": ["General Surgery", "Dermatology", "ENT"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.7195, "lng": 77.1089 }
             },
             {
                 "hospital_id": "H019",
@@ -230,7 +248,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 15,
                 "services": ["Pediatrics", "Dental"],
-                "timings": "10:00 AM - 6:00 PM"
+                "timings": "10:00 AM - 6:00 PM",
+                "coordinates": { "lat": 28.7128, "lng": 77.1067 }
             },
             {
                 "hospital_id": "H020",
@@ -242,7 +261,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 25,
                 "services": ["General Medicine", "Diabetology"],
-                "timings": "8:00 AM - 4:00 PM"
+                "timings": "8:00 AM - 4:00 PM",
+                "coordinates": { "lat": 28.7156, "lng": 77.1078 }
             },
 
             {
@@ -255,7 +275,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 160,
                 "services": ["Cardiology", "Neurology", "Emergency"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.7041, "lng": 77.2750 }
             },
             {
                 "hospital_id": "H022",
@@ -267,7 +288,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 30,
                 "services": ["ENT", "Skin Care"],
-                "timings": "9:00 AM - 5:00 PM"
+                "timings": "9:00 AM - 5:00 PM",
+                "coordinates": { "lat": 28.7089, "lng": 77.2789 }
             },
             {
                 "hospital_id": "H023",
@@ -279,7 +301,8 @@ export const hospitalService = {
                 "type": "Multi-specialty",
                 "beds": 130,
                 "services": ["General Medicine", "ICU", "Radiology"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6700, "lng": 77.2847 }
             },
             {
                 "hospital_id": "H024",
@@ -291,7 +314,8 @@ export const hospitalService = {
                 "type": "Super-specialty",
                 "beds": 280,
                 "services": ["Cardiology", "Cardiac Surgery"],
-                "timings": "24/7"
+                "timings": "24/7",
+                "coordinates": { "lat": 28.6667, "lng": 77.2734 }
             },
             {
                 "hospital_id": "H025",
@@ -303,7 +327,8 @@ export const hospitalService = {
                 "type": "Clinic",
                 "beds": 12,
                 "services": ["General Checkup", "Diabetology"],
-                "timings": "10:00 AM - 4:00 PM"
+                "timings": "10:00 AM - 4:00 PM",
+                "coordinates": { "lat": 28.7156, "lng": 77.2823 }
             }
         ]
     },
