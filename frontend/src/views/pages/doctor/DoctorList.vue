@@ -105,7 +105,9 @@ function getAvailabilityColor(availability) {
                                         <Chip v-if="item.availability.length > 3" :label="`+${item.availability.length - 3}`" class="text-xs" severity="secondary" />
                                     </div>
                                     <div class="flex gap-2">
-                                        <Button icon="pi pi-phone" outlined size="small"></Button>
+                                        <a :href="`tel:${item.phone}`">
+                                            <Button icon="pi pi-phone" outlined size="small"></Button>
+                                        </a>
                                         <Button icon="pi pi-calendar" label="Book Now" size="small" class="flex-auto md:flex-initial whitespace-nowrap"></Button>
                                     </div>
                                 </div>
@@ -157,7 +159,9 @@ function getAvailabilityColor(availability) {
                                 </div>
                                 <div class="flex gap-2 mt-6">
                                     <Button icon="pi pi-calendar" label="Book Now" size="small" class="flex-auto whitespace-nowrap"></Button>
-                                    <Button icon="pi pi-phone" outlined size="small"></Button>
+                                    <a :href="`tel:${item.phone}`">
+                                        <Button icon="pi pi-phone" outlined size="small"></Button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
