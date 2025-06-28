@@ -45,7 +45,7 @@
             desc: 'Find and book appointments with health professionals.',
             iconClass: 'pi pi-user text-blue-500 !text-xl',
             action: 'redirect',
-            redirect: '#',
+            redirect: '/doctor',
         },
         {
             id: 2,
@@ -53,7 +53,7 @@
             desc: 'Find all the hospitals in your area.',
             iconClass: 'pi pi-building text-blue-500 !text-xl',
             action: 'redirect',
-            redirect: '#',
+            redirect: '/hospital',
         },
         {
             id: 3,
