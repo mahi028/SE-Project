@@ -11,7 +11,7 @@ function smoothScroll(id) {
 <template>
     <!-- Logo and Brand -->
  <a class="flex items-center cursor-pointer" href="#">
-    <img src="/images/logo.png" alt="EZCare Logo" class="h-12 mr-2" />
+    <img src="/images/logo-transparent.png" alt="EZCare Logo" class="h-12 mr-2" />
     <span class="text-surface-900 dark:text-surface-0 font-semibold text-2xl leading-normal mr-20">
         EZCare
     </span>
