@@ -12,13 +12,10 @@
             <p class="font-normal text-2xl leading-normal md:mt-4 text-gray-700">
                 Connect with doctors, get reminders, and find emergency help — all designed for senior ease and comfort.
                </p>
-               <p>
-             Doctors get quick access to records, alerts, and scheduling — all in one trusted space.
-            </p>
+               <br>
         </div>
         <div class="flex justify-center md:justify-end">
 
-<img src="/images/hero-senior-doctor.png" alt="Hero Image" style="width: 100px; height: auto;" />
         </div>
     </div>
 </template>
