@@ -2,7 +2,7 @@ npmn<template>
     <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
         <div class="grid grid-cols-12 gap-4 justify-center">
             <div class="col-span-12 text-center mt-20 mb-8">
-                <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl"> 
+                <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">
                 Bridging Care Between Seniors & Doctors
                 </div>
                 <span class="text-muted-color text-2xl">
@@ -41,7 +41,7 @@ npmn<template>
                 </div>
             </div>
 
-   
+
 
             <div class="col-span-12 sm:col-span-6 lg:col-span-4 p-2">
     <div class="h-full rounded-xl bg-gradient-to-b from-yellow-300 to-slate-300 p-[1px]">
@@ -93,7 +93,7 @@ npmn<template>
                     </div>
                 </div>
             </div>
-            
+
 
                      <div class="col-span-12 sm:col-span-6 lg:col-span-4 p-2">
     <div class="h-full rounded-xl bg-gradient-to-b from-blue-300 to-slate-300 p-[1px]">
@@ -118,7 +118,7 @@ npmn<template>
                     </div>
                 </div>
             </div>
-            
+
 
             <div class="col-span-12 sm:col-span-6 lg:col-span-4 p-2">
     <div class="h-full rounded-xl bg-gradient-to-b from-blue-300 to-slate-300 p-[1px]">
@@ -141,7 +141,7 @@ npmn<template>
         <p class="text-gray-900 text-base mt-3" style="max-width: 600px">
             “This platform has been a true lifesaver. I was able to reach the nearest hospital within minutes during a health emergency. It's simple, fast, and incredibly reassuring.”
         </p>
-        <img src="/images/senior_care.png" class="mt-4 w-10 h-auto" alt="Senior Care logo" />
+        <img src="/images/logo-transparent.png" alt="EZCare Logo" class="h-12 mr-2" />
     </div>
 </div>
 
