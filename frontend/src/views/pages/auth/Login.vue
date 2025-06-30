@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import Divider from 'primevue/divider';
 import { useLoginStore } from '@/store/loginStore';
-import { doctorService } from '@/service/DoctorService';
+import { userService } from '@/service/UserService';
 import { useToast } from 'primevue';
 import { useRouter } from 'vue-router';
 
@@ -12,7 +12,7 @@ const router = useRouter()
 
 const formData = ref({
     email: 'dr.rajesh@citycarehospital.com',
-    ezid: '',
+    ez_id: '',
     password: 'dummyPassword123',
 })
 
@@ -23,7 +23,7 @@ const options = ref(['Email', 'EZID']);
 
 const login = async ()=>{
     try{
-        const userDeatils = await doctorService.getDoctor(formData.value)
+        const userDeatils = await userService.getUser(formData.value)
         loginStore.setLoginDetails(userDeatils)
         toast.add({ severity: 'success', summary: 'Success', detail: 'You are Successfully Logged-In', life: 3000 });
         if(userDeatils.role === 'doctor'){
@@ -74,7 +74,7 @@ const login = async ()=>{
                         <InputText id="email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="formData.email" v-show="value=='Email'"/>
 
                         <label for="ezid" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="value=='EZID'">EZ ID</label>
-                        <InputText id="ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="formData.ezid" v-show="value=='EZID'"/>
+                        <InputText id="ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="formData.ez_id" v-show="value=='EZID'"/>
 
                         <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                         <Password id="password1" v-model="formData.password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
