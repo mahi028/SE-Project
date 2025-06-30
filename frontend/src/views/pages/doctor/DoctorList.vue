@@ -108,7 +108,7 @@ function getAvailabilityColor(availability) {
                                         <a :href="`tel:${item.phone}`">
                                             <Button icon="pi pi-phone" outlined size="small"></Button>
                                         </a>
-                                        <Button icon="pi pi-calendar" label="Book Now" size="small" class="flex-auto md:flex-initial whitespace-nowrap"></Button>
+                                        <Button icon="pi pi-calendar" label="View" size="small" class="flex-auto md:flex-initial whitespace-nowrap" as="router-link" :to="`/doctor/${item.ez_id}`"></Button>
                                     </div>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@ function getAvailabilityColor(availability) {
                                     </div>
                                 </div>
                                 <div class="flex gap-2 mt-6">
-                                    <Button icon="pi pi-calendar" label="Book Now" size="small" class="flex-auto whitespace-nowrap"></Button>
+                                    <Button icon="pi pi-calendar" label="View" size="small" class="flex-auto whitespace-nowrap" as="router-link" :to="`/doctor/${item.ez_id}`"></Button>
                                     <a :href="`tel:${item.phone}`">
                                         <Button icon="pi pi-phone" outlined size="small"></Button>
                                     </a>

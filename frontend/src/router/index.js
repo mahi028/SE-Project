@@ -33,6 +33,21 @@ const router = createRouter({
                     name: 'doctorList',
                     component: () => import('@/views/pages/doctor/DoctorList.vue')
                 },
+                {
+                    path: '/me',
+                    name: 'Profile',
+                    component: () => import('@/views/pages/profile/MyProfile.vue')
+                },
+                {
+                    path: '/doctor/:ez_id',
+                    name: 'DoctorProfile',
+                    component: () => import('@/views/pages/profile/DoctorProfile.vue')
+                },
+                {
+                    path: '/senior/:ez_id',
+                    name: 'SeniorProfile',
+                    component: () => import('@/views/pages/profile/SeniorProfile.vue')
+                },
             ]
         },
         {
