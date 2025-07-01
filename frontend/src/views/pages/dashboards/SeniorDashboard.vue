@@ -1,6 +1,7 @@
 <script setup>
 import PeerGroups from '@/components/seniorDashboard/PeerGroups.vue';
 import VitalLogs from '@/components/seniorDashboard/VitalLogs.vue';
+import Contacts from '@/components/seniorDashboard/EmergencyContacts.vue';
 import SeniorNotificationsWidget from '@/components/seniorDashboard/SeniorNotificationsWidget.vue';
 import SeniorAppointments from '@/components/seniorDashboard/SeniorAppointments.vue';
 import SeniorSchedule from '@/components/seniorDashboard/SeniorSchedule.vue';
@@ -42,6 +43,9 @@ const options = ref([
         </div>
         <div class="col-span-12 xl:col-span-6" v-show="value === '2'">
             <VitalLogs />
+        </div>
+        <div class="col-span-12 xl:col-span-6" v-show="value === '3'">
+            <Contacts/>
         </div>
         <div class="col-span-12 xl:col-span-6" v-show="value === '4'">
             <PeerGroups />
