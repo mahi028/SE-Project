@@ -16,7 +16,8 @@ export const doctorService = {
                 "email": "dr.rajesh@citycarehospital.com",
                 "consultation_fee": "₹800",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D002",
@@ -32,7 +33,8 @@ export const doctorService = {
                 "email": "dr.priya@greenvalleyclinic.in",
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D003",
@@ -48,7 +50,8 @@ export const doctorService = {
                 "email": "dr.amit@sunrisehospitals.com",
                 "consultation_fee": "₹1200",
                 "timings": "11:00 AM - 7:00 PM",
-                "availability": ["Monday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D004",
@@ -64,7 +67,8 @@ export const doctorService = {
                 "email": "dr.sunita@lifeline.com",
                 "consultation_fee": "₹700",
                 "timings": "2:00 PM - 8:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday", "Sunday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday", "Sunday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D005",
@@ -80,7 +84,8 @@ export const doctorService = {
                 "email": "dr.vikram@hopewellmed.com",
                 "consultation_fee": "₹900",
                 "timings": "10:00 AM - 4:00 PM",
-                "availability": ["Monday", "Tuesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D006",
@@ -96,7 +101,8 @@ export const doctorService = {
                 "email": "dr.kavita@delhiskin.com",
                 "consultation_fee": "₹650",
                 "timings": "12:00 PM - 6:00 PM",
-                "availability": ["Monday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 3
             },
 
             // Noida - 201301
@@ -114,7 +120,8 @@ export const doctorService = {
                 "email": "dr.rohit@fortunehospital.com",
                 "consultation_fee": "₹1000",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D008",
@@ -130,7 +137,8 @@ export const doctorService = {
                 "email": "dr.meera@noidaclinic.com",
                 "consultation_fee": "₹550",
                 "timings": "8:00 AM - 2:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D009",
@@ -146,7 +154,8 @@ export const doctorService = {
                 "email": "dr.anuj@metrocenter.com",
                 "consultation_fee": "₹800",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D010",
@@ -162,7 +171,8 @@ export const doctorService = {
                 "email": "dr.pooja@healcare.org",
                 "consultation_fee": "₹1500",
                 "timings": "11:00 AM - 7:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D011",
@@ -178,7 +188,8 @@ export const doctorService = {
                 "email": "dr.deepak@wellness.com",
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D012",
@@ -194,7 +205,8 @@ export const doctorService = {
                 "email": "dr.nisha@noidawomen.com",
                 "consultation_fee": "₹750",
                 "timings": "3:00 PM - 9:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Sunday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Sunday"],
+                "reviews": 4
             },
 
             // Ghaziabad - 201010
@@ -212,7 +224,8 @@ export const doctorService = {
                 "email": "dr.suresh@ghzbmed.com",
                 "consultation_fee": "₹950",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D014",
@@ -228,7 +241,8 @@ export const doctorService = {
                 "email": "dr.rekha@vivek.com",
                 "consultation_fee": "₹400",
                 "timings": "8:00 AM - 4:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D015",
@@ -244,7 +258,8 @@ export const doctorService = {
                 "email": "dr.manoj@sarvoday.org",
                 "consultation_fee": "₹1300",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D016",
@@ -260,7 +275,8 @@ export const doctorService = {
                 "email": "dr.sanjay@khannaclinic.in",
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 3:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D017",
@@ -276,7 +292,8 @@ export const doctorService = {
                 "email": "dr.smita@carecure.in",
                 "consultation_fee": "₹850",
                 "timings": "11:00 AM - 7:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D018",
@@ -292,7 +309,8 @@ export const doctorService = {
                 "email": "dr.anil@ghzhealth.com",
                 "consultation_fee": "₹500",
                 "timings": "8:00 AM - 8:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
 
             // Ghaziabad - 201011
@@ -310,7 +328,8 @@ export const doctorService = {
                 "email": "dr.rakesh@bonecare.com",
                 "consultation_fee": "₹900",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D020",
@@ -326,7 +345,8 @@ export const doctorService = {
                 "email": "dr.neetu@kidscare.com",
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D021",
@@ -342,7 +362,8 @@ export const doctorService = {
                 "email": "dr.ashok@skinsolutions.com",
                 "consultation_fee": "₹700",
                 "timings": "11:00 AM - 7:00 PM",
-                "availability": ["Monday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D022",
@@ -358,7 +379,8 @@ export const doctorService = {
                 "email": "dr.vandana@womenshealth.com",
                 "consultation_fee": "₹800",
                 "timings": "2:00 PM - 8:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D023",
@@ -374,7 +396,8 @@ export const doctorService = {
                 "email": "dr.ravi@mindcare.com",
                 "consultation_fee": "₹1000",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D024",
@@ -390,7 +413,8 @@ export const doctorService = {
                 "email": "dr.preeti@eyecare.com",
                 "consultation_fee": "₹750",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
 
             // Rohini Delhi - 110085
@@ -408,7 +432,8 @@ export const doctorService = {
                 "email": "dr.hemant@nirmanmed.in",
                 "consultation_fee": "₹750",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D026",
@@ -424,7 +449,8 @@ export const doctorService = {
                 "email": "dr.arun@superrohini.com",
                 "consultation_fee": "₹1200",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D027",
@@ -440,7 +466,8 @@ export const doctorService = {
                 "email": "dr.seema@sunbeam.com",
                 "consultation_fee": "₹650",
                 "timings": "11:00 AM - 7:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D028",
@@ -456,7 +483,8 @@ export const doctorService = {
                 "email": "dr.rahul@clinicplus.in",
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 6:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D029",
@@ -472,7 +500,8 @@ export const doctorService = {
                 "email": "dr.shilpa@familycare.org",
                 "consultation_fee": "₹600",
                 "timings": "8:00 AM - 4:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
 
             // East Delhi - 110053
@@ -490,7 +519,8 @@ export const doctorService = {
                 "email": "dr.ajay@eastdelhi.com",
                 "consultation_fee": "₹1000",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D031",
@@ -506,7 +536,8 @@ export const doctorService = {
                 "email": "dr.sushma@yamunapoly.com",
                 "consultation_fee": "₹550",
                 "timings": "9:00 AM - 5:00 PM",
-                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 3
             },
             {
                 "ez_id": "D032",
@@ -522,7 +553,8 @@ export const doctorService = {
                 "email": "dr.vinod@swasthya.com",
                 "consultation_fee": "₹450",
                 "timings": "8:00 AM - 8:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "reviews": 4
             },
             {
                 "ez_id": "D033",
@@ -538,7 +570,8 @@ export const doctorService = {
                 "email": "dr.neha@heartpoint.com",
                 "consultation_fee": "₹2000",
                 "timings": "10:00 AM - 4:00 PM",
-                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 5
             },
             {
                 "ez_id": "D034",
@@ -554,7 +587,8 @@ export const doctorService = {
                 "email": "dr.ramesh@shakticlinic.org",
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 4:00 PM",
-                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+                "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "reviews": 3
             }
         ]
     },

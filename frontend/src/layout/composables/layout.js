@@ -1,4 +1,5 @@
 import { computed, reactive } from 'vue';
+import { usePreferenceStore } from '@/store/preferenceStore';
 
 const layoutConfig = reactive({
     preset: 'Aura',
@@ -19,6 +20,10 @@ const layoutState = reactive({
 });
 
 export function useLayout() {
+    const preferenceStore = usePreferenceStore()
+    const preferenceDetails = preferenceStore.getPreferenceDetails();
+    Object.assign(layoutConfig, preferenceDetails);
+
     const setActiveMenuItem = (item) => {
         layoutState.activeMenuItem = item.value || item;
     };
@@ -36,6 +41,7 @@ export function useLayout() {
     const executeDarkModeToggle = () => {
         layoutConfig.darkTheme = !layoutConfig.darkTheme;
         document.documentElement.classList.toggle('app-dark');
+        preferenceStore.setDarktheme()
     };
 
     const toggleMenu = () => {
@@ -49,6 +55,10 @@ export function useLayout() {
         //     layoutState.staticMenuMobileActive = !layoutState.staticMenuMobileActive;
         // }
     };
+
+    if (preferenceDetails.darkTheme){
+        document.documentElement.classList.toggle('app-dark');
+    }
 
     const isSidebarActive = computed(() => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive);
 
