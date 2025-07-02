@@ -48,12 +48,28 @@ const router = createRouter({
                     name: 'SeniorProfile',
                     component: () => import('@/views/pages/profile/SeniorProfile.vue')
                 },
+                {
+                    path: 'doctor-registration',
+                    name: 'DoctorRegistration',
+                    component: () => import('@/views/DoctorRegistration.vue')
+                },
+                {
+                    path: 'senior-registration',
+                    name: 'SeniorRegistration',
+                    component: () => import('@/views/SeniorRegistration.vue')
+            }
+
             ]
         },
         {
             path: '/auth/login',
             name: 'login',
             component: () => import('@/views/pages/auth/Login.vue')
+        },
+        {
+            path: '/auth/register',
+            name: 'register',
+            component: () => import('@/views/pages/auth/Register.vue')
         },
         {
             path: '/:pathMatch(.*)*',

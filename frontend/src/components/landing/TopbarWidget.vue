@@ -45,8 +45,8 @@ function smoothScroll(id) {
 
         <!-- Auth Buttons -->
         <div class="flex border-t lg:border-t-0 border-surface py-4 lg:py-0 mt-4 lg:mt-0 gap-2">
-            <Button label="Login" text as="router-link" to="/auth/login" rounded />
-            <Button label="Register" to="/auth/register" rounded />
+            <Button label="Login" text as="router-link" to="/auth/login" rounded></Button>
+            <Button label="Register" text as="router-link" to="/auth/register" rounded></Button>
         </div>
     </div>
 </template>
