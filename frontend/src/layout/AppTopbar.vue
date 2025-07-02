@@ -1,8 +1,16 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
 import AppConfigurator from './AppConfigurator.vue';
-
+import { useLoginStore } from '@/store/loginStore';
+import { useRouter } from 'vue-router';
 const { toggleDarkMode, isDarkTheme } = useLayout();
+const loginStore = useLoginStore()
+const router = useRouter()
+const logout = async () =>
+{
+    loginStore.clearLoginDetails();
+    router.push('/')
+}
 </script>
 
 <template>
@@ -44,10 +52,11 @@ const { toggleDarkMode, isDarkTheme } = useLayout();
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <!--  -->
-                    <button type="button" class="layout-topbar-action">
+                    <RouterLink to="/me" class="layout-topbar-action">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
-                    </button>
+                    </RouterLink>
+                    <Button v-if="loginStore.ez_id" @click="logout()" label="Logout" severity="danger" rounded />
                 </div>
             </div>
         </div>

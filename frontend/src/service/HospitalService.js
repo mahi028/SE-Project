@@ -12,7 +12,8 @@ export const hospitalService = {
                 "beds": 150,
                 "services": ["Emergency", "Cardiology", "Orthopedics", "Radiology", "Pharmacy"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6139, "lng": 77.2090 }
+                "coordinates": { "lat": 28.6139, "lng": 77.2090 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H002",
@@ -25,7 +26,8 @@ export const hospitalService = {
                 "beds": 20,
                 "services": ["General Medicine", "Pediatrics", "Dermatology"],
                 "timings": "9:00 AM - 9:00 PM",
-                "coordinates": { "lat": 28.5562, "lng": 77.2046 }
+                "coordinates": { "lat": 28.5562, "lng": 77.2046 },
+                "reviews": 3
             },
             {
                 "hospital_id": "H003",
@@ -38,7 +40,8 @@ export const hospitalService = {
                 "beds": 300,
                 "services": ["Neurology", "Nephrology", "Oncology", "ICU", "Emergency"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6289, "lng": 77.2065 }
+                "coordinates": { "lat": 28.6289, "lng": 77.2065 },
+                "reviews": 5
             },
             {
                 "hospital_id": "H004",
@@ -51,7 +54,8 @@ export const hospitalService = {
                 "beds": 200,
                 "services": ["ENT", "Gastroenterology", "Orthopedics"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6692, "lng": 77.1750 }
+                "coordinates": { "lat": 28.6692, "lng": 77.1750 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H005",
@@ -64,7 +68,8 @@ export const hospitalService = {
                 "beds": 35,
                 "services": ["General Medicine", "Physiotherapy"],
                 "timings": "10:00 AM - 6:00 PM",
-                "coordinates": { "lat": 28.6507, "lng": 77.1909 }
+                "coordinates": { "lat": 28.6507, "lng": 77.1909 },
+                "reviews": 3
             },
 
             {
@@ -78,7 +83,8 @@ export const hospitalService = {
                 "beds": 250,
                 "services": ["Cardiology", "Neurology", "ICU"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6266, "lng": 77.3617 }
+                "coordinates": { "lat": 28.6266, "lng": 77.3617 },
+                "reviews": 5
             },
             {
                 "hospital_id": "H007",
@@ -91,7 +97,8 @@ export const hospitalService = {
                 "beds": 40,
                 "services": ["Pediatrics", "Gynecology"],
                 "timings": "8:00 AM - 8:00 PM",
-                "coordinates": { "lat": 28.5933, "lng": 77.3178 }
+                "coordinates": { "lat": 28.5933, "lng": 77.3178 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H008",
@@ -104,7 +111,8 @@ export const hospitalService = {
                 "beds": 100,
                 "services": ["Radiology", "Pathology", "General Surgery"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.5858, "lng": 77.3421 }
+                "coordinates": { "lat": 28.5858, "lng": 77.3421 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H009",
@@ -117,7 +125,8 @@ export const hospitalService = {
                 "beds": 180,
                 "services": ["Emergency", "Oncology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.5668, "lng": 77.3558 }
+                "coordinates": { "lat": 28.5668, "lng": 77.3558 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H010",
@@ -130,7 +139,8 @@ export const hospitalService = {
                 "beds": 25,
                 "services": ["Dentistry", "Skin Care"],
                 "timings": "10:00 AM - 6:00 PM",
-                "coordinates": { "lat": 28.6063, "lng": 77.3638 }
+                "coordinates": { "lat": 28.6063, "lng": 77.3638 },
+                "reviews": 3
             },
 
             {
@@ -144,7 +154,8 @@ export const hospitalService = {
                 "beds": 220,
                 "services": ["ICU", "Emergency", "Cardiology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6414, "lng": 77.3601 }
+                "coordinates": { "lat": 28.6414, "lng": 77.3601 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H012",
@@ -157,7 +168,8 @@ export const hospitalService = {
                 "beds": 30,
                 "services": ["Physiotherapy", "General Medicine"],
                 "timings": "8:00 AM - 4:00 PM",
-                "coordinates": { "lat": 28.6692, "lng": 77.3539 }
+                "coordinates": { "lat": 28.6692, "lng": 77.3539 },
+                "reviews": 3
             },
             {
                 "hospital_id": "H013",
@@ -170,7 +182,8 @@ export const hospitalService = {
                 "beds": 275,
                 "services": ["ICU", "Oncology", "Neurology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6869, "lng": 77.3419 }
+                "coordinates": { "lat": 28.6869, "lng": 77.3419 },
+                "reviews": 5
             },
             {
                 "hospital_id": "H014",
@@ -183,7 +196,8 @@ export const hospitalService = {
                 "beds": 10,
                 "services": ["ENT", "Skin Care"],
                 "timings": "9:00 AM - 3:00 PM",
-                "coordinates": { "lat": 28.6578, "lng": 77.3489 }
+                "coordinates": { "lat": 28.6578, "lng": 77.3489 },
+                "reviews": 2
             },
             {
                 "hospital_id": "H015",
@@ -196,7 +210,8 @@ export const hospitalService = {
                 "beds": 150,
                 "services": ["Emergency", "General Surgery", "Radiology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6289, "lng": 77.3678 }
+                "coordinates": { "lat": 28.6289, "lng": 77.3678 },
+                "reviews": 4
             },
 
             {
@@ -210,7 +225,8 @@ export const hospitalService = {
                 "beds": 50,
                 "services": ["Gynecology", "General Medicine"],
                 "timings": "9:00 AM - 5:00 PM",
-                "coordinates": { "lat": 28.7041, "lng": 77.1025 }
+                "coordinates": { "lat": 28.7041, "lng": 77.1025 },
+                "reviews": 3
             },
             {
                 "hospital_id": "H017",
@@ -223,7 +239,8 @@ export const hospitalService = {
                 "beds": 300,
                 "services": ["ICU", "Nephrology", "Oncology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.7321, "lng": 77.1152 }
+                "coordinates": { "lat": 28.7321, "lng": 77.1152 },
+                "reviews": 5
             },
             {
                 "hospital_id": "H018",
@@ -236,7 +253,8 @@ export const hospitalService = {
                 "beds": 170,
                 "services": ["General Surgery", "Dermatology", "ENT"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.7195, "lng": 77.1089 }
+                "coordinates": { "lat": 28.7195, "lng": 77.1089 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H019",
@@ -249,7 +267,8 @@ export const hospitalService = {
                 "beds": 15,
                 "services": ["Pediatrics", "Dental"],
                 "timings": "10:00 AM - 6:00 PM",
-                "coordinates": { "lat": 28.7128, "lng": 77.1067 }
+                "coordinates": { "lat": 28.7128, "lng": 77.1067 },
+                "reviews": 3
             },
             {
                 "hospital_id": "H020",
@@ -262,7 +281,8 @@ export const hospitalService = {
                 "beds": 25,
                 "services": ["General Medicine", "Diabetology"],
                 "timings": "8:00 AM - 4:00 PM",
-                "coordinates": { "lat": 28.7156, "lng": 77.1078 }
+                "coordinates": { "lat": 28.7156, "lng": 77.1078 },
+                "reviews": 3
             },
 
             {
@@ -276,7 +296,8 @@ export const hospitalService = {
                 "beds": 160,
                 "services": ["Cardiology", "Neurology", "Emergency"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.7041, "lng": 77.2750 }
+                "coordinates": { "lat": 28.7041, "lng": 77.2750 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H022",
@@ -289,7 +310,8 @@ export const hospitalService = {
                 "beds": 30,
                 "services": ["ENT", "Skin Care"],
                 "timings": "9:00 AM - 5:00 PM",
-                "coordinates": { "lat": 28.7089, "lng": 77.2789 }
+                "coordinates": { "lat": 28.7089, "lng": 77.2789 },
+                "reviews": 3
             },
             {
                 "hospital_id": "H023",
@@ -302,7 +324,8 @@ export const hospitalService = {
                 "beds": 130,
                 "services": ["General Medicine", "ICU", "Radiology"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6700, "lng": 77.2847 }
+                "coordinates": { "lat": 28.6700, "lng": 77.2847 },
+                "reviews": 4
             },
             {
                 "hospital_id": "H024",
@@ -315,7 +338,8 @@ export const hospitalService = {
                 "beds": 280,
                 "services": ["Cardiology", "Cardiac Surgery"],
                 "timings": "24/7",
-                "coordinates": { "lat": 28.6667, "lng": 77.2734 }
+                "coordinates": { "lat": 28.6667, "lng": 77.2734 },
+                "reviews": 5
             },
             {
                 "hospital_id": "H025",
@@ -328,7 +352,8 @@ export const hospitalService = {
                 "beds": 12,
                 "services": ["General Checkup", "Diabetology"],
                 "timings": "10:00 AM - 4:00 PM",
-                "coordinates": { "lat": 28.7156, "lng": 77.2823 }
+                "coordinates": { "lat": 28.7156, "lng": 77.2823 },
+                "reviews": 2
             }
         ]
     },

@@ -10,8 +10,6 @@ export const useLoginStore = defineStore('loginDetails', {
     setLoginDetails(details) {
       this.ez_id = details.ez_id
       this.role = details.role
-      console.log(details)
-      console.log('set details: ', this.ez_id, this.role)
     },
 
     clearLoginDetails() {

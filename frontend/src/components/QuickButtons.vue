@@ -2,7 +2,10 @@
     import { ref } from 'vue';
     import { RouterLink } from 'vue-router';
     import { useToast } from "primevue/usetoast";
+    import { useRouter } from 'vue-router';
+    import { seniorService } from '@/service/SeniorService';
 
+    const router = useRouter()
     const props = defineProps({
         page: String,
     })
@@ -22,10 +25,24 @@
         ezid: '',
         face: '',
     })
-
     const onAdvancedUpload = () => {
         toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
     };
+
+    const getInfo = () => {
+        if (lookupValue.value === 'Email'){
+            seniorService.getSenior({ "email": lookupData.value.email }).then(data => {
+                if (data){
+                    router.push(`/senior/${data.ez_id}`)
+                }else{
+                    toast.add({ severity: 'danger', summary: 'No User Found', detail: 'Please Enter a valid Email.', life: 3000 });
+                }
+            })
+
+        }else if (lookupValue.value === 'EZID'){
+            router.push(`/senior/${lookupData.value.ezid}`)
+        }
+    }
 
     const doctorWidgets = ref([
         {
@@ -138,7 +155,7 @@
                         </template>
                     </FileUpload>
                 </div>
-                <Button label="Get Info" class="w-full" as="router-link"></Button>
+                <Button label="Get Info" @click="getInfo()" class="w-full"></Button>
             </div>
 
             <br>
