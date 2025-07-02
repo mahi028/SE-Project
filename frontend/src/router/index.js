@@ -16,7 +16,37 @@ const router = createRouter({
                 {
                     path: '/dashboard',
                     name: 'dashboard',
-                    component: () => import('@/views/Dashboard.vue')
+                    component: () => import('@/views/pages/dashboards/SeniorDashboard.vue')
+                },
+                {
+                    path: '/dashboard2',
+                    name: 'Doctordashboard',
+                    component: () => import('@/views/pages/dashboards/DoctorDashbaord.vue')
+                },
+                {
+                    path: '/hospital',
+                    name: 'hospitalList',
+                    component: () => import('@/views/pages/hospital/HospitalList.vue')
+                },
+                {
+                    path: '/doctor',
+                    name: 'doctorList',
+                    component: () => import('@/views/pages/doctor/DoctorList.vue')
+                },
+                {
+                    path: '/me',
+                    name: 'Profile',
+                    component: () => import('@/views/pages/profile/MyProfile.vue')
+                },
+                {
+                    path: '/doctor/:ez_id',
+                    name: 'DoctorProfile',
+                    component: () => import('@/views/pages/profile/DoctorProfile.vue')
+                },
+                {
+                    path: '/senior/:ez_id',
+                    name: 'SeniorProfile',
+                    component: () => import('@/views/pages/profile/SeniorProfile.vue')
                 },
                 {
                     path: 'doctor-registration',

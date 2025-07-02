@@ -5,6 +5,7 @@ import Aura from '@primeuix/themes/aura';
 import Lara from '@primeuix/themes/lara';
 import Nora from '@primeuix/themes/nora';
 import { ref } from 'vue';
+import { usePreferenceStore } from '@/store/preferenceStore';
 
 const { layoutConfig, isDarkTheme } = useLayout();
 
@@ -15,7 +16,7 @@ const presets = {
 };
 const preset = ref(layoutConfig.preset);
 const presetOptions = ref(Object.keys(presets));
-
+const preferenceDetails = usePreferenceStore()
 const menuMode = ref(layoutConfig.menuMode);
 // const menuModeOptions = ref([
 //     { label: 'Static', value: 'static' },
@@ -169,9 +170,9 @@ function getPresetExt() {
 
 function updateColors(type, color) {
     if (type === 'primary') {
-        layoutConfig.primary = color.name;
+        preferenceDetails.primary = color.name;
     } else if (type === 'surface') {
-        layoutConfig.surface = color.name;
+        preferenceDetails.surface = color.name;
     }
 
     applyTheme(type, color);
@@ -186,9 +187,9 @@ function applyTheme(type, color) {
 }
 
 function onPresetChange() {
-    layoutConfig.preset = preset.value;
+    preferenceDetails.preset = preset.value;
     const presetValue = presets[preset.value];
-    const surfacePalette = surfaces.value.find((s) => s.name === layoutConfig.surface)?.palette;
+    const surfacePalette = surfaces.value.find((s) => s.name === preferenceDetails.surface)?.palette;
 
     $t().preset(presetValue).preset(getPresetExt()).surfacePalette(surfacePalette).use({ useDefaultOptions: true });
 }
@@ -196,6 +197,9 @@ function onPresetChange() {
 function onMenuModeChange() {
     layoutConfig.menuMode = menuMode.value;
 }
+applyTheme('primary', primaryColors.value.find((c) => c.name === preferenceDetails.primary))
+applyTheme('surface', surfaces.value.find((s) => s.name === preferenceDetails.surface))
+onPresetChange()
 </script>
 
 <template>
@@ -203,7 +207,7 @@ function onMenuModeChange() {
         class="config-panel hidden absolute top-[3.25rem] right-0 w-64 p-4 bg-surface-0 dark:bg-surface-900 border border-surface rounded-border origin-top shadow-[0px_3px_5px_rgba(0,0,0,0.02),0px_0px_2px_rgba(0,0,0,0.05),0px_1px_4px_rgba(0,0,0,0.08)]"
     >
         <div class="flex flex-col gap-4">
-            <div>
+            <!-- <div>
                 <span class="text-sm text-muted-color font-semibold">Primary</span>
                 <div class="pt-2 flex gap-2 flex-wrap justify-between">
                     <button
@@ -216,7 +220,7 @@ function onMenuModeChange() {
                         :style="{ backgroundColor: `${primaryColor.name === 'noir' ? 'var(--text-color)' : primaryColor.palette['500']}` }"
                     ></button>
                 </div>
-            </div>
+            </div> -->
             <div>
                 <span class="text-sm text-muted-color font-semibold">Surface</span>
                 <div class="pt-2 flex gap-2 flex-wrap justify-between">

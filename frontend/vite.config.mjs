@@ -12,11 +12,17 @@ export default defineConfig({
         noDiscovery: true
     },
     plugins: [
-        vue(),
+        vue({
+            template: {
+                compilerOptions: {
+                    isCustomElement: tag => tag === 'marquee'
+                }
+            }
+        }),
         VitePluginVueDevTools(),
         Components({
             resolvers: [PrimeVueResolver()]
-        })
+        }),
     ],
     resolve: {
         alias: {
