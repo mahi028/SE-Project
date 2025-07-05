@@ -16,12 +16,20 @@ const router = createRouter({
                 {
                     path: '/dashboard',
                     name: 'dashboard',
-                    component: () => import('@/views/pages/dashboards/SeniorDashboard.vue')
+                    component: () => import('@/views/pages/dashboards/SeniorDashboard.vue'),
+                    meta: { roles: ['senior'] },
                 },
                 {
                     path: '/dashboard2',
                     name: 'Doctordashboard',
-                    component: () => import('@/views/pages/dashboards/DoctorDashbaord.vue')
+                    component: () => import('@/views/pages/dashboards/DoctorDashbaord.vue'),
+                    meta: { roles: ['doctor'] },
+                },
+                {
+                    path: '/mod-dashboard',
+                    name: 'ModDashboard',
+                    component: () => import('@/views/pages/dashboards/ModDashboard.vue'),
+                    meta: { roles: ['mod'] },
                 },
                 {
                     path: '/hospital',
@@ -34,11 +42,6 @@ const router = createRouter({
                     component: () => import('@/views/pages/doctor/DoctorList.vue')
                 },
                 {
-                    path: '/me',
-                    name: 'Profile',
-                    component: () => import('@/views/pages/profile/MyProfile.vue')
-                },
-                {
                     path: '/doctor/:ez_id',
                     name: 'DoctorProfile',
                     component: () => import('@/views/pages/profile/DoctorProfile.vue')
@@ -49,22 +52,28 @@ const router = createRouter({
                     component: () => import('@/views/pages/profile/SeniorProfile.vue')
                 },
                 {
-                    path: 'doctor-registration',
+                    path: 'doctor/registration',
                     name: 'DoctorRegistration',
-                    component: () => import('@/views/DoctorRegistration.vue')
+                    component: () => import('@/views/DoctorRegistration.vue'),
+                    meta: { roles: ['doctor'] },
                 },
                 {
-                    path: 'senior-registration',
+                    path: 'senior/registration',
                     name: 'SeniorRegistration',
-                    component: () => import('@/views/SeniorRegistration.vue')
-            }
-
+                    component: () => import('@/views/SeniorRegistration.vue'),
+                    meta: { roles: ['senior'] },
+                }
             ]
         },
         {
             path: '/auth/login',
             name: 'login',
             component: () => import('@/views/pages/auth/Login.vue')
+        },
+        {
+            path: '/auth/access',
+            name: 'access',
+            component: () => import('@/views/pages/auth/Access.vue')
         },
         {
             path: '/auth/register',
