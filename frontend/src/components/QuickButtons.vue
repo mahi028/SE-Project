@@ -4,6 +4,7 @@
     import { useToast } from "primevue/usetoast";
     import { useRouter } from 'vue-router';
     import { seniorService } from '@/service/SeniorService';
+    import { doctorService } from '@/service/DoctorService';
 
     const router = useRouter()
     const props = defineProps({
@@ -15,6 +16,7 @@
     const overlay = ref({
         'patient-lookup': false,
         'example-images': false,
+        'user-lookup': false,
         'SOS-overlay': false,
     })
 
@@ -24,6 +26,12 @@
         email: '',
         ezid: '',
         face: '',
+    })
+    const userlookupOptions = ref(['Email', 'EZID']);
+    const userlookupValue = ref('Email');
+    const userlookupData = ref({
+        email: '',
+        ezid: '',
     })
     const onAdvancedUpload = () => {
         toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
@@ -41,6 +49,20 @@
 
         }else if (lookupValue.value === 'EZID'){
             router.push(`/senior/${lookupData.value.ezid}`)
+        }
+    }
+    const getUserInfo = () => {
+        if (userlookupValue.value === 'Email'){
+            doctorService.getDoctor({ "email": userlookupData.value.email }).then(data => {
+                if (data){
+                    router.push(`/doctor/${data.ez_id}`)
+                }else{
+                    toast.add({ severity: 'danger', summary: 'No User Found', detail: 'Please Enter a valid Email.', life: 3000 });
+                }
+            })
+
+        }else if (userlookupValue.value === 'EZID'){
+            router.push(`/doctor/${userlookupData.value.ezid}`)
         }
     }
 
@@ -81,6 +103,24 @@
             type: 'SOS-overlay',
         },
     ])
+    const modWidgets = ref([
+        {
+            id: 1,
+            label: 'Health Professionals',
+            desc: 'Find health professionals.',
+            iconClass: 'pi pi-user text-blue-500 !text-xl',
+            action: 'redirect',
+            redirect: '/doctor',
+        },
+        {
+            id: 2,
+            label: 'User Lookup',
+            desc: 'Search for User info from Email, EZID.',
+            iconClass: 'pi pi-search',
+            action: 'overlay',
+            type: 'user-lookup',
+        },
+    ])
 
     const closeAllOverlays = ()=>{
         for (const key in overlay.value) {
@@ -105,7 +145,14 @@
 </script>
 <template>
     <Toast />
-    <div class="col-span-12 lg:col-span-6 xl:col-span-3" v-for="widget in props.page == 'doctor' ? doctorWidgets : seniorWidgets" key="id">
+    <div class="col-span-12 lg:col-span-6 xl:col-span-3"
+        v-for="widget in {
+            'senior': seniorWidgets,
+            'doctor': doctorWidgets,
+            'mod': modWidgets,
+        }[props.page]"
+        key="id"
+    >
         <RouterLink v-if="widget.action=='redirect'" :to="widget.redirect">
         <div class="card mb-0" >
                 <div class="flex justify-between mb-4">
@@ -193,6 +240,22 @@
                 </p>
             </div>
             <br>
+        </Dialog>
+
+        <!-- Patient Lookup -->
+        <Dialog v-model:visible="overlay['user-lookup']" modal header="Get Patient's Medical Info" :style="{ width: '35rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+            <div>
+                <div class=" flex justify-center">
+                    <SelectButton v-model="userlookupValue" :options="userlookupOptions" />
+                </div>
+                <label for="email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='Email'">Email</label>
+                <InputText id="email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.email" v-show="userlookupValue=='Email'"/>
+
+                <label for="ezid" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='EZID'">EZ ID</label>
+                <InputText id="ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.ezid" v-show="userlookupValue=='EZID'"/>
+
+                <Button label="Get Info" @click="getUserInfo()" class="w-full"></Button>
+            </div>
         </Dialog>
 
         <!-- SOS Overlay -->
