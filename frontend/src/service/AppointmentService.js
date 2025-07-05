@@ -4,7 +4,7 @@ export const appointmentService = {
     getAppointmentData() {
         return [
             // Doctor D001 appointments (4 total)
-            {sen_id: 'S001', doc_id: 'D001', date: '2024-05-15', time: '09:00 AM', reason: 'Regular health checkup and blood pressure monitoring'},
+            {sen_id: 'S001', doc_id: 'D001', date: '2025-07-15', time: '09:00 AM', reason: 'Regular health checkup and blood pressure monitoring'},
             {sen_id: 'S003', doc_id: 'D001', date: '2024-05-16', time: '10:30 AM', reason: 'Chest pain and breathing difficulties'},
             {sen_id: 'S005', doc_id: 'D001', date: '2024-05-17', time: '02:00 PM', reason: 'Follow-up consultation for diabetes management'},
             {sen_id: 'S007', doc_id: 'D001', date: '2024-05-18', time: '11:00 AM', reason: 'Joint pain and mobility issues'},
@@ -150,5 +150,25 @@ export const appointmentService = {
         // In a real app, this would save to database
         // For now, we'll simulate success
         return Promise.resolve(newAppointment);
+    },
+
+    cancelAppointment(appointmentData) {
+        const { doc_id, sen_id, date, time } = appointmentData;
+
+        // Find the appointment to cancel
+        const appointmentIndex = this.getAppointmentData().findIndex(apt =>
+            apt.doc_id === doc_id && apt.sen_id === sen_id && apt.date === date && apt.time === time
+        );
+
+        if (appointmentIndex === -1) {
+            return Promise.reject(new Error('Appointment not found'));
+        }
+
+        // In a real app, this would update the database
+        // For now, we'll simulate success
+        return Promise.resolve({
+            success: true,
+            message: 'Appointment cancelled successfully'
+        });
     }
 };

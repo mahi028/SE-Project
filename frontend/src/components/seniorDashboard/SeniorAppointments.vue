@@ -4,8 +4,10 @@ import { doctorService } from '@/service/DoctorService';
 import { useLoginStore } from '@/store/loginStore';
 import { ref, onMounted, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import { useConfirm } from 'primevue/useconfirm';
 
 const toast = useToast();
+const confirm = useConfirm();
 const appointments = ref([]);
 const doctors = ref([]);
 const loginStore = useLoginStore();
@@ -87,6 +89,49 @@ const pastAppointments = computed(() => {
     }).sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
 });
 
+const cancelAppointment = (appointment) => {
+    const doctorInfo = getDoctorInfo(appointment.doc_id);
+    confirm.require({
+        message: `Are you sure you want to cancel your appointment with ${doctorInfo.name || appointment.doctorEmail?.split('@')[0]} on ${appointment.date} at ${appointment.time}?`,
+        header: 'Cancel Appointment',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Keep Appointment',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Cancel Appointment',
+            severity: 'danger'
+        },
+        accept: async () => {
+            try {
+                // Simulate API call to cancel appointment
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Remove appointment from list
+                appointments.value = appointments.value.filter(apt =>
+                    !(apt.doc_id === appointment.doc_id && apt.date === appointment.date && apt.time === appointment.time)
+                );
+
+                toast.add({
+                    severity: 'success',
+                    summary: 'Appointment Cancelled',
+                    detail: 'Your appointment has been cancelled successfully.',
+                    life: 3000
+                });
+            } catch (error) {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to cancel appointment. Please try again.',
+                    life: 3000
+                });
+            }
+        }
+    });
+};
+
 onMounted(() => {
     fetchAppointments();
 });
@@ -94,6 +139,7 @@ onMounted(() => {
 
 <template>
     <Toast />
+    <ConfirmDialog />
     <div class="appointments-card">
         <Card class="w-full">
             <template #header>
@@ -191,21 +237,31 @@ onMounted(() => {
                                             <div class="action-buttons">
                                                 <Button
                                                     icon="pi pi-eye"
-                                                    label="View"
+                                                    label="View Doctor"
                                                     size="small"
                                                     outlined
                                                     v-tooltip.top="'View Doctor Profile'"
                                                     as="router-link"
                                                     :to="`/doctor/${appointment.doc_id}`"
-                                                    class="w-full"
+                                                    class="w-full mb-2"
                                                 />
-                                                <Button
-                                                    icon="pi pi-phone"
-                                                    size="small"
-                                                    outlined
-                                                    v-tooltip.top="'Call Doctor'"
-                                                    :href="`tel:${getDoctorInfo(appointment.doc_id).phone || ''}`"
-                                                />
+                                                <div class="flex gap-2">
+                                                    <Button
+                                                        icon="pi pi-phone"
+                                                        size="small"
+                                                        outlined
+                                                        v-tooltip.top="'Call Doctor'"
+                                                        :href="`tel:${getDoctorInfo(appointment.doc_id).phone || ''}`"
+                                                    />
+                                                    <Button
+                                                        icon="pi pi-times"
+                                                        size="small"
+                                                        severity="danger"
+                                                        outlined
+                                                        v-tooltip.top="'Cancel Appointment'"
+                                                        @click="cancelAppointment(appointment)"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -214,7 +270,7 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Past Appointments -->
+                    <!-- Past Appointments - no cancel button needed -->
                     <div v-if="pastAppointments.length > 0" class="appointment-section">
                         <div class="section-divider">
                             <span class="section-label">Past Appointments</span>
@@ -468,6 +524,7 @@ onMounted(() => {
 
 .action-buttons {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
 }
 

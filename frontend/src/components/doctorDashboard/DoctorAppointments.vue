@@ -4,8 +4,10 @@ import { seniorService } from '@/service/SeniorService';
 import { useLoginStore } from '@/store/loginStore';
 import { ref, onMounted, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import { useConfirm } from 'primevue/useconfirm';
 
 const toast = useToast();
+const confirm = useConfirm();
 const appointments = ref([]);
 const seniors = ref([]);
 const loginStore = useLoginStore();
@@ -70,6 +72,48 @@ const pastAppointments = computed(() => {
     }).sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
 });
 
+const cancelAppointment = (appointment) => {
+    confirm.require({
+        message: `Are you sure you want to cancel the appointment with ${getSeniorInfo(appointment.sen_id).name || appointment.seniorEmail?.split('@')[0]} on ${appointment.date} at ${appointment.time}?`,
+        header: 'Cancel Appointment',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Keep Appointment',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Cancel Appointment',
+            severity: 'danger'
+        },
+        accept: async () => {
+            try {
+                // Simulate API call to cancel appointment
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Remove appointment from list
+                appointments.value = appointments.value.filter(apt =>
+                    !(apt.sen_id === appointment.sen_id && apt.date === appointment.date && apt.time === appointment.time)
+                );
+
+                toast.add({
+                    severity: 'success',
+                    summary: 'Appointment Cancelled',
+                    detail: 'The appointment has been cancelled successfully.',
+                    life: 3000
+                });
+            } catch (error) {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to cancel appointment. Please try again.',
+                    life: 3000
+                });
+            }
+        }
+    });
+};
+
 onMounted(() => {
     fetchAppointments();
 });
@@ -77,6 +121,7 @@ onMounted(() => {
 
 <template>
     <Toast />
+    <ConfirmDialog />
     <div class="appointments-card">
         <Card class="w-full">
             <template #header>
@@ -180,15 +225,25 @@ onMounted(() => {
                                                     v-tooltip.top="'View Patient Profile'"
                                                     as="router-link"
                                                     :to="`/senior/${appointment.sen_id}`"
-                                                    class="w-full"
+                                                    class="w-full mb-2"
                                                 />
-                                                <Button
-                                                    icon="pi pi-phone"
-                                                    size="small"
-                                                    outlined
-                                                    v-tooltip.top="'Call Patient'"
-                                                    :href="`tel:${getSeniorInfo(appointment.sen_id).phone || ''}`"
-                                                />
+                                                <div class="flex gap-2">
+                                                    <Button
+                                                        icon="pi pi-phone"
+                                                        size="small"
+                                                        outlined
+                                                        v-tooltip.top="'Call Patient'"
+                                                        :href="`tel:${getSeniorInfo(appointment.sen_id).phone || ''}`"
+                                                    />
+                                                    <Button
+                                                        icon="pi pi-times"
+                                                        size="small"
+                                                        severity="danger"
+                                                        outlined
+                                                        v-tooltip.top="'Cancel Appointment'"
+                                                        @click="cancelAppointment(appointment)"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -450,6 +505,7 @@ onMounted(() => {
 
 .action-buttons {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
 }
 
