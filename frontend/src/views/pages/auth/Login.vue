@@ -29,8 +29,11 @@ const login = async ()=>{
         if(userDeatils.role === 'doctor'){
             router.push('/dashboard2')
         }
-        if(userDeatils.role === 'senior'){
+        else if(userDeatils.role === 'senior'){
             router.push('/dashboard')
+        }
+        else if(userDeatils.role === 'mod'){
+            router.push('/mod-dashboard')
         }
     }catch(err){
         console.error('Something Went Wrong: ', err)
