@@ -4,7 +4,7 @@ import { onMounted, ref } from 'vue';
 
 const hospitals = ref(null);
 const options = ref(['list', 'grid']);
-const layout = ref('list');
+const layout = ref('grid');
 const pincode = ref('201010')
 
 // get data from google places api
