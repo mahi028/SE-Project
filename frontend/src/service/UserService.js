@@ -173,6 +173,48 @@ export const userService = {
                 "email": "dr.ramesh@shakticlinic.org"
             },
 
+            // New Doctors
+            {
+                "ez_id": "D035",
+                "role": "doctor",
+                "email": "dr.kiran@braincare.com"
+            },
+            {
+                "ez_id": "D036",
+                "role": "doctor",
+                "email": "dr.manish@metrourology.com"
+            },
+            {
+                "ez_id": "D037",
+                "role": "doctor",
+                "email": "dr.anjali@mindwellness.com"
+            },
+            {
+                "ez_id": "D038",
+                "role": "doctor",
+                "email": "dr.harish@digestivecare.com"
+            },
+            {
+                "ez_id": "D039",
+                "role": "doctor",
+                "email": "dr.sunita@respiratorycare.com"
+            },
+            {
+                "ez_id": "D040",
+                "role": "doctor",
+                "email": "dr.rajat@jointcare.com"
+            },
+            {
+                "ez_id": "D041",
+                "role": "doctor",
+                "email": "dr.priyanka@bloodcare.com"
+            },
+            {
+                "ez_id": "D042",
+                "role": "doctor",
+                "email": "dr.vikash@aestheticsurgery.com"
+            },
+
             // Seniors
             {
                 "ez_id": "S001",
@@ -223,6 +265,11 @@ export const userService = {
                 "ez_id": "S010",
                 "role": "senior",
                 "email": "shakuntala.rani@rediffmail.com"
+            },
+            {
+                "ez_id": "M001",
+                "role": "mod",
+                "email": "23f1002364@bs.study.iitm.ac.in"
             }
         ]
     },
