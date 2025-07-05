@@ -8,6 +8,8 @@ import { useRoute } from 'vue-router'
 import InfoItem from '@/components/InfoItem.vue'
 import VitalLogs from '@/components/seniorDashboard/VitalLogs.vue'
 import VitalTrend from '@/components/VitalTrend.vue'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
 const loginStore = useLoginStore()
@@ -15,6 +17,9 @@ const userDetails = ref({})
 const appointments = ref([])
 const vitals = ref([])
 const loading = ref(false)
+
+const toast = useToast()
+const confirm = useConfirm()
 
 // Add method to get vital icons for doctor view
 const getVitalIcon = (vitalType) => {
@@ -57,9 +62,58 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const cancelAppointment = (appointment) => {
+  confirm.require({
+    message: `Are you sure you want to cancel the appointment with ${userDetails.value.name} on ${appointment.date} at ${appointment.time}?`,
+    header: 'Cancel Appointment',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Keep Appointment',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Cancel Appointment',
+      severity: 'danger'
+    },
+    accept: async () => {
+      try {
+        // Simulate API call to cancel appointment
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Remove appointment from list
+        appointments.value = appointments.value.filter(apt =>
+          !(apt.sen_id === appointment.sen_id && apt.date === appointment.date && apt.time === appointment.time)
+        )
+
+        toast.add({
+          severity: 'success',
+          summary: 'Appointment Cancelled',
+          detail: 'The appointment has been cancelled successfully.',
+          life: 3000
+        })
+      } catch (error) {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to cancel appointment. Please try again.',
+          life: 3000
+        })
+      }
+    }
+  })
+}
+
+const isUpcomingAppointment = (appointment) => {
+  const appointmentDateTime = new Date(`${appointment.date} ${appointment.time}`)
+  return appointmentDateTime >= new Date()
+}
 </script>
 
 <template>
+  <Toast />
+  <ConfirmDialog />
   <div class="p-4 max-w-7xl mx-auto">
     <Card class="w-full">
       <template #content>
@@ -110,19 +164,33 @@ onMounted(async () => {
               responsiveLayout="scroll"
               class="p-datatable-lg text-base"
             >
-              <Column field="date" header="Date" sortable style="width: 25%">
+              <Column field="date" header="Date" sortable style="width: 20%">
                 <template #body="{ data }">
                   <span class="font-semibold text-base">{{ data.date }}</span>
                 </template>
               </Column>
-              <Column field="time" header="Time" style="width: 20%">
+              <Column field="time" header="Time" style="width: 15%">
                 <template #body="{ data }">
                   <span class="text-base">{{ data.time }}</span>
                 </template>
               </Column>
-              <Column field="reason" header="Reason" style="width: 55%">
+              <Column field="reason" header="Reason" style="width: 50%">
                 <template #body="{ data }">
                   <span class="text-base">{{ data.reason }}</span>
+                </template>
+              </Column>
+              <Column header="Actions" style="width: 15%">
+                <template #body="{ data }">
+                  <Button
+                    v-if="isUpcomingAppointment(data)"
+                    icon="pi pi-times"
+                    size="small"
+                    severity="danger"
+                    outlined
+                    @click="cancelAppointment(data)"
+                    v-tooltip.top="'Cancel Appointment'"
+                  />
+                  <span v-else class="text-surface-500 text-sm">Completed</span>
                 </template>
               </Column>
             </DataTable>
@@ -133,7 +201,6 @@ onMounted(async () => {
 
         <!-- Vital Logs and Trends Section - Only for doctors -->
         <div v-if="loginStore.role === 'doctor'" class="mt-8 space-y-8">
-
           <!-- Vital Trends Chart -->
           <div>
             <h3 class="text-2xl font-semibold mb-6 flex items-center gap-2">
