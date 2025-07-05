@@ -17,7 +17,14 @@ export const doctorService = {
                 "consultation_fee": "₹800",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D002",
@@ -34,7 +41,14 @@ export const doctorService = {
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D003",
@@ -51,7 +65,14 @@ export const doctorService = {
                 "consultation_fee": "₹1200",
                 "timings": "11:00 AM - 7:00 PM",
                 "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D004",
@@ -68,7 +89,14 @@ export const doctorService = {
                 "consultation_fee": "₹700",
                 "timings": "2:00 PM - 8:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday", "Sunday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D005",
@@ -85,7 +113,14 @@ export const doctorService = {
                 "consultation_fee": "₹900",
                 "timings": "10:00 AM - 4:00 PM",
                 "availability": ["Monday", "Tuesday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D006",
@@ -102,7 +137,14 @@ export const doctorService = {
                 "consultation_fee": "₹650",
                 "timings": "12:00 PM - 6:00 PM",
                 "availability": ["Monday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
 
             // Noida - 201301
@@ -121,7 +163,14 @@ export const doctorService = {
                 "consultation_fee": "₹1000",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D008",
@@ -138,7 +187,14 @@ export const doctorService = {
                 "consultation_fee": "₹550",
                 "timings": "8:00 AM - 2:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D009",
@@ -155,7 +211,14 @@ export const doctorService = {
                 "consultation_fee": "₹800",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D010",
@@ -172,7 +235,14 @@ export const doctorService = {
                 "consultation_fee": "₹1500",
                 "timings": "11:00 AM - 7:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D011",
@@ -189,7 +259,14 @@ export const doctorService = {
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D012",
@@ -206,7 +283,14 @@ export const doctorService = {
                 "consultation_fee": "₹750",
                 "timings": "3:00 PM - 9:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Sunday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
 
             // Ghaziabad - 201010
@@ -225,7 +309,14 @@ export const doctorService = {
                 "consultation_fee": "₹950",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D014",
@@ -242,7 +333,14 @@ export const doctorService = {
                 "consultation_fee": "₹400",
                 "timings": "8:00 AM - 4:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D015",
@@ -259,7 +357,14 @@ export const doctorService = {
                 "consultation_fee": "₹1300",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D016",
@@ -276,7 +381,14 @@ export const doctorService = {
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 3:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D017",
@@ -293,7 +405,14 @@ export const doctorService = {
                 "consultation_fee": "₹850",
                 "timings": "11:00 AM - 7:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D018",
@@ -310,7 +429,14 @@ export const doctorService = {
                 "consultation_fee": "₹500",
                 "timings": "8:00 AM - 8:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
 
             // Ghaziabad - 201011
@@ -329,7 +455,14 @@ export const doctorService = {
                 "consultation_fee": "₹900",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D020",
@@ -346,7 +479,14 @@ export const doctorService = {
                 "consultation_fee": "₹600",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D021",
@@ -363,7 +503,14 @@ export const doctorService = {
                 "consultation_fee": "₹700",
                 "timings": "11:00 AM - 7:00 PM",
                 "availability": ["Monday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D022",
@@ -380,7 +527,14 @@ export const doctorService = {
                 "consultation_fee": "₹800",
                 "timings": "2:00 PM - 8:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D023",
@@ -397,7 +551,14 @@ export const doctorService = {
                 "consultation_fee": "₹1000",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D024",
@@ -414,7 +575,14 @@ export const doctorService = {
                 "consultation_fee": "₹750",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
 
             // Rohini Delhi - 110085
@@ -433,7 +601,14 @@ export const doctorService = {
                 "consultation_fee": "₹750",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D026",
@@ -450,7 +625,14 @@ export const doctorService = {
                 "consultation_fee": "₹1200",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D027",
@@ -467,7 +649,14 @@ export const doctorService = {
                 "consultation_fee": "₹650",
                 "timings": "11:00 AM - 7:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D028",
@@ -484,7 +673,14 @@ export const doctorService = {
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 6:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D029",
@@ -501,7 +697,14 @@ export const doctorService = {
                 "consultation_fee": "₹600",
                 "timings": "8:00 AM - 4:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
 
             // East Delhi - 110053
@@ -520,7 +723,14 @@ export const doctorService = {
                 "consultation_fee": "₹1000",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Saturday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D031",
@@ -537,7 +747,14 @@ export const doctorService = {
                 "consultation_fee": "₹550",
                 "timings": "9:00 AM - 5:00 PM",
                 "availability": ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D032",
@@ -554,7 +771,14 @@ export const doctorService = {
                 "consultation_fee": "₹450",
                 "timings": "8:00 AM - 8:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "reviews": 4
+                "reviews": 4,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D033",
@@ -571,7 +795,14 @@ export const doctorService = {
                 "consultation_fee": "₹2000",
                 "timings": "10:00 AM - 4:00 PM",
                 "availability": ["Tuesday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 5
+                "reviews": 5,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             },
             {
                 "ez_id": "D034",
@@ -588,16 +819,247 @@ export const doctorService = {
                 "consultation_fee": "₹500",
                 "timings": "10:00 AM - 4:00 PM",
                 "availability": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                "reviews": 3
+                "reviews": 3,
+                "status": 1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+
+            // New Doctors with different status values
+            {
+                "ez_id": "D035",
+                "role": "doctor",
+                "name": "Dr. Kiran Patel",
+                "specialization": "Neurologist",
+                "qualification": "MBBS, DM Neurology",
+                "experience": "8 years",
+                "hospital": "Brain Care Center",
+                "address": "F-12, Janakpuri, Delhi",
+                "pincode": "110058",
+                "phone": "+91-9876700001",
+                "email": "dr.kiran@braincare.com",
+                "consultation_fee": "₹1100",
+                "timings": "10:00 AM - 4:00 PM",
+                "availability": ["Monday", "Wednesday", "Friday"],
+                "reviews": null,
+                "status": 0,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D036",
+                "role": "doctor",
+                "name": "Dr. Manish Singh",
+                "specialization": "Urologist",
+                "qualification": "MBBS, MS Urology",
+                "experience": "14 years",
+                "hospital": "Metro Urology Clinic",
+                "address": "C-45, Dwarka, Delhi",
+                "pincode": "110075",
+                "phone": "+91-9876700002",
+                "email": "dr.manish@metrourology.com",
+                "consultation_fee": "₹900",
+                "timings": "9:00 AM - 3:00 PM",
+                "availability": ["Tuesday", "Thursday", "Saturday"],
+                "reviews": null,
+                "status": 0,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D037",
+                "role": "doctor",
+                "name": "Dr. Anjali Gupta",
+                "specialization": "Psychiatrist",
+                "qualification": "MBBS, MD Psychiatry",
+                "experience": "11 years",
+                "hospital": "Mind Wellness Center",
+                "address": "B-78, Pitampura, Delhi",
+                "pincode": "110034",
+                "phone": "+91-9876700003",
+                "email": "dr.anjali@mindwellness.com",
+                "consultation_fee": "₹1200",
+                "timings": "11:00 AM - 6:00 PM",
+                "availability": ["Monday", "Tuesday", "Thursday", "Friday"],
+                "reviews": null,
+                "status": 0,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D038",
+                "role": "doctor",
+                "name": "Dr. Harish Kumar",
+                "specialization": "Gastroenterologist",
+                "qualification": "MBBS, DM Gastroenterology",
+                "experience": "16 years",
+                "hospital": "Digestive Care Hospital",
+                "address": "D-23, Laxmi Nagar, Delhi",
+                "pincode": "110092",
+                "phone": "+91-9876700004",
+                "email": "dr.harish@digestivecare.com",
+                "consultation_fee": "₹1000",
+                "timings": "10:00 AM - 5:00 PM",
+                "availability": ["Monday", "Wednesday", "Friday", "Saturday"],
+                "reviews": null,
+                "status": 0,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D039",
+                "role": "doctor",
+                "name": "Dr. Sunita Jain",
+                "specialization": "Pulmonologist",
+                "qualification": "MBBS, DM Pulmonology",
+                "experience": "13 years",
+                "hospital": "Respiratory Care Clinic",
+                "address": "A-56, Tilak Nagar, Delhi",
+                "pincode": "110018",
+                "phone": "+91-9876700005",
+                "email": "dr.sunita@respiratorycare.com",
+                "consultation_fee": "₹850",
+                "timings": "9:00 AM - 4:00 PM",
+                "availability": ["Tuesday", "Wednesday", "Thursday", "Saturday"],
+                "reviews": null,
+                "status": 0,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D040",
+                "role": "doctor",
+                "name": "Dr. Rajat Mehta",
+                "specialization": "Rheumatologist",
+                "qualification": "MBBS, DM Rheumatology",
+                "experience": "9 years",
+                "hospital": "Joint Care Hospital",
+                "address": "E-34, Mayur Vihar, Delhi",
+                "pincode": "110091",
+                "phone": "+91-9876700006",
+                "email": "dr.rajat@jointcare.com",
+                "consultation_fee": "₹950",
+                "timings": "11:00 AM - 6:00 PM",
+                "availability": ["Monday", "Tuesday", "Thursday"],
+                "reviews": null,
+                "status": -1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D041",
+                "role": "doctor",
+                "name": "Dr. Priyanka Shah",
+                "specialization": "Hematologist",
+                "qualification": "MBBS, DM Hematology",
+                "experience": "7 years",
+                "hospital": "Blood Care Center",
+                "address": "C-67, Vikaspuri, Delhi",
+                "pincode": "110018",
+                "phone": "+91-9876700007",
+                "email": "dr.priyanka@bloodcare.com",
+                "consultation_fee": "₹1300",
+                "timings": "10:00 AM - 3:00 PM",
+                "availability": ["Wednesday", "Friday", "Saturday"],
+                "reviews": null,
+                "status": -1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
+            },
+            {
+                "ez_id": "D042",
+                "role": "doctor",
+                "name": "Dr. Vikash Sharma",
+                "specialization": "Plastic Surgeon",
+                "qualification": "MBBS, MCh Plastic Surgery",
+                "experience": "12 years",
+                "hospital": "Aesthetic Surgery Center",
+                "address": "F-89, Rajouri Garden, Delhi",
+                "pincode": "110027",
+                "phone": "+91-9876700008",
+                "email": "dr.vikash@aestheticsurgery.com",
+                "consultation_fee": "₹1800",
+                "timings": "12:00 PM - 6:00 PM",
+                "availability": ["Monday", "Wednesday", "Friday"],
+                "reviews": null,
+                "status": -1,
+                "documents": {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                }
             }
-        ]
+        ].map(doctor => {
+            // Add documents field to all doctors if not already present
+            if (!doctor.documents) {
+                doctor.documents = {
+                    "id_proof": "dummy_cert.pdf",
+                    "medical_license": "dummy_cert.pdf",
+                    "qualification_cert": "dummy_cert.pdf",
+                    "passport_photo": "dummy_cert.pdf"
+                };
+            }
+            // Add appointment_window if not already present
+            if (!doctor.appointment_window) {
+                // Assign random appointment window if not specified
+                const windows = [10, 15, 20, 30, 45];
+                doctor.appointment_window = windows[Math.floor(Math.random() * windows.length)];
+            }
+            return doctor;
+        });
+    },
+
+    getAllDoctors(){
+        return Promise.resolve(
+            this.getDoctors()
+        );
     },
 
     getDoctorList(pincode) {
         return Promise.resolve(
-        this.getDoctors().filter(doctor => doctor["pincode"] === pincode)
+            this.getDoctors().filter(doctor => doctor["pincode"] === pincode && doctor["status"] === 1)
         );
     },
+
+    getAllDoctorsByStatus(status) {
+        return Promise.resolve(
+            this.getDoctors().filter(doctor => doctor["status"] === status)
+        );
+    },
+
     getDoctor(query) {
         if (query['email']){
             return Promise.resolve(
@@ -611,4 +1073,104 @@ export const doctorService = {
         }
         return Promise.resolve(null);
     },
+
+    updateDoctorStatus(ez_id, newStatus) {
+        const doctors = this.getDoctors();
+        const doctorIndex = doctors.findIndex(doctor => doctor["ez_id"] === ez_id);
+        if (doctorIndex !== -1) {
+            doctors[doctorIndex].status = newStatus;
+            return Promise.resolve(doctors[doctorIndex]);
+        }
+        return Promise.resolve(null);
+    },
+
+    getAvailableTimeSlots(doctorEzId, selectedDate) {
+        try {
+
+            const doctor = this.getDoctors().find(d => d.ez_id === doctorEzId);
+            if (!doctor) {
+                return Promise.resolve([]);
+            }
+
+
+            // Ensure timings exist
+            if (!doctor.timings) {
+                return Promise.resolve([]);
+            }
+
+            // Parse doctor's working hours
+            const timingsParts = doctor.timings.split(' - ');
+            if (timingsParts.length !== 2) {
+                return Promise.resolve([]);
+            }
+
+            const [startTime, endTime] = timingsParts;
+            const start = this.parseTime(startTime);
+            const end = this.parseTime(endTime);
+
+
+            if (isNaN(start) || isNaN(end) || start >= end) {
+                return Promise.resolve([]);
+            }
+
+            // Generate time slots based on appointment window
+            const slots = [];
+            let current = start;
+            const window = doctor.appointment_window || 30; // Default to 30 minutes
+
+
+            while (current < end) {
+                const slotTime = this.formatTime(current);
+                slots.push({
+                    time: slotTime,
+                    available: true // This will be checked against existing appointments
+                });
+                current += window;
+            }
+
+            return Promise.resolve(slots);
+        } catch (error) {
+            return Promise.resolve([]);
+        }
+    },
+
+    parseTime(timeStr) {
+        try {
+            const [time, period] = timeStr.trim().split(' ');
+            if (!time || !period) {
+                throw new Error(`Invalid time format: ${timeStr}`);
+            }
+
+            const [hours, minutes] = time.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) {
+                throw new Error(`Invalid time components: ${timeStr}`);
+            }
+
+            let hour24 = hours;
+
+            if (period.toUpperCase() === 'PM' && hours !== 12) hour24 += 12;
+            if (period.toUpperCase() === 'AM' && hours === 12) hour24 = 0;
+
+            return hour24 * 60 + (minutes || 0);
+        } catch (error) {
+            return NaN;
+        }
+    },
+
+    formatTime(minutes) {
+        try {
+            if (isNaN(minutes)) {
+                throw new Error(`Invalid minutes: ${minutes}`);
+            }
+
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+
+            return `${hour12}:${mins.toString().padStart(2, '0')} ${period}`;
+        } catch (error) {
+            return 'Invalid Time';
+        }
+    }
 }

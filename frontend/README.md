@@ -14,7 +14,6 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ### Project Setup
 
 ```sh
-cd frontend
 npm install
 ```
 
