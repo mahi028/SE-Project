@@ -30,16 +30,17 @@ app.use(ConfirmationService);
 
 app.mount('#app');
 
+import { useLoginStore } from './store/loginStore';
 router.beforeEach((to, from, next) => {
-//   const loginStore = LoginStore() //Simulating role based access control
+  const loginStore = useLoginStore()
 
   if (to.meta.roles) {
-    // const userRole = loginStore.role
+    const userRole = loginStore.role
 
-    if ('hello') {
+    if (to.meta.roles.includes(userRole)) {
       next()
     } else {
-      next({ name: 'NotFound' })
+      next({ name: 'access' })
     }
   } else {
     next()

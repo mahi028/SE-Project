@@ -11,8 +11,11 @@ if(useLoginStore().role){
     if(useLoginStore().role === 'doctor'){
         useRouter().push('/dashboard2')
     }
-    if(useLoginStore().role === 'senior'){
+    else if(useLoginStore().role === 'senior'){
         useRouter().push('/dashboard')
+    }
+    else if(useLoginStore().role === 'mod'){
+        useRouter().push('/mod-dashboard')
     }
 }
 </script>

@@ -52,7 +52,7 @@ const logout = async () =>
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <!--  -->
-                    <RouterLink to="/me" class="layout-topbar-action">
+                    <RouterLink v-if="['senior','doctor'].includes(loginStore.role)" :to="`/${loginStore.role}/${loginStore.ez_id}`" class="layout-topbar-action">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </RouterLink>

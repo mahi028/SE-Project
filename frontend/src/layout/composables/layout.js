@@ -57,7 +57,9 @@ export function useLayout() {
     };
 
     if (preferenceDetails.darkTheme){
-        document.documentElement.classList.toggle('app-dark');
+        document.documentElement.classList.add('app-dark');
+    }else{
+        document.documentElement.classList.remove('app-dark');
     }
 
     const isSidebarActive = computed(() => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive);
