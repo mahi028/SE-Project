@@ -66,8 +66,9 @@ class EmergencyContacts(db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(120))
     phone_num = db.Column(db.String(10))
+    send_alert = db.Column(db.Boolean, default=False)
     relationship = db.Column(db.String(64))
-    pincode = db.Column(db.String(6))  # tbd
+    
 
 
 class DocInfo(db.Model):
@@ -75,15 +76,18 @@ class DocInfo(db.Model):
     doc_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
     specialization = db.Column(db.String(128))
-    working_hours = db.Column(db.String(128)) # ["9-6", "10-7", "11-8 etc."] 
-    appointment_duration = db.Column(db.Integer, default=30)  # in minutes
+    qualification = db.Column(db.String(128))
+    experience = db.Column(db.String(32))
+    hospital = db.Column(db.String(128))
+    address = db.Column(db.String(256))
     consultation_fee = db.Column(db.Float, default=0.0)
-    availability_status = db.Column(db.Boolean, default=True)
-    prof_info = db.Column(db.JSON) 
-    govt_id_url = db.Column(db.String(256))
-    med_licence_url = db.Column(db.String(256))
-    degree_cert_url = db.Column(db.String(256))
-    
+    working_hours = db.Column(db.String(64))  # e.g., "10:00 AM - 6:00 PM"
+    availability = db.Column(db.JSON)         # e.g., ["Monday", "Tuesday", ...]
+    reviews = db.Column(db.Integer)           # average rating or review count
+    availability_status = db.Column(db.Integer, default=1)  # 1=active, 0=pending, -1=rejected
+    documents = db.Column(db.JSON)            # {id_proof, medical_license, qualification_cert, passport_photo}
+    appointment_window = db.Column(db.Integer, default=30)  # in minutes
+
     # Relationships
     doc_reviews = db.relationship('DocReviews', backref='doc_info', lazy=True)
     appointments = db.relationship('Appointments', backref='doc_info', lazy=True)
@@ -94,7 +98,7 @@ class DocReviews(db.Model):
     review_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     doc_id = db.Column(db.Integer, db.ForeignKey('doc_info.doc_id'))
     sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
-    stars = db.Column(db.Integer)
+    rating = db.Column(db.Integer)
     review = db.Column(db.Text)
 
 
@@ -104,7 +108,7 @@ class Reminders(db.Model):
     rem_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
     label = db.Column(db.String(128))
-    category = db.Column(db.String(32))  # [medic, hyd, group, ...]
+    category = db.Column(db.Integer)  # [medic, hyd, group, ...]
     rem_time = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
 
@@ -116,17 +120,25 @@ class Appointments(db.Model):
     sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
     doc_id = db.Column(db.Integer, db.ForeignKey('doc_info.doc_id'))
     rem_time = db.Column(db.DateTime)
+    reason = db.Column(db.String(256))
+    status = db.Column(db.Integer, default=0)  # 0=pending, 1=confirmed, -1=canceled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class VitalTypes(db.Model):
+    __tablename__ = 'vital_types'
+    type_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    label = db.Column(db.String(64), unique=True)
+    unit = db.Column(db.String(32))  # e.g., "mmHg", "bpm", "mg/dL"
+    threshold = db.Column(db.JSON)  # threshold value for alerting
+    
 
 class VitalLogs(db.Model):
     __tablename__ = 'vital_logs'
     log_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
-    label = db.Column(db.String(64))
-    unit = db.Column(db.String(32))
-    value = db.Column(db.Float)
-    current_time = db.Column(db.DateTime, default=datetime.utcnow)
+    vital_type_id = db.Column(db.Integer, db.ForeignKey('vital_types.type_id'))
+    reading= db.Column(db.String(64))  # e.g., "120/80 mmHg"
+    logged_at = db.Column(db.DateTime)
 
 
 
@@ -138,6 +150,12 @@ class Group(db.Model):
     admin = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
     pincode = db.Column(db.String(6)) 
     location = db.Column(db.String(256))
-    joinee = db.Column(db.JSON)  # {sen_id1, sen_id2, ...}
+    #relationships
+    joinee=db.relationship('Joinee', backref='group', lazy=True)
 
 
+class Joinee(db.Model):
+    __tablename__ = 'joinee'
+    grp_id = db.Column(db.Integer, db.ForeignKey('groups.grp_id'), primary_key=True)
+    sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'), primary_key=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
