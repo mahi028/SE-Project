@@ -1,15 +1,25 @@
-// src/apollo.js
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client/core';
+// apollo.js
+import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core';
+import { setContext } from '@apollo/client/link/context';
 
-const httpLink = new HttpLink({
-  uri: 'http://localhost:5000/graphql'
+// 🔗 GraphQL server endpoint
+const httpLink = createHttpLink({
+  uri: 'http://localhost:5000/graphql', // change to your actual Flask endpoint
 });
 
-const cache = new InMemoryCache();
-
-const apolloClient = new ApolloClient({
-  link: httpLink,
-  cache,
+// 🔐 Auth link to inject token
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem('token'); // or use Pinia/store if stored elsewhere
+  return {
+    headers: {
+      ...headers,
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  };
 });
 
-export default apolloClient;
+// 🔧 Apollo Client
+export const apolloClient = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+});

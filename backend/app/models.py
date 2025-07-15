@@ -5,9 +5,9 @@ from enum import Enum
 db = SQLAlchemy()
 
 class Roles(Enum):
-    SEN = '10'
-    DOC = '01'
-    MOD = '11'
+    SEN = '0'
+    DOC = '1'
+    MOD = '2'
 
     @classmethod
     def choices(cls):
@@ -17,7 +17,7 @@ class Roles(Enum):
 class User(db.Model):
     __tablename__ = 'users'
     ez_id = db.Column(db.String(32), primary_key=True)  # format: ez(role)(10auto_num)name
-    role = db.Column(db.Enum(Roles), nullable=False)
+    role = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)  # hashed password
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

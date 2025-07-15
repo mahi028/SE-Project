@@ -13,20 +13,15 @@ import '@/assets/styles.scss';
 
 // Apollo
 import { DefaultApolloClient } from '@vue/apollo-composable';
-import apolloClient from './apollo'; // You'll create this file
+import { apolloClient } from './apollo'; // You'll create this file
 
 // Pinia setup
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 // Create and mount Vue app
-const app = createApp({
-  setup() {
-    provide(DefaultApolloClient, apolloClient);
-  },
-  render: () => h(App)
-});
-
+const app = createApp(App)
+app.provide(DefaultApolloClient, apolloClient);
 app.use(pinia);
 app.use(router);
 app.use(PrimeVue, {
