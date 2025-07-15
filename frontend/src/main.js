@@ -1,6 +1,6 @@
-import { createApp } from 'vue';
+import { createApp, provide, h } from 'vue';
 import { createPinia } from 'pinia';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import App from './App.vue';
 import router from './router';
 
@@ -11,38 +11,46 @@ import ToastService from 'primevue/toastservice';
 
 import '@/assets/styles.scss';
 
-const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
-const app = createApp(App);
+// Apollo
+import { DefaultApolloClient } from '@vue/apollo-composable';
+import { apolloClient } from './apollo'; // You'll create this file
 
+// Pinia setup
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
+
+// Create and mount Vue app
+const app = createApp(App)
+app.provide(DefaultApolloClient, apolloClient);
 app.use(pinia);
 app.use(router);
 app.use(PrimeVue, {
-    theme: {
-        preset: Aura,
-        options: {
-            darkModeSelector: '.app-dark'
-        }
+  theme: {
+    preset: Aura,
+    options: {
+      darkModeSelector: '.app-dark'
     }
+  }
 });
 app.use(ToastService);
 app.use(ConfirmationService);
 
 app.mount('#app');
 
+// Navigation guard
 import { useLoginStore } from './store/loginStore';
 router.beforeEach((to, from, next) => {
-  const loginStore = useLoginStore()
+  const loginStore = useLoginStore();
 
   if (to.meta.roles) {
-    const userRole = loginStore.role
+    const userRole = loginStore.role;
 
     if (to.meta.roles.includes(userRole)) {
-      next()
+      next();
     } else {
-      next({ name: 'access' })
+      next({ name: 'access' });
     }
   } else {
-    next()
+    next();
   }
-})
+});
