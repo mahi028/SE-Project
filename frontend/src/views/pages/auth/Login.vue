@@ -17,6 +17,7 @@ const formData = ref({
     email: '',
     ez_id: 'ez-sen-2507-0002',
     password: 'dummyPassword',
+    password: 'dummy',
 })
 
 const checked = ref(false);
