@@ -1,6 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import User, DocInfo, DocReviews, Appointments, db
+from ..models import User,DocInfo, db
 from .return_types import ReturnType
 
 class DoctorType(SQLAlchemyObjectType):
