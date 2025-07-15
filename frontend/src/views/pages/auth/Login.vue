@@ -5,15 +5,18 @@ import { useLoginStore } from '@/store/loginStore';
 import { userService } from '@/service/UserService';
 import { useToast } from 'primevue';
 import { useRouter } from 'vue-router';
+import { useLazyQuery } from '@vue/apollo-composable';
+// import { gql } from '@apollo/client/core';
+import gql from 'graphql-tag';
 
 const loginStore = useLoginStore()
 const toast = useToast();
 const router = useRouter()
 
 const formData = ref({
-    email: 'dr.rajesh@citycarehospital.com',
-    ez_id: '',
-    password: 'dummyPassword123',
+    email: '',
+    ez_id: 'ez-sen-2507-0002',
+    password: 'dummyPassword',
 })
 
 const checked = ref(false);
@@ -21,22 +24,37 @@ const checked = ref(false);
 const value = ref('Email');
 const options = ref(['Email', 'EZID']);
 
+
+const GET_TOKEN = gql`
+  query getToken($ezId: String!, $password: String!) {
+    getToken(ezId: $ezId, password: $password) {
+      token
+    }
+  }
+`;
+
+const { load: fetchToken , result, loading, error } = useLazyQuery(GET_TOKEN)
+
 const login = async ()=>{
-    try{
-        const userDeatils = await userService.getUser(formData.value)
-        loginStore.setLoginDetails(userDeatils)
-        toast.add({ severity: 'success', summary: 'Success', detail: 'You are Successfully Logged-In', life: 3000 });
-        if(userDeatils.role === 'doctor'){
-            router.push('/dashboard2')
+    try {
+        await fetchToken(GET_TOKEN, {
+            ezId: formData.value.ez_id,
+            password: formData.value.password,
+        });
+
+        const token = result.value?.getToken?.token;
+
+        if (token) {
+            localStorage.setItem('token', token)
+            console.log('Logged in with token:', token)
+
+            // Optional: redirect after login
+            // router.push('/dashboard') // or wherever
+        } else {
+            console.error('Login failed: no token received')
         }
-        else if(userDeatils.role === 'senior'){
-            router.push('/dashboard')
-        }
-        else if(userDeatils.role === 'mod'){
-            router.push('/mod-dashboard')
-        }
-    }catch(err){
-        console.error('Something Went Wrong: ', err)
+    } catch (e) {
+        console.error('Login error:', error.value || e)
     }
 }
 </script>
