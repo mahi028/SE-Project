@@ -6,6 +6,7 @@ from flask_graphql import GraphQLView
 from config import DevelopmentConfig, ProductionConfig
 from .graphql import schema
 from .models import db
+from .graphql.auth import jwt
 import os
 import sys
 
@@ -26,6 +27,7 @@ def create_app():
     app.app_context().push()
 
     csrf.init_app(app)
+    jwt.init_app(app)
 
     from app.api import api
     api.init_app(app)

@@ -7,6 +7,8 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'super_secret_key')
     SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///database.sqlite3')
     TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=3)
     WTF_CSRF_ENABLED = False
     SESSION_COOKIE_SAMESITE='Lax'
     UPLOAD_FOLDER = 'application/static/upload'
