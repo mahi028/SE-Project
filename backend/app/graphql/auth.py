@@ -17,29 +17,41 @@ def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
     return User.query.get(identity)
 
+
 class AuthTokenType(graphene.ObjectType):
     token = graphene.String()
+    message = graphene.String()
+    status = graphene.Int()
+
 
 class GetToken(graphene.ObjectType):
     get_token = graphene.Field(AuthTokenType, ez_id=graphene.String(), password=graphene.String())
-    def resolve_get_token(self, info, ez_id, password):
-        user = User.query.get(ez_id)
-
+    def resolve_get_token(self, info, password, ez_id=None, email=None):
+        if ez_id:
+            user = User.query.get(ez_id)
+        elif email:
+            user = User.query.filter(User.email == email).first()
+        else:
+            return AuthTokenType(token=None, message="No user found", status=404)
+        
         if user:
             if checkpw(password, user.password):
                 access_token = create_access_token(identity=user)
                 return AuthTokenType(token = access_token)
-            
+
+
 class Register(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
         role = graphene.Int(required=True)
         password = graphene.String(required=True)
         confirm_password = graphene.String(required=True)
+        name = graphene.String(required=True)
+        phone_num = graphene.String(required=True)
 
     Output = ReturnType
 
-    def mutate(root, info, email, role, password, confirm_password):
+    def mutate(root, info, email, role, password, confirm_password, name, phone_num):
         if email is None or role is None or password is None or confirm_password is None:
             return ReturnType(status=400, message="Insufficient information.")
 
@@ -59,8 +71,8 @@ class Register(graphene.Mutation):
                 role=role,
                 email=email,
                 password=hashpw(password),  # assuming hashpw is defined
-                name='abc',
-                phone_num=10,
+                name=name,
+                phone_num=phone_num,
             )
             adddb(new_user)  # assuming adddb is defined
             commitdb()       # assuming commitdb is defined
