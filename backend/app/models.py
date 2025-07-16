@@ -22,12 +22,7 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)  # hashed password
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String(100), nullable=False)
-    gender = db.Column(db.String(8))
-    age = db.Column(db.Integer)
     phone_num = db.Column(db.String(10), unique=True, nullable=False)
-    alternate_phone_num = db.Column(db.String(10))
-    pincode = db.Column(db.String(6))
-    # more_address_field = db.Column(db.String(256))  # tbd
     profile_image_url = db.Column(db.String(256))
     
     # Relationships
@@ -41,6 +36,11 @@ class SenInfo(db.Model):
     __tablename__ = 'sen_info'
     sen_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
+    gender = db.Column(db.String(8))
+    dob = db.Column(db.Datetime)
+    address = db.Column(db.Text)
+    pincode = db.Column(db.String(6))
+    alternate_phone_num = db.Column(db.String(10))
     medical_info = db.Column(db.JSON)
     
     # Relationships
@@ -75,17 +75,22 @@ class DocInfo(db.Model):
     __tablename__ = 'doc_info'
     doc_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
+    gender = db.Column(db.String(8))
+    dob = db.Column(db.Datetime)
+    address = db.Column(db.Text)
+    pincode = db.Column(db.String(6))
+    alternate_phone_num = db.Column(db.String(10))
+    license_number = db.Column(db.String(64), unique=True, nullable=False)
     specialization = db.Column(db.String(128))
-    qualification = db.Column(db.String(128))
-    experience = db.Column(db.String(32))
-    hospital = db.Column(db.String(128))
-    address = db.Column(db.String(256))
+    affiliation = db.Column(db.JSON) 
+    qualification = db.Column(db.JSON)
+    experience = db.Column(db.Integer, default=0)  # in years
     consultation_fee = db.Column(db.Float, default=0.0)
-    working_hours = db.Column(db.String(64))  # e.g., "10:00 AM - 6:00 PM"
-    availability = db.Column(db.JSON)         # e.g., ["Monday", "Tuesday", ...]
-    reviews = db.Column(db.Integer)           # average rating or review count
+    working_hours = db.Column(db.String(64))  
+    availability = db.Column(db.JSON)         
+    reviews = db.Column(db.Integer)          
     availability_status = db.Column(db.Integer, default=1)  # 1=active, 0=pending, -1=rejected
-    documents = db.Column(db.JSON)            # {id_proof, medical_license, qualification_cert, passport_photo}
+    documents = db.Column(db.JSON)
     appointment_window = db.Column(db.Integer, default=30)  # in minutes
 
     # Relationships
