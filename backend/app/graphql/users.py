@@ -9,7 +9,7 @@ class UserType(SQLAlchemyObjectType):
         model = User
         
 
-class GetUsers(graphene.ObjectType):
+class UsersQuery(graphene.ObjectType):
     all_users = graphene.List(UserType)
     user = graphene.Field(UserType, id=graphene.Int(), email=graphene.String())
 
@@ -55,6 +55,7 @@ class AddUser(graphene.Mutation):
             return ReturnType(message="Failure", status=500)
         else:
             return ReturnType(message="Success, User created successfully", status=201)
-        
 
-#Dev Gupta's Code to Akhil
+
+class UsersMutation(graphene.ObjectType):
+    add_user = AddUser.Field()

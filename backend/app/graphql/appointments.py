@@ -7,7 +7,7 @@ class AppointmentType(SQLAlchemyObjectType):
     class Meta:
         model = Appointments
 
-# Query for getting appointments by senior citizen ID or doctor ID
+
 class AppointmentsQuery(graphene.ObjectType):
     get_appointments_for_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True))
     get_appointments_for_doctor = graphene.List(AppointmentType, doc_id=graphene.Int(required=True))
@@ -18,8 +18,7 @@ class AppointmentsQuery(graphene.ObjectType):
         doc_id=graphene.Int(required=True),
         date=graphene.String(required=True)
     )
-    
-    
+
 
     def resolve_get_appointments_for_senior(self, info, sen_id):
         return Appointments.query.filter_by(sen_id=sen_id).all()
@@ -40,13 +39,9 @@ class AppointmentsQuery(graphene.ObjectType):
         ).all()
         booked_times = {apt.rem_time.strftime('%I:%M %p') for apt in appointments}
         return [slot for slot in slots if slot not in booked_times]
-    
-    
-    
-    
+
     
 
-# Mutation for booking an appointment (by senior citizen)
 class BookAppointment(graphene.Mutation):
     class Arguments:
         sen_id = graphene.Int(required=True)
@@ -68,7 +63,8 @@ class BookAppointment(graphene.Mutation):
         db.session.commit()
         return ReturnType(message="Appointment booked successfully", status=1)
 
-# Mutation for updating appointment status (accept/reject by doctor)
+
+
 class UpdateAppointmentStatus(graphene.Mutation):
     class Arguments:
         app_id = graphene.Int(required=True)
@@ -85,7 +81,8 @@ class UpdateAppointmentStatus(graphene.Mutation):
         appointment.status = status
         db.session.commit()
         return ReturnType(message="Appointment status updated", status=1)
-    
+
+
 class CancelAppointment(graphene.Mutation):
         class Arguments:
             app_id = graphene.Int(required=True)
@@ -100,7 +97,8 @@ class CancelAppointment(graphene.Mutation):
             db.session.commit()
             return ReturnType(message="Appointment cancelled successfully", status=1)
 
-class Mutation(graphene.ObjectType):
+
+class AppointmentsMutation(graphene.ObjectType):
     book_appointment = BookAppointment.Field()
     update_appointment_status = UpdateAppointmentStatus.Field()
     cancel_appointment = CancelAppointment.Field()

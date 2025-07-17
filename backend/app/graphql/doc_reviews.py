@@ -8,7 +8,7 @@ class DocReviewType(SQLAlchemyObjectType):
         model = DocReviews
 
 # Query for getting reviews by doctor ID, average rating, and review count
-class Query(graphene.ObjectType):
+class DocReviewsQuery(graphene.ObjectType):
     get_doc_reviews = graphene.List(DocReviewType, doc_id=graphene.Int(required=True))
     get_average_rating = graphene.Float(doc_id=graphene.Int(required=True))
     get_review_count = graphene.Int(doc_id=graphene.Int(required=True))
@@ -51,6 +51,6 @@ class AddDocReview(graphene.Mutation):
         db.session.commit()
         return ReturnType(message="Review added successfully", status=1)
 
-class Mutation(graphene.ObjectType):
+class DocReviewMutation(graphene.ObjectType):
     add_doc_review = AddDocReview.Field()
     
