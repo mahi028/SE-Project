@@ -1,14 +1,36 @@
 import graphene
-from .users import GetUsers, AddUser
-from .auth import GetToken, Register
+from .users import UsersQuery, UsersMutation
+from .seniors import SeniorsQuery, SeniorsMutation
+from .doctors import DoctorsQuery, DoctorMutation
+from .doc_reviews import DocReviewsQuery, DocReviewMutation
+from .appointments import AppointmentsQuery, AppointmentsMutation
+from .emergency_contacts import EmergencyContactsQuery, EmergencyContactMutation
+from .groups import GroupsQuery, GroupMutation
+from .auth import GetToken, AuthMutation
 
-class Query(GetUsers, GetToken, graphene.ObjectType):
+class Query(UsersQuery, 
+            SeniorsQuery,
+            DoctorsQuery, 
+            AppointmentsQuery, 
+            DocReviewsQuery,
+            EmergencyContactsQuery,
+            GroupsQuery,
+            GetToken, 
+            graphene.ObjectType):
     pass
 
-class Mutation(graphene.ObjectType):
-    add_user = AddUser.Field()
-    register_user = Register.Field()
 
+class Mutation(UsersMutation, 
+               SeniorsMutation, 
+               DoctorMutation,
+               AppointmentsMutation,
+               DocReviewMutation,
+               EmergencyContactMutation,   
+               GroupMutation,            
+               AuthMutation, 
+               graphene.ObjectType):
+    pass 
+    
 schema = graphene.Schema(
                             query=Query,
                             mutation=Mutation
