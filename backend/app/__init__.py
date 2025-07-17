@@ -4,6 +4,8 @@ from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
 from flask_graphql import GraphQLView
 from config import DevelopmentConfig, ProductionConfig
+import chromadb
+import insightface
 from .graphql import schema
 from .models import db
 from .graphql.auth import jwt
@@ -12,6 +14,15 @@ import sys
 
 migration = Migrate()
 csrf = CSRFProtect()
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+face_collection = chroma_client.get_or_create_collection(
+    name="face_embeddings",
+    metadata={"hnsw:space": "cosine"}
+)
+
+face_model = insightface.app.FaceAnalysis(name='buffalo_l')
+face_model.prepare(ctx_id=0)  # set to -1 if using CPU
+
 
 def create_app():
     app = Flask(__name__,
@@ -29,8 +40,8 @@ def create_app():
     csrf.init_app(app)
     jwt.init_app(app)
 
-    from app.api import api
-    api.init_app(app)
+    from app.api.user_lookup import lookup
+    app.register_blueprint(lookup, url_prefix='/user-lookup')
 
     app.add_url_rule(
         '/graphql',
