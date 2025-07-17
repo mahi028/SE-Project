@@ -2,6 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import Appointments, db
 from .return_types import ReturnType
+from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 
 class AppointmentType(SQLAlchemyObjectType):
     class Meta:
@@ -59,9 +60,14 @@ class BookAppointment(graphene.Mutation):
             reason=reason,
             status=0  # pending by default
         )
-        db.session.add(appointment)
-        db.session.commit()
-        return ReturnType(message="Appointment booked successfully", status=1)
+        adddb(appointment)
+        try:    
+            commitdb(db)
+            return ReturnType(message="Appointment booked successfully", status=201)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error booking appointment: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
 
 
 
@@ -79,8 +85,13 @@ class UpdateAppointmentStatus(graphene.Mutation):
         if status not in [1, -1]:
             return ReturnType(message="Invalid status", status=0)
         appointment.status = status
-        db.session.commit()
-        return ReturnType(message="Appointment status updated", status=1)
+        try:
+            commitdb(db)
+            return ReturnType(message="Appointment status updated", status=200)
+        except Exception as e:
+            rollbackdb(db)
+            return ReturnType(message=f"Error updating appointment status", status=403)
+        
 
 
 class CancelAppointment(graphene.Mutation):
@@ -94,7 +105,7 @@ class CancelAppointment(graphene.Mutation):
             if not appointment:
                 return ReturnType(message="Appointment not found", status=0)
             appointment.status = -1  # Mark as cancelled
-            db.session.commit()
+            commitdb(db)
             return ReturnType(message="Appointment cancelled successfully", status=1)
 
 

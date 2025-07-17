@@ -2,6 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import DocReviews, db
 from .return_types import ReturnType
+from utils.dbUtils import adddb, commitdb, rollbackdb
 
 class DocReviewType(SQLAlchemyObjectType):
     class Meta:
@@ -47,9 +48,14 @@ class AddDocReview(graphene.Mutation):
             rating=rating,
             review=review
         )
-        db.session.add(doc_review)
-        db.session.commit()
-        return ReturnType(message="Review added successfully", status=1)
+        adddb(doc_review)
+        try:
+            commitdb(db)
+            return ReturnType(message="Review added successfully", status=201)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error adding review: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
 
 class DocReviewMutation(graphene.ObjectType):
     add_doc_review = AddDocReview.Field()

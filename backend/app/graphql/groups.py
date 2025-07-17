@@ -2,6 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import Group, Joinee, db
 from .return_types import ReturnType
+from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 
 class GroupType(SQLAlchemyObjectType):
     class Meta:
@@ -50,9 +51,15 @@ class CreateGroup(graphene.Mutation):
             pincode=pincode,
             location=location
         )
-        db.session.add(group)
-        db.session.commit()
-        return ReturnType(message="Group created successfully", status=1)
+        adddb(group)
+        try:
+            commitdb(db)
+            return ReturnType(message="Group created successfully", status=201)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error creating group: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
+        
 
 class JoinGroup(graphene.Mutation):
     class Arguments:
@@ -67,9 +74,14 @@ class JoinGroup(graphene.Mutation):
         if existing:
             return ReturnType(message="Already joined", status=0)
         joinee = Joinee(grp_id=grp_id, sen_id=sen_id)
-        db.session.add(joinee)
-        db.session.commit()
-        return ReturnType(message="Joined group successfully", status=1)
+        adddb(joinee)
+        try:
+            commitdb(db)
+            return ReturnType(message="Joined group successfully", status=200)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error joining group: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
 
 class GroupMutation(graphene.ObjectType):
     create_group = CreateGroup.Field()

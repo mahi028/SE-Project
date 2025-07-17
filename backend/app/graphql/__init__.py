@@ -5,6 +5,7 @@ from .doctors import DoctorsQuery, DoctorMutation
 from .doc_reviews import DocReviewsQuery, DocReviewMutation
 from .appointments import AppointmentsQuery, AppointmentsMutation
 from .emergency_contacts import EmergencyContactsQuery, EmergencyContactMutation
+from .vital_types import VitalTypesQuery, VitalTypesMutation
 from .groups import GroupsQuery, GroupMutation
 from .auth import GetToken, AuthMutation
 
@@ -14,6 +15,7 @@ class Query(UsersQuery,
             AppointmentsQuery, 
             DocReviewsQuery,
             EmergencyContactsQuery,
+            VitalTypesQuery,
             GroupsQuery,
             GetToken, 
             graphene.ObjectType):
@@ -25,7 +27,8 @@ class Mutation(UsersMutation,
                DoctorMutation,
                AppointmentsMutation,
                DocReviewMutation,
-               EmergencyContactMutation,   
+               EmergencyContactMutation, 
+               VitalTypesMutation,  
                GroupMutation,            
                AuthMutation, 
                graphene.ObjectType):
