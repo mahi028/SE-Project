@@ -75,4 +75,6 @@ build/
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 
+# databases
 instance
+chroma_db
