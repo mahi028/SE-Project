@@ -81,3 +81,7 @@ class Register(graphene.Mutation):
             return ReturnType(status=500, message="Something went wrong. Please try again.")
 
         return ReturnType(status=200, message="Registration successful.")
+    
+class AuthMutation(graphene.ObjectType):
+    register = Register.Field()
+    get_token = GetToken.Field()

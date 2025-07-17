@@ -8,7 +8,7 @@ class EmergencyContactType(SQLAlchemyObjectType):
         model = EmergencyContacts
 
 # Query for getting emergency contacts by senior citizen ID
-class Query(graphene.ObjectType):
+class EmergencyContactsQuery(graphene.ObjectType):
     get_emergency_contacts = graphene.List(EmergencyContactType, sen_id=graphene.Int(required=True))
 
     def resolve_get_emergency_contacts(self, info, sen_id):
@@ -68,6 +68,6 @@ class UpdateEmergencyContact(graphene.Mutation):
         db.session.commit()
         return ReturnType(message="Emergency contact updated successfully", status=1)
 
-class Mutation(graphene.ObjectType):
+class EmergencyContactMutation(graphene.ObjectType):
     add_emergency_contact = AddEmergencyContact.Field()
     update_emergency_contact = UpdateEmergencyContact.Field()

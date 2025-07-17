@@ -12,7 +12,7 @@ class JoineeType(SQLAlchemyObjectType):
         model = Joinee
 
 # Queries: fetch all groups, groups by admin, and members of a group
-class Query(graphene.ObjectType):
+class GroupsQuery(graphene.ObjectType):
     get_groups = graphene.List(
         GroupType,
         admin=graphene.Int(),
@@ -71,6 +71,6 @@ class JoinGroup(graphene.Mutation):
         db.session.commit()
         return ReturnType(message="Joined group successfully", status=1)
 
-class Mutation(graphene.ObjectType):
+class GroupMutation(graphene.ObjectType):
     create_group = CreateGroup.Field()
     join_group = JoinGroup.Field()

@@ -10,7 +10,7 @@ class DoctorType(SQLAlchemyObjectType):
 
 
 
-class Query(graphene.ObjectType):
+class DoctorsQuery(graphene.ObjectType):
     get_doctors = graphene.List(DoctorType, pin=graphene.String(required=False),specialization=graphene.String(required=False))
     get_doctor = graphene.Field(DoctorType, doc_id=graphene.Int(required=True))
     
@@ -117,6 +117,6 @@ class UpdateDoctor(graphene.Mutation):
             rollbackdb()
             return ReturnType(message=f"Error updating doctor: {str(e)}", status=0)
 
-class Mutation(graphene.ObjectType):
+class DoctorMutation(graphene.ObjectType):
     add_doctor = AddDoctor.Field()
     update_doctor = UpdateDoctor.Field()

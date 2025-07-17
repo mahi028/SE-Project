@@ -10,7 +10,7 @@ class SeniorType(SQLAlchemyObjectType):
 
 
 
-class Query(graphene.ObjectType):
+class SeniorsQuery(graphene.ObjectType):
     get_seniors = graphene.List(SeniorType)
     get_senior = graphene.List(SeniorType, sen_id=graphene.Int(required=True))
     
@@ -92,6 +92,6 @@ class UpdateSenior(graphene.Mutation):
             return ReturnType(message="Something went wrong", status=500)
         
 
-class Mutation(graphene.ObjectType):
+class SeniorsMutation(graphene.ObjectType):
     add_senior = AddSenior.Field()
     update_senior = UpdateSenior.Field()
