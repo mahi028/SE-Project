@@ -1,8 +1,9 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import Appointments, db
+from ..models import Appointments, Reminders, db
 from .return_types import ReturnType
 from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
+from datetime import timedelta
 
 class AppointmentType(SQLAlchemyObjectType):
     class Meta:
@@ -61,9 +62,32 @@ class BookAppointment(graphene.Mutation):
             status=0  # pending by default
         )
         adddb(appointment)
+
+        # Create reminder for 1 day before
+        day_before = rem_time - timedelta(days=1)
+        reminder_day = Reminders(
+            ez_id=appointment.sen_info.ez_id,  # Get ez_id from sen_info relationship
+            label=f"Appointment with Dr. {appointment.doc_info.user.name}",
+            category=0,  # appointment category
+            rem_time=day_before,
+            is_active=True
+        )
+        adddb(reminder_day)
+
+        # Create reminder for 1 hour before
+        hour_before = rem_time - timedelta(hours=1)
+        reminder_hour = Reminders(
+            ez_id=appointment.sen_info.ez_id,
+            label=f"Appointment with Dr. {appointment.doc_info.user.name}",
+            category=0,
+            rem_time=hour_before,
+            is_active=True
+        )
+        adddb(reminder_hour)
+
         try:    
             commitdb(db)
-            return ReturnType(message="Appointment booked successfully", status=201)
+            return ReturnType(message="Appointment booked successfully with reminders", status=201)
         except Exception as e:
             rollbackdb(db)
             print(f"Error booking appointment: {str(e)}")
@@ -114,4 +138,4 @@ class AppointmentsMutation(graphene.ObjectType):
     update_appointment_status = UpdateAppointmentStatus.Field()
     cancel_appointment = CancelAppointment.Field()
 
-    
+

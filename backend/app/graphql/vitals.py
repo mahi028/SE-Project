@@ -16,11 +16,19 @@ class Query(graphene.ObjectType):
     get_vital_types = graphene.List(VitalTypeType)
     get_vital_logs = graphene.List(VitalLogType, sen_id=graphene.Int(required=True))
 
+    evaluate_vital_status = graphene.Field(
+        graphene.JSONString,
+        vital_type=graphene.String(required=True),
+        reading=graphene.String(required=True)
+    )
+
     def resolve_get_vital_types(self, info):
         return VitalTypes.query.all()
 
     def resolve_get_vital_logs(self, info, sen_id):
         return VitalLogs.query.filter_by(sen_id=sen_id).all()
+    
+    
 
 # Mutation for adding a vital log
 class AddVitalLog(graphene.Mutation):

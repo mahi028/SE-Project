@@ -1,8 +1,8 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import Group, Joinee, db
+from ..models import Group, Joinee, db, Reminders, SenInfo
 from .return_types import ReturnType
-from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
+from datetime import timedelta
 
 class GroupType(SQLAlchemyObjectType):
     class Meta:
@@ -13,7 +13,7 @@ class JoineeType(SQLAlchemyObjectType):
         model = Joinee
 
 # Queries: fetch all groups, groups by admin, and members of a group
-class GroupsQuery(graphene.ObjectType):
+class PeerGroupQuery(graphene.ObjectType):
     get_groups = graphene.List(
         GroupType,
         admin=graphene.Int(),
@@ -51,15 +51,9 @@ class CreateGroup(graphene.Mutation):
             pincode=pincode,
             location=location
         )
-        adddb(group)
-        try:
-            commitdb(db)
-            return ReturnType(message="Group created successfully", status=201)
-        except Exception as e:
-            rollbackdb(db)
-            print(f"Error creating group: {str(e)}")
-            return ReturnType(message=f"Something went wrong", status=403)
-        
+        db.session.add(group)
+        db.session.commit()
+        return ReturnType(message="Group created successfully", status=1)
 
 class JoinGroup(graphene.Mutation):
     class Arguments:
@@ -69,20 +63,40 @@ class JoinGroup(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, grp_id, sen_id):
-        # Prevent duplicate join
+        group = Group.query.get(grp_id)
+        if not group:
+            return ReturnType(message="Group not found", status=404)
+            
         existing = Joinee.query.filter_by(grp_id=grp_id, sen_id=sen_id).first()
         if existing:
             return ReturnType(message="Already joined", status=0)
-        joinee = Joinee(grp_id=grp_id, sen_id=sen_id)
-        adddb(joinee)
-        try:
-            commitdb(db)
-            return ReturnType(message="Joined group successfully", status=200)
-        except Exception as e:
-            rollbackdb(db)
-            print(f"Error joining group: {str(e)}")
-            return ReturnType(message=f"Something went wrong", status=403)
 
-class GroupMutation(graphene.ObjectType):
+        # Get senior's ez_id for reminder
+        senior = SenInfo.query.get(sen_id)
+        if not senior:
+            return ReturnType(message="Senior not found", status=404)
+
+        joinee = Joinee(grp_id=grp_id, sen_id=sen_id)
+        db.session.add(joinee)
+
+        # Create reminder 1 hour before group timing
+        hour_before = group.timing - timedelta(hours=1)
+        reminder = Reminders(
+            ez_id=senior.ez_id,
+            label=f"Group Meeting: {group.label}",
+            category=3,  # group meeting category
+            rem_time=hour_before,
+            is_active=True
+        )
+        db.session.add(reminder)
+
+        try:
+            db.session.commit()
+            return ReturnType(message="Joined group successfully and reminder set", status=1)
+        except Exception as e:
+            db.session.rollback()
+            return ReturnType(message=f"Error joining group: {str(e)}", status=403)
+
+class Mutation(graphene.ObjectType):
     create_group = CreateGroup.Field()
     join_group = JoinGroup.Field()
