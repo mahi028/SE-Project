@@ -50,13 +50,8 @@ class SenInfo(db.Model):
     appointments = db.relationship('Appointments', backref='sen_info', lazy=True)
     doc_reviews = db.relationship('DocReviews', backref='sen_info', lazy=True)
     groups_admin = db.relationship('Group', backref='admin_sen', foreign_keys='Group.admin', lazy=True)
+    prescriptions = db.relationship('Prescription', backref='sen_info', lazy=True)
 
-
-class Embeddings(db.Model):
-    __tablename__ = 'embeddings'
-    emb_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
-    vector = db.Column(db.PickleType)
 
 
 class EmergencyContacts(db.Model):
@@ -96,6 +91,7 @@ class DocInfo(db.Model):
     # Relationships
     doc_reviews = db.relationship('DocReviews', backref='doc_info', lazy=True)
     appointments = db.relationship('Appointments', backref='doc_info', lazy=True)
+    prescriptions = db.relationship('Prescription', backref='doc_info', lazy=True)
 
 
 class DocReviews(db.Model):
@@ -113,7 +109,7 @@ class Reminders(db.Model):
     rem_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
     label = db.Column(db.String(128))
-    category = db.Column(db.Integer)  # [medic, hyd, group, ...]
+    category = db.Column(db.Integer)  # [appointments:0, medic:1, hydration:2, group:3, ...]
     rem_time = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
 
@@ -128,6 +124,17 @@ class Appointments(db.Model):
     reason = db.Column(db.String(256))
     status = db.Column(db.Integer, default=0)  # 0=pending, 1=confirmed, -1=canceled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+
+class Prescription(db.Model):
+    __tablename__ = 'prescriptions'
+    pres_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    doc_id = db.Column(db.Integer, db.ForeignKey('doc_info.doc_id'), nullable=True)
+    sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'))
+    medication_data = db.Column(db.String(64))  
+    time=db.Column(db.JSON)
+    instructions = db.Column(db.String(256)) 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class VitalTypes(db.Model):
     __tablename__ = 'vital_types'
@@ -135,6 +142,7 @@ class VitalTypes(db.Model):
     label = db.Column(db.String(64), unique=True)
     unit = db.Column(db.String(32))  # e.g., "mmHg", "bpm", "mg/dL"
     threshold = db.Column(db.JSON)  # threshold value for alerting
+    vital_logs = db.relationship('VitalLogs', backref='vital_type', lazy=True)
     
 
 class VitalLogs(db.Model):
@@ -144,7 +152,7 @@ class VitalLogs(db.Model):
     vital_type_id = db.Column(db.Integer, db.ForeignKey('vital_types.type_id'))
     reading= db.Column(db.String(64))  # e.g., "120/80 mmHg"
     logged_at = db.Column(db.DateTime)
-
+    vital_type = db.relationship('VitalTypes', backref='vital_logs', lazy=True)
 
 
 class Group(db.Model):
