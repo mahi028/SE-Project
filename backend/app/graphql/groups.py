@@ -13,15 +13,20 @@ class JoineeType(SQLAlchemyObjectType):
 
 # Queries: fetch all groups, groups by admin, and members of a group
 class Query(graphene.ObjectType):
-    get_all_groups = graphene.List(GroupType)
-    get_groups_by_admin = graphene.List(GroupType, admin=graphene.Int(required=True))
+    get_groups = graphene.List(
+        GroupType,
+        admin=graphene.Int(),
+        pincode=graphene.String()
+    )
     get_group_members = graphene.List(JoineeType, grp_id=graphene.Int(required=True))
 
-    def resolve_get_all_groups(self, info):
-        return Group.query.all()
-
-    def resolve_get_groups_by_admin(self, info, admin):
-        return Group.query.filter_by(admin=admin).all()
+    def resolve_get_groups(self, info, admin=None, pincode=None):
+        query = Group.query
+        if admin is not None:
+            query = query.filter_by(admin=admin)
+        if pincode is not None:
+            query = query.filter_by(pincode=pincode)
+        return query.all()
 
     def resolve_get_group_members(self, info, grp_id):
         return Joinee.query.filter_by(grp_id=grp_id).all()

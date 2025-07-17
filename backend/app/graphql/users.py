@@ -18,7 +18,7 @@ class GetUsers(graphene.ObjectType):
     
     def resolve_user(self, info, id=None, email=None):
         if id:
-            return User.query.filter(User.id == id).first()
+            return User.query.get(id)
         if email:
             return User.query.filter(User.email == email).first()
         return None

@@ -7,12 +7,28 @@ class DocReviewType(SQLAlchemyObjectType):
     class Meta:
         model = DocReviews
 
-# Query for getting reviews by doctor ID
+# Query for getting reviews by doctor ID, average rating, and review count
 class Query(graphene.ObjectType):
     get_doc_reviews = graphene.List(DocReviewType, doc_id=graphene.Int(required=True))
+    get_average_rating = graphene.Float(doc_id=graphene.Int(required=True))
+    get_review_count = graphene.Int(doc_id=graphene.Int(required=True))
+    get_all_reviews = graphene.List(DocReviewType)
 
     def resolve_get_doc_reviews(self, info, doc_id):
         return DocReviews.query.filter_by(doc_id=doc_id).all()
+
+    def resolve_get_average_rating(self, info, doc_id):
+        reviews = DocReviews.query.filter_by(doc_id=doc_id).all()
+        if not reviews:
+            return 0.0
+        total = sum([r.rating for r in reviews if r.rating is not None])
+        return round(total / len(reviews), 1)
+
+    def resolve_get_review_count(self, info, doc_id):
+        return DocReviews.query.filter_by(doc_id=doc_id).count()
+
+    def resolve_get_all_reviews(self, info):
+        return DocReviews.query.all()
 
 # Mutation for adding a doctor review
 class AddDocReview(graphene.Mutation):
@@ -35,26 +51,6 @@ class AddDocReview(graphene.Mutation):
         db.session.commit()
         return ReturnType(message="Review added successfully", status=1)
 
-# Mutation for updating a doctor review
-class UpdateDocReview(graphene.Mutation):
-    class Arguments:
-        review_id = graphene.Int(required=True)
-        rating = graphene.Int()
-        review = graphene.String()
-
-    Output = ReturnType
-
-    def mutate(self, info, review_id, rating=None, review=None):
-        doc_review = DocReviews.query.filter_by(review_id=review_id).first()
-        if not doc_review:
-            return ReturnType(message="Review not found", status=0)
-        if rating is not None:
-            doc_review.rating = rating
-        if review is not None:
-            doc_review.review = review
-        db.session.commit()
-        return ReturnType(message="Review updated successfully", status=1)
-
 class Mutation(graphene.ObjectType):
     add_doc_review = AddDocReview.Field()
-    update_doc_review = UpdateDocReview.Field()
+    
