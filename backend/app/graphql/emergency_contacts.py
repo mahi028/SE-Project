@@ -2,6 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import EmergencyContacts, db
 from .return_types import ReturnType
+from utils.dbUtils import adddb, commitdb, rollbackdb
 
 class EmergencyContactType(SQLAlchemyObjectType):
     class Meta:
@@ -35,9 +36,15 @@ class AddEmergencyContact(graphene.Mutation):
             send_alert=send_alert,
             relationship=relationship
         )
-        db.session.add(contact)
-        db.session.commit()
-        return ReturnType(message="Emergency contact added successfully", status=1)
+        adddb(contact)
+        try:
+            commitdb(db)    
+            return ReturnType(message="Emergency contact added successfully", status=201)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error adding emergency contact: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
+        
 
 # Mutation for updating an emergency contact
 class UpdateEmergencyContact(graphene.Mutation):
@@ -65,8 +72,14 @@ class UpdateEmergencyContact(graphene.Mutation):
             contact.send_alert = send_alert
         if relationship is not None:
             contact.relationship = relationship
-        db.session.commit()
-        return ReturnType(message="Emergency contact updated successfully", status=1)
+        try:
+            commitdb(db)
+            return ReturnType(message="Emergency contact updated successfully", status=200)
+        except Exception as e:
+            rollbackdb(db)
+            print(f"Error updating emergency contact: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=403)
+        
 
 class EmergencyContactMutation(graphene.ObjectType):
     add_emergency_contact = AddEmergencyContact.Field()

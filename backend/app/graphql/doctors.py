@@ -68,11 +68,11 @@ class AddDoctor(graphene.Mutation):
         adddb(doctor)
         try:
             commitdb()
-            return ReturnType(message="Doctor added successfully", status=1)
+            return ReturnType(message="Doctor added successfully", status=201)
         except Exception as e:
             rollbackdb()
             print(f"Error adding doctor: {e}")
-            return ReturnType(message=f"Something fcuking happened:", status=0)
+            return ReturnType(message=f"Something fcuking happened:", status=403)
 
 
 class UpdateDoctor(graphene.Mutation):
@@ -95,7 +95,7 @@ class UpdateDoctor(graphene.Mutation):
     def mutate(self, info, doc_id, **kwargs):
         doctor = DocInfo.query.filter_by(doc_id=doc_id).first()
         if not doctor:
-            return ReturnType(message="Health Professional not found", status=0)
+            return ReturnType(message="Health Professional not found", status=403)
 
         # If updating license number, check if it conflicts with another doctor
         if 'license_number' in kwargs:
@@ -104,7 +104,7 @@ class UpdateDoctor(graphene.Mutation):
                 DocInfo.doc_id != doc_id
             ).first()
             if existing_doctor:
-                return ReturnType(message="License number already exists", status=0)
+                return ReturnType(message="License number already exists", status=403)
 
         for key, value in kwargs.items():
             if value is not None:
@@ -112,10 +112,10 @@ class UpdateDoctor(graphene.Mutation):
 
         try:
             commitdb()
-            return ReturnType(message="Doctor updated successfully", status=1)
+            return ReturnType(message="Doctor updated successfully", status=200)
         except Exception as e:
             rollbackdb()
-            return ReturnType(message=f"Error updating doctor: {str(e)}", status=0)
+            return ReturnType(message=f"Error updating doctor: {str(e)}", status=403)
 
 class DoctorMutation(graphene.ObjectType):
     add_doctor = AddDoctor.Field()
