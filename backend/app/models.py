@@ -1,4 +1,4 @@
-from datetime import datetime
+from dateTime import dateTime
 from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
 
@@ -20,7 +20,7 @@ class User(db.Model):
     role = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)  # hashed password
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=dateTime.utcnow)
     name = db.Column(db.String(100), nullable=False)
     phone_num = db.Column(db.String(10), unique=True, nullable=False)
     profile_image_url = db.Column(db.String(256))
@@ -37,7 +37,7 @@ class SenInfo(db.Model):
     sen_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
     gender = db.Column(db.String(8))
-    dob = db.Column(db.Datetime)
+    dob = db.Column(db.DateTime)
     address = db.Column(db.Text)
     pincode = db.Column(db.String(6))
     alternate_phone_num = db.Column(db.String(10))
@@ -71,7 +71,7 @@ class DocInfo(db.Model):
     doc_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
     gender = db.Column(db.String(8))
-    dob = db.Column(db.Datetime)
+    dob = db.Column(db.DateTime)
     address = db.Column(db.Text)
     pincode = db.Column(db.String(6))
     alternate_phone_num = db.Column(db.String(10))
@@ -132,7 +132,7 @@ class Appointments(db.Model):
     rem_time = db.Column(db.DateTime)
     reason = db.Column(db.String(256))
     status = db.Column(db.Integer, default=0)  # 0=pending, 1=confirmed, -1=canceled
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=dateTime.utcnow)
     
 
 class Prescription(db.Model):
@@ -143,7 +143,7 @@ class Prescription(db.Model):
     medication_data = db.Column(db.String(64))  
     time=db.Column(db.JSON)
     instructions = db.Column(db.String(256)) 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=dateTime.utcnow)
 
 class VitalTypes(db.Model):
     __tablename__ = 'vital_types'
@@ -180,4 +180,4 @@ class Joinee(db.Model):
     __tablename__ = 'joinee'
     grp_id = db.Column(db.Integer, db.ForeignKey('groups.grp_id'), primary_key=True)
     sen_id = db.Column(db.Integer, db.ForeignKey('sen_info.sen_id'), primary_key=True)
-    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    joined_at = db.Column(db.DateTime, default=dateTime.utcnow)
