@@ -3,7 +3,7 @@ import graphene
 from ..models import Prescription, Reminders, SenInfo, db
 from .return_types import ReturnType
 from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
-from datetime import datetime
+from datetime import datetime, time
 
 class PrescriptionType(SQLAlchemyObjectType):
     class Meta:
@@ -55,16 +55,24 @@ class AddPrescription(graphene.Mutation):
         # Create reminders for each time specified in the prescription
         # time format example: {"morning": "08:00", "afternoon": "14:00", "evening": "20:00"}
         try:
-            for period, time_str in time.items():
-                # Create daily reminder for each time
-                reminder = Reminders(
-                    ez_id=senior.ez_id,
-                    label=f"Medicine: {medication_data} - {period}",
-                    category=1,  # medication category
-                    rem_time=datetime.strptime(time_str, "%H:%M").time(),
-                    is_active=True
-                )
-                adddb(reminder)
+            # Extract time slots from the time JSON
+            time_slots = [time_str for time_str in time.values()]
+            
+            # Create a single recurring reminder for all medication times
+            reminder = Reminders(
+                ez_id=senior.ez_id,
+                label=f"Medicine: {medication_data}",
+                category=1,  # medication category
+                rem_time=datetime.combine(datetime.now().date(), datetime.strptime(time_slots[0], "%H:%M").time()),
+                is_active=True,
+                is_recurring=True,
+                frequency='daily',
+                interval=1,
+                weekdays=None,  # Daily means all days
+                times_per_day=len(time_slots),
+                time_slots=time_slots
+            )
+            adddb(reminder)
 
             commitdb(db)
             return ReturnType(message="Prescription and reminders added successfully", status=201)

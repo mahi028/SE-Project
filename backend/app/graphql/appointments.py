@@ -5,6 +5,7 @@ from .return_types import ReturnType
 from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 from datetime import timedelta
 
+
 class AppointmentType(SQLAlchemyObjectType):
     class Meta:
         model = Appointments
@@ -20,7 +21,6 @@ class AppointmentsQuery(graphene.ObjectType):
         doc_id=graphene.Int(required=True),
         date=graphene.String(required=True)
     )
-
 
     def resolve_get_appointments_for_senior(self, info, sen_id):
         return Appointments.query.filter_by(sen_id=sen_id).all()
@@ -42,7 +42,6 @@ class AppointmentsQuery(graphene.ObjectType):
         booked_times = {apt.rem_time.strftime('%I:%M %p') for apt in appointments}
         return [slot for slot in slots if slot not in booked_times]
 
-    
 
 class BookAppointment(graphene.Mutation):
     class Arguments:
@@ -66,11 +65,17 @@ class BookAppointment(graphene.Mutation):
         # Create reminder for 1 day before
         day_before = rem_time - timedelta(days=1)
         reminder_day = Reminders(
-            ez_id=appointment.sen_info.ez_id,  # Get ez_id from sen_info relationship
+            ez_id=appointment.sen_info.ez_id,
             label=f"Appointment with Dr. {appointment.doc_info.user.name}",
             category=0,  # appointment category
             rem_time=day_before,
-            is_active=True
+            is_active=True,
+            is_recurring=False,
+            frequency=None,
+            interval=1,
+            weekdays=None,
+            times_per_day=1,
+            time_slots=None
         )
         adddb(reminder_day)
 
@@ -81,7 +86,13 @@ class BookAppointment(graphene.Mutation):
             label=f"Appointment with Dr. {appointment.doc_info.user.name}",
             category=0,
             rem_time=hour_before,
-            is_active=True
+            is_active=True,
+            is_recurring=False,
+            frequency=None,
+            interval=1,
+            weekdays=None,
+            times_per_day=1,
+            time_slots=None
         )
         adddb(reminder_hour)
 
@@ -92,7 +103,6 @@ class BookAppointment(graphene.Mutation):
             rollbackdb(db)
             print(f"Error booking appointment: {str(e)}")
             return ReturnType(message=f"Something went wrong", status=403)
-
 
 
 class UpdateAppointmentStatus(graphene.Mutation):
@@ -115,27 +125,24 @@ class UpdateAppointmentStatus(graphene.Mutation):
         except Exception as e:
             rollbackdb(db)
             return ReturnType(message=f"Error updating appointment status", status=403)
-        
 
 
 class CancelAppointment(graphene.Mutation):
-        class Arguments:
-            app_id = graphene.Int(required=True)
+    class Arguments:
+        app_id = graphene.Int(required=True)
 
-        Output = ReturnType
+    Output = ReturnType
 
-        def mutate(self, info, app_id):
-            appointment = Appointments.query.filter_by(app_id=app_id).first()
-            if not appointment:
-                return ReturnType(message="Appointment not found", status=0)
-            appointment.status = -1  # Mark as cancelled
-            commitdb(db)
-            return ReturnType(message="Appointment cancelled successfully", status=1)
+    def mutate(self, info, app_id):
+        appointment = Appointments.query.filter_by(app_id=app_id).first()
+        if not appointment:
+            return ReturnType(message="Appointment not found", status=0)
+        appointment.status = -1  # Mark as cancelled
+        commitdb(db)
+        return ReturnType(message="Appointment cancelled successfully", status=1)
 
 
 class AppointmentsMutation(graphene.ObjectType):
     book_appointment = BookAppointment.Field()
     update_appointment_status = UpdateAppointmentStatus.Field()
     cancel_appointment = CancelAppointment.Field()
-
-
