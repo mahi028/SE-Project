@@ -3,7 +3,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 from ..models import VitalLogs, VitalTypes, SenInfo, db
 from datetime import datetime
 from .return_types import ReturnType
-from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
+from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 
 class VitalLogType(SQLAlchemyObjectType):
     class Meta:

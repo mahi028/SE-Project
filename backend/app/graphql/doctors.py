@@ -2,7 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import User,DocInfo, db
 from .return_types import ReturnType
-from utils.dbUtils import adddb, commitdb, rollbackdb
+from ..utils.dbUtils import adddb, commitdb, rollbackdb
 
 class DoctorType(SQLAlchemyObjectType):
     class Meta:

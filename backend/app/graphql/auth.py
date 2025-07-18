@@ -84,4 +84,3 @@ class Register(graphene.Mutation):
     
 class AuthMutation(graphene.ObjectType):
     register = Register.Field()
-    get_token = GetToken.Field()

@@ -2,7 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import Appointments, Reminders, db
 from .return_types import ReturnType
-from utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
+from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 from datetime import timedelta
 
 
