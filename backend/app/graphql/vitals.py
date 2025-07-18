@@ -2,6 +2,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
 from ..models import VitalTypes, VitalLogs, db
 from .return_types import ReturnType
+from utils.dbUtils import adddb, commitdb, rollbackdb
 
 class VitalTypeType(SQLAlchemyObjectType):
     class Meta:
@@ -27,8 +28,6 @@ class Query(graphene.ObjectType):
 
     def resolve_get_vital_logs(self, info, sen_id):
         return VitalLogs.query.filter_by(sen_id=sen_id).all()
-    
-    
 
 # Mutation for adding a vital log
 class AddVitalLog(graphene.Mutation):
@@ -47,9 +46,14 @@ class AddVitalLog(graphene.Mutation):
             reading=reading,
             logged_at=logged_at
         )
-        db.session.add(log)
-        db.session.commit()
-        return ReturnType(message="Vital log added successfully", status=1)
+        adddb(log)
+        
+        try:
+            commitdb(db)
+            return ReturnType(message="Vital log added successfully", status=1)
+        except Exception as e:
+            rollbackdb(db)
+            return ReturnType(message=f"Error adding vital log: {str(e)}", status=403)
 
 class Mutation(graphene.ObjectType):
     add_vital_log = AddVitalLog.Field()

@@ -106,12 +106,21 @@ class DocReviews(db.Model):
 
 class Reminders(db.Model):
     __tablename__ = 'reminders'
+    
     rem_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
+
     label = db.Column(db.String(128))
     category = db.Column(db.Integer)  # [appointments:0, medic:1, hydration:2, group:3, ...]
-    rem_time = db.Column(db.DateTime)
+    rem_time = db.Column(db.DateTime)  # First or next occurrence time
     is_active = db.Column(db.Boolean, default=True)
+    
+    is_recurring = db.Column(db.Boolean, default=False)
+    frequency = db.Column(db.String(32))  # 'daily', 'weekly', 'monthly', etc.
+    interval = db.Column(db.Integer, default=1)  # e.g., every 2 days
+    weekdays = db.Column(db.String(64))  # comma-separated days: 'mon,tue,thu'
+    times_per_day = db.Column(db.Integer, default=1)  # for multiple reminders/day
+    time_slots = db.Column(db.JSON)  # optional: store ['08:00', '20:00']
 
 
 

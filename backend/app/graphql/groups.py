@@ -86,7 +86,13 @@ class JoinGroup(graphene.Mutation):
             label=f"Group Meeting: {group.label}",
             category=3,  # group meeting category
             rem_time=hour_before,
-            is_active=True
+            is_active=True,
+            is_recurring=False,
+            frequency=None,
+            interval=1,
+            weekdays=None,
+            times_per_day=1,
+            time_slots=None
         )
         db.session.add(reminder)
 
