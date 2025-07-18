@@ -34,18 +34,16 @@ class AddUser(graphene.Mutation):
         gender = graphene.String(required=True)
         age = graphene.Int(required=True)
         phone_num = graphene.String(required=True)
-        alternate_phone_num = graphene.String()
-        pincode = graphene.String(required=True)
         profile_image_url = graphene.String() # TBD
 
     Output = ReturnType
 
-    def mutate(root, info, ez_id, role, email, password, name, gender, age, phone_num, pincode, profile_image_url, alternate_phone_num=None):
+    def mutate(root, info, ez_id, role, email, password, name, gender, age, phone_num, profile_image_url):
         try:
             new_user = User(
                 ez_id=ez_id, role=role,
-                email=email, password=password, name=name, phone_num=phone_num, pincode=pincode, profile_image_url=profile_image_url, alternate_phone_num=alternate_phone_num
-            )
+                email=email, password=password, name=name, phone_num=phone_num, profile_image_url=profile_image_url
+                )
 
             adddb(new_user)
             commitdb()
