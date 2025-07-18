@@ -150,7 +150,6 @@ class VitalTypes(db.Model):
     label = db.Column(db.String(64), unique=True)
     unit = db.Column(db.String(32))  # e.g., "mmHg", "bpm", "mg/dL"
     threshold = db.Column(db.JSON)  # threshold value for alerting
-    vital_logs = db.relationship('VitalLogs', backref='vital_type', lazy=True)
     
 
 class VitalLogs(db.Model):

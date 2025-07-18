@@ -6,7 +6,7 @@ from .doc_reviews import DocReviewsQuery, DocReviewMutation
 from .appointments import AppointmentsQuery, AppointmentsMutation
 from .emergency_contacts import EmergencyContactsQuery, EmergencyContactMutation
 from .vital_types import VitalTypesQuery, VitalTypesMutation
-from .groups import GroupsQuery, GroupMutation
+from .groups import GroupQuery, GroupMutation
 from .auth import GetToken, AuthMutation
 
 class Query(UsersQuery, 
@@ -16,7 +16,7 @@ class Query(UsersQuery,
             DocReviewsQuery,
             EmergencyContactsQuery,
             VitalTypesQuery,
-            GroupsQuery,
+            GroupQuery,
             GetToken, 
             graphene.ObjectType):
     pass

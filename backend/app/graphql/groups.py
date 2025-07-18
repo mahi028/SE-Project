@@ -13,7 +13,7 @@ class JoineeType(SQLAlchemyObjectType):
         model = Joinee
 
 # Queries: fetch all groups, groups by admin, and members of a group
-class PeerGroupQuery(graphene.ObjectType):
+class GroupQuery(graphene.ObjectType):
     get_groups = graphene.List(
         GroupType,
         admin=graphene.Int(),
@@ -103,6 +103,6 @@ class JoinGroup(graphene.Mutation):
             db.session.rollback()
             return ReturnType(message=f"Error joining group: {str(e)}", status=403)
 
-class Mutation(graphene.ObjectType):
+class GroupMutation(graphene.ObjectType):
     create_group = CreateGroup.Field()
     join_group = JoinGroup.Field()
