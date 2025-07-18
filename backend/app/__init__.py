@@ -8,6 +8,7 @@ import chromadb
 import insightface
 from .graphql import schema
 from .models import db
+from.utils.remScheduler import scheduler, check_reminders
 from .graphql.auth import jwt
 import os
 import sys
@@ -39,6 +40,15 @@ def create_app():
 
     csrf.init_app(app)
     jwt.init_app(app)
+
+    scheduler.init_app(app)
+    scheduler.start()
+    scheduler.add_job(
+        id='check_reminders',
+        func=check_reminders,
+        trigger='interval',
+        seconds=60  # check every minute
+    )
 
     from app.api.user_lookup import lookup
     app.register_blueprint(lookup, url_prefix='/user-lookup')
