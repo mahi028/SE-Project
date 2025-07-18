@@ -44,7 +44,6 @@ class SenInfo(db.Model):
     medical_info = db.Column(db.JSON)
     
     # Relationships
-    embeddings = db.relationship('Embeddings', backref='sen_info', lazy=True)
     emergency_contacts = db.relationship('EmergencyContacts', backref='sen_info', lazy=True)
     vital_logs = db.relationship('VitalLogs', backref='sen_info', lazy=True)
     appointments = db.relationship('Appointments', backref='sen_info', lazy=True)
