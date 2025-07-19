@@ -42,6 +42,10 @@ info:
     - updateEmergencyContact - Update emergency contact
     - addDocReview - Add doctor review
 
+    ## User Lookup REST Endpoints
+    - POST /user-lookup/register - Register user face using video
+    - POST /user-lookup/recognize - Recognize user from photo
+
 servers:
   - url: http://localhost:5000
     description: Development server
@@ -51,6 +55,8 @@ paths:
     post:
       summary: GraphQL API Endpoint
       description: Handles authentication and user registration
+      tags:
+        - GraphQL
       requestBody:
         required: true
         content:
@@ -524,6 +530,161 @@ paths:
                         }
                       ]
 
+  /user-lookup/register:
+    post:
+      summary: Register user face using video
+      description: Register a user's face biometrics using a video file. Extracts multiple frames and creates face embeddings for recognition.
+      tags:
+        - User Lookup
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FaceRegistrationRequest'
+            encoding:
+              video:
+                contentType: video/*
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaceRegistrationResponse'
+              example:
+                message: "User registered successfully from video with 5 face embeddings"
+                ez_id: "ez-sen-1234"
+                total_embeddings: 5
+                frames_processed: 15
+        '400':
+          description: Bad request - No video uploaded or insufficient faces detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                no_video:
+                  summary: No video uploaded
+                  value:
+                    error: "No video uploaded"
+                no_faces:
+                  summary: No faces detected
+                  value:
+                    error: "No valid faces detected in the video. Please ensure the video contains clear, visible faces"
+                insufficient_faces:
+                  summary: Insufficient faces
+                  value:
+                    error: "At least 3 frames with valid faces are required for registration from video"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "User not Found!"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                processing_error:
+                  summary: Processing error
+                  value:
+                    error: "Failed to process video!"
+                storage_error:
+                  summary: Storage error
+                  value:
+                    error: "Failed to store face embeddings"
+                general_error:
+                  summary: General error
+                  value:
+                    error: "Video registration failed! Try Again Later."
+
+  /user-lookup/recognize:
+    post:
+      summary: Recognize user from photo
+      description: Identify a user by comparing their face in a photo against registered face embeddings.
+      tags:
+        - User Lookup
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FaceRecognitionRequest'
+            encoding:
+              photo:
+                contentType: image/*
+      responses:
+        '200':
+          description: User(s) recognized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaceRecognitionResponse'
+              example:
+                matches:
+                  - ez_id: "ez-sen-1234"
+                    similarity: 0.85
+                    confidence: "High"
+                  - ez_id: "ez-sen-5678"
+                    similarity: 0.72
+                    confidence: "Medium"
+        '400':
+          description: Bad request - No photo uploaded or no face detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                no_photo:
+                  summary: No photo uploaded
+                  value:
+                    error: "No photo uploaded"
+                no_face:
+                  summary: No face detected
+                  value:
+                    error: "No face detected in the uploaded photo. Please upload a clear image with a visible face"
+        '404':
+          description: No matching user found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  min_distance:
+                    type: number
+                    format: float
+                    description: Minimum distance found (only present when no confident matches)
+              examples:
+                no_match:
+                  summary: No matching user
+                  value:
+                    error: "No matching user found"
+                    message: "The face in the photo doesn't match any registered users"
+                low_confidence:
+                  summary: Low confidence match
+                  value:
+                    error: "No matching user found"
+                    message: "The face in the photo doesn't match any registered users with sufficient confidence"
+                    min_distance: 0.8
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Recognition failed! Try Again."
+
 components:
   schemas:
     AuthToken:
@@ -903,6 +1064,95 @@ components:
         review:
           type: string
 
+    FaceRegistrationRequest:
+      type: object
+      required:
+        - video
+        - ez_id
+      properties:
+        video:
+          type: string
+          format: binary
+          description: Video file for face registration (MP4, AVI, MOV, etc.)
+        ez_id:
+          type: string
+          description: EZCare ID of the user to register
+          example: "ez-sen-1234"
+
+    FaceRegistrationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: "User registered successfully from video with 5 face embeddings"
+        ez_id:
+          type: string
+          description: EZCare ID of the registered user
+          example: "ez-sen-1234"
+        total_embeddings:
+          type: integer
+          description: Number of face embeddings created
+          example: 5
+        frames_processed:
+          type: integer
+          description: Total number of video frames processed
+          example: 15
+
+    FaceRecognitionRequest:
+      type: object
+      required:
+        - photo
+      properties:
+        photo:
+          type: string
+          format: binary
+          description: Photo file for face recognition (JPG, PNG, etc.)
+
+    FaceRecognitionResponse:
+      type: object
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/FaceMatch'
+          description: Array of matching users with similarity scores
+
+    FaceMatch:
+      type: object
+      properties:
+        ez_id:
+          type: string
+          description: EZCare ID of matched user
+          example: "ez-sen-1234"
+        similarity:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Similarity score (higher is better match)
+          example: 0.85
+        confidence:
+          type: string
+          enum: [High, Medium, Low]
+          description: Confidence level of the match
+          example: "High"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "No video uploaded"
+        message:
+          type: string
+          description: Additional error details
+        min_distance:
+          type: number
+          format: float
+          description: Minimum distance found (for recognition failures)
+
   securitySchemes:
     BearerAuth:
       type: http
@@ -911,3 +1161,9 @@ components:
 
 security:
   - BearerAuth: []
+
+tags:
+  - name: GraphQL
+    description: GraphQL endpoint for main application features
+  - name: User Lookup
+    description: REST endpoints for face recognition and registration
