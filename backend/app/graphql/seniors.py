@@ -12,13 +12,13 @@ class SeniorType(SQLAlchemyObjectType):
 
 class SeniorsQuery(graphene.ObjectType):
     get_seniors = graphene.List(SeniorType)
-    get_senior = graphene.List(SeniorType, sen_id=graphene.Int(required=True))
+    get_senior = graphene.Field(SeniorType, sen_id=graphene.Int(required=True))
     
     def resolve_get_seniors(self, info,):
         return SenInfo.query.all()
 
 
-    def resolve_get_doctor(self, info, sen_id):
+    def resolve_get_senior(self, info, sen_id):
         return SenInfo.query.get(sen_id)
 
 
