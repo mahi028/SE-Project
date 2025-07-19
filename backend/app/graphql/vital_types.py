@@ -40,10 +40,10 @@ class AddVitalType(graphene.Mutation):
         
         adddb(vital_type)
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Vital type added successfully", status=1)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error adding vital type: {str(e)}", status=0)
 
 
@@ -75,10 +75,10 @@ class UpdateVitalType(graphene.Mutation):
                 setattr(vital_type, key, value)
 
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Vital type updated successfully", status=1)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error updating vital type: {str(e)}", status=0)
 
 class VitalTypesMutation(graphene.ObjectType):

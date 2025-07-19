@@ -1,6 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import Appointments, Reminders, db
+from ..models import Appointments, Reminders, db, SenInfo, DocInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 from datetime import timedelta
@@ -53,6 +53,15 @@ class BookAppointment(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, sen_id, doc_id, rem_time, reason):
+        senior = SenInfo.query.get(sen_id)
+        doctor = DocInfo.query.get(doc_id)
+
+        if not senior:
+            pass
+
+        if not doctor:
+            pass
+
         appointment = Appointments(
             sen_id=sen_id,
             doc_id=doc_id,
@@ -65,8 +74,8 @@ class BookAppointment(graphene.Mutation):
         # Create reminder for 1 day before
         day_before = rem_time - timedelta(days=1)
         reminder_day = Reminders(
-            ez_id=appointment.sen_info.ez_id,
-            label=f"Appointment with Dr. {appointment.doc_info.user.name}",
+            ez_id=senior.ez_id,
+            label=f"Appointment with Dr. {doctor.user.name}",
             category=0,  # appointment category
             rem_time=day_before,
             is_active=True,
@@ -82,8 +91,8 @@ class BookAppointment(graphene.Mutation):
         # Create reminder for 1 hour before
         hour_before = rem_time - timedelta(hours=1)
         reminder_hour = Reminders(
-            ez_id=appointment.sen_info.ez_id,
-            label=f"Appointment with Dr. {appointment.doc_info.user.name}",
+            ez_id=senior.ez_id,
+            label=f"Appointment with Dr. {doctor.user.name}",
             category=0,
             rem_time=hour_before,
             is_active=True,
@@ -97,10 +106,10 @@ class BookAppointment(graphene.Mutation):
         adddb(reminder_hour)
 
         try:    
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Appointment booked successfully with reminders", status=201)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             print(f"Error booking appointment: {str(e)}")
             return ReturnType(message=f"Something went wrong", status=403)
 
@@ -113,17 +122,17 @@ class UpdateAppointmentStatus(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, app_id, status):
-        appointment = Appointments.query.filter_by(app_id=app_id).first()
+        appointment = Appointments.query.get(app_id)
         if not appointment:
             return ReturnType(message="Appointment not found", status=0)
         if status not in [1, -1]:
             return ReturnType(message="Invalid status", status=0)
         appointment.status = status
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Appointment status updated", status=200)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error updating appointment status", status=403)
 
 
@@ -134,11 +143,11 @@ class CancelAppointment(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, app_id):
-        appointment = Appointments.query.filter_by(app_id=app_id).first()
+        appointment = Appointments.query.get(app_id)
         if not appointment:
             return ReturnType(message="Appointment not found", status=0)
         appointment.status = -1  # Mark as cancelled
-        commitdb(db)
+        commitdb()
         return ReturnType(message="Appointment cancelled successfully", status=1)
 
 

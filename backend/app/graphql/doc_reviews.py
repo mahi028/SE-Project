@@ -1,6 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import DocReviews, db
+from ..models import DocReviews, db, SenInfo, DocInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
 
@@ -42,6 +42,15 @@ class AddDocReview(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, doc_id, sen_id, rating, review=None):
+        senior = SenInfo.query.get(sen_id)
+        doctor = DocInfo.query.get(doc_id)
+
+        if not senior:
+            pass
+
+        if not doctor:
+            pass
+
         doc_review = DocReviews(
             doc_id=doc_id,
             sen_id=sen_id,
@@ -50,10 +59,10 @@ class AddDocReview(graphene.Mutation):
         )
         adddb(doc_review)
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Review added successfully", status=201)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             print(f"Error adding review: {str(e)}")
             return ReturnType(message=f"Something went wrong", status=403)
 

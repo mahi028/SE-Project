@@ -1,10 +1,21 @@
 from datetime import datetime, timedelta, time
 from dateutil.rrule import rrule, WEEKLY
 from flask_apscheduler import APScheduler
-from ..models import Reminders  # replace with your actual import
-from.dbUtils import commitdb
+from ..models import Reminders 
+from .dbUtils import commitdb, rollbackdb
+from .mailService import send_email
 
 scheduler = APScheduler()
+CATEGORY_MAP = {
+    0: 'Appointments',
+    1: 'Medic',
+    2: 'Hydration',
+    3: 'Group',
+    4: 'Exercise',
+    5: 'Diet',
+    6: 'Sleep',
+    # Add more if needed
+}
 
 def should_trigger_today(reminder: Reminders, now: datetime) -> bool:
     """Check if reminder should be triggered today based on weekdays."""
@@ -26,31 +37,58 @@ def should_trigger_now(reminder: Reminders, now: datetime) -> bool:
     return False
 
 def trigger_reminder(reminder: Reminders):
-    # Your actual logic (send email, push, DB log, etc.)
-    print(f"Triggering Reminder: {reminder.label} (User {reminder.ez_id})")
+    """Trigger reminder and send email."""
+    subject = f"Reminder: {reminder.label}"
+    contact = reminder
 
-def check_reminders():
-    now = datetime.utcnow()
+    # Access user email via relationship
+    if not reminder.user or not reminder.user.email:
+        print(f"Missing user or email for reminder {reminder.rem_id}")
+        return
 
-    # --- One-time reminders ---
-    one_time_reminders = Reminders.query.filter(
-        Reminders.is_active == True,
-        Reminders.is_recurring == False,
-        Reminders.rem_time <= now
-    ).all()
+    recipients = [reminder.user.email]
+    reminder_display = {
+        **reminder.__dict__,
+        "category": CATEGORY_MAP.get(reminder.category, "Other")  # fallback to "Other"
+    }
+    try:
+        send_email(subject, contact, recipients, reminder_display)
+        print(f"Email sent for Reminder: {reminder.label} to {reminder.user.email}")
+    except Exception as e:
+        print(f"Error sending email for {reminder.label}: {e}")
 
-    for rem in one_time_reminders:
-        trigger_reminder(rem)
-        rem.is_active = False
-        commitdb()
+def check_reminders(app):
+    with app.app_context():
+        now = datetime.utcnow()
 
-    # --- Recurring reminders ---
-    recurring_reminders = Reminders.query.filter(
-        Reminders.is_active == True,
-        Reminders.is_recurring == True
-    ).all()
+        # --- One-time reminders ---
+        one_time_reminders = Reminders.query.filter(
+            Reminders.is_active == True,
+            Reminders.is_recurring == False,
+            Reminders.rem_time <= now
+        ).all()
 
-    for rem in recurring_reminders:
-        if should_trigger_today(rem, now) and should_trigger_now(rem, now):
-            trigger_reminder(rem)
-            # Optional: track last_triggered if needed
+        for rem in one_time_reminders:
+            try:
+                trigger_reminder(rem)
+                rem.is_active = False
+                commitdb()
+            except Exception as e:
+                app.logger.error(f"Error triggering one-time reminder ID {rem.id}: {e}")
+                rollbackdb()
+
+        # --- Recurring reminders ---
+        recurring_reminders = Reminders.query.filter(
+            Reminders.is_active == True,
+            Reminders.is_recurring == True
+        ).all()
+
+        for rem in recurring_reminders:
+            try:
+                if should_trigger_today(rem, now) and should_trigger_now(rem, now):
+                    trigger_reminder(rem)
+                    # Optional: update rem.last_triggered = now
+                    commitdb()
+            except Exception as e:
+                app.logger.error(f"Error triggering recurring reminder ID {rem.id}: {e}")
+                rollbackdb()

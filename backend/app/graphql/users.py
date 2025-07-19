@@ -11,16 +11,16 @@ class UserType(SQLAlchemyObjectType):
 
 class UsersQuery(graphene.ObjectType):
     all_users = graphene.List(UserType)
-    user = graphene.Field(UserType, id=graphene.Int(), email=graphene.String())
+    user = graphene.Field(UserType, ez_id=graphene.Int(), email=graphene.String())
 
     def resolve_all_users(self, info):
         return User.query.all()
     
-    def resolve_user(self, info, id=None, email=None):
-        if id:
-            return User.query.get(id)
+    def resolve_user(self, info, ez_id=None, email=None):
+        if ez_id:
+            return User.query.get(ez_id)
         if email:
-            return User.query.filter(User.email == email).first()
+            return User.query.filter(User.email == email).one_or_none()
         return None
 
 

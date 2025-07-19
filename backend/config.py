@@ -14,6 +14,10 @@ class Config:
     UPLOAD_FOLDER = 'application/static/upload'
     AI_MODEL_TO_USE = 'gpt-4o-mini'
     AI_API_KEY = os.getenv("AI_API_KEY", 'abc')
+    MAIL_SERVER = "localhost"
+    MAIL_PORT = 1025
+    MAIL_DEFAULT_SENDER = 'no-reply@ezcare.com'
+
 
 class DevelopmentConfig(Config):
     FRONTEND_BASE_URL = "http://localhost:3000"
