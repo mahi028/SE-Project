@@ -1,42 +1,56 @@
 openapi: 3.0.0
 info:
-  title: GraphQL Flask Server API
+  title: EZCare GraphQL API
   version: 1.0.0
   description: |
-    GraphQL endpoint documentation for the Flask-based GraphQL server.
-    This API provides access to user and post data through GraphQL queries.
+    GraphQL endpoint documentation for the EZCare Healthcare Platform.
     
     ## Available Queries
-    - `allUsers` - Get all users with their posts
-    - `allPosts` - Get all posts with author information
-    - `user(id, username)` - Get a specific user by ID or username
-    - `postsByUser(userId)` - Get all posts by a specific user
+    - getToken - Authenticate user and get JWT token
+    - register - Register new user
+    - getSeniors - Get all senior citizens
+    - getSenior - Get senior citizen by ID
+    - getDoctors - Get all doctors (with optional pin/specialization filters)
+    - getDoctor - Get doctor by ID
+    - getAppointmentsForSenior - Get appointments for a senior citizen
+    - getAppointmentsForDoctor - Get appointments for a doctor
+    - getAppointmentsForDoctorSenior - Get appointments between a doctor and senior
+    - getAvailableSlots - Get available appointment slots for a doctor
+    - getGroups - Get groups (filtered by admin/pincode)
+    - getGroupMembers - Get members of a group
+    - getVitalTypes - Get all vital types
+    - getVitalType - Get vital type by ID
+    - getEmergencyContacts - Get emergency contacts for a senior
+    - getDocReviews - Get reviews for a doctor
+    - getAverageRating - Get average rating for a doctor
+    - getReviewCount - Get review count for a doctor
+    - getAllReviews - Get all reviews
     
-    ## GraphiQL Interface
-    Interactive GraphQL playground available at `/graphql` endpoint.
+    ## Available Mutations
+    - addSenior - Add new senior citizen profile
+    - updateSenior - Update existing senior citizen profile
+    - addDoctor - Add new doctor profile
+    - updateDoctor - Update existing doctor profile
+    - bookAppointment - Book new appointment
+    - updateAppointmentStatus - Update appointment status
+    - cancelAppointment - Cancel an appointment
+    - createGroup - Create a new group
+    - joinGroup - Join an existing group
+    - addVitalType - Add new vital type
+    - updateVitalType - Update vital type
+    - addEmergencyContact - Add emergency contact
+    - updateEmergencyContact - Update emergency contact
+    - addDocReview - Add doctor review
 
 servers:
   - url: http://localhost:5000
-    description: Local development server
+    description: Development server
 
 paths:
   /graphql:
-    get:
-      summary: GraphiQL Interface
-      description: Interactive GraphQL playground for testing queries
-      responses:
-        '200':
-          description: GraphiQL HTML interface
-          content:
-            text/html:
-              schema:
-                type: string
-    
     post:
-      summary: GraphQL Query Endpoint
-      description: |
-        Send GraphQL queries to retrieve user and post data.
-        Supports queries for users, posts, and their relationships.
+      summary: GraphQL API Endpoint
+      description: Handles authentication and user registration
       requestBody:
         required: true
         content:
@@ -48,297 +62,852 @@ paths:
               properties:
                 query:
                   type: string
-                  description: The GraphQL query string
                 variables:
                   type: object
-                  description: Optional variables for the GraphQL query
-                operationName:
-                  type: string
-                  description: Optional operation name for named queries
             examples:
-              getAllUsers:
-                summary: Get all users
+              getToken:
+                summary: Get authentication token
                 value:
                   query: |
                     {
-                      allUsers {
-                        id
-                        username
+                      getToken(ezId: "ez-doc-2507-0001", password: "userpass123") {
+                        token
+                        message
+                        status
+                      }
+                    }
+              register:
+                summary: Register new user
+                value:
+                  query: |
+                    mutation {
+                      register(
+                        email: "doctor@example.com"
+                        role: 1
+                        password: "securepass123"
+                        confirmPassword: "securepass123"
+                        name: "Dr. John Doe"
+                        phoneNum: "1234567890"
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getSeniors:
+                summary: Get all senior citizens
+                value:
+                  query: |
+                    {
+                      getSeniors {
+                        senId
+                        ezId
+                        gender
+                        dob
+                        address
+                        pincode
+                        alternatePhoneNum
+                        medicalInfo
+                      }
+                    }
+              getDoctors:
+                summary: Get doctors with optional filters
+                value:
+                  query: |
+                    {
+                      getDoctors(pin: "560001", specialization: "Cardiology") {
+                        docId
+                        ezId
+                        gender
+                        dob
+                        address
+                        pincode
+                        alternatePhoneNum
+                        licenseNumber
+                        specialization
+                        affiliation
+                        qualification
+                        experience
+                        consultationFee
+                        workingHours
+                        availability
+                        documents
+                        appointmentWindow
+                      }
+                    }
+              getDoctor:
+                summary: Get doctor by ID
+                value:
+                  query: |
+                    {
+                      getDoctor(docId: 1) {
+                        docId
+                        ezId
+                        gender
+                        dob
+                        address
+                        pincode
+                        alternatePhoneNum
+                        licenseNumber
+                        specialization
+                        affiliation
+                        qualification
+                        experience
+                        consultationFee
+                        workingHours
+                        availability
+                        documents
+                        appointmentWindow
+                      }
+                    }
+              getAppointments:
+                summary: Get appointments for a senior
+                value:
+                  query: |
+                    {
+                      getAppointmentsForSenior(senId: 1) {
+                        appId
+                        senId
+                        docId
+                        remTime
+                        reason
+                        status
+                      }
+                    }
+              getAvailableSlots:
+                summary: Get available slots for a doctor
+                value:
+                  query: |
+                    {
+                      getAvailableSlots(docId: 1, date: "2024-01-01") {
+                        slots
+                      }
+                    }
+              bookAppointment:
+                summary: Book new appointment
+                value:
+                  query: |
+                    mutation {
+                      bookAppointment(
+                        senId: 1
+                        docId: 1
+                        remTime: "2024-01-01T10:00:00Z"
+                        reason: "Regular checkup"
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getGroups:
+                summary: Get groups
+                value:
+                  query: |
+                    {
+                      getGroups(admin: 1, pincode: "560001") {
+                        grpId
+                        label
+                        timing
+                        admin
+                        pincode
+                        location
+                        joinee {
+                          senId
+                          joinedAt
+                        }
+                      }
+                    }
+              getEmergencyContacts:
+                summary: Get emergency contacts
+                value:
+                  query: |
+                    {
+                      getEmergencyContacts(senId: 1) {
+                        contId
+                        name
                         email
-                        createdAt
-                        posts {
-                          id
-                          title
-                          content
-                          createdAt
-                        }
+                        phoneNum
+                        sendAlert
+                        relationship
                       }
                     }
-              
-              getUserById:
-                summary: Get user by ID
+              addEmergencyContact:
+                summary: Add emergency contact
                 value:
                   query: |
-                    {
-                      user(id: 1) {
-                        id
-                        username
-                        email
-                        createdAt
-                        posts {
-                          title
-                          content
-                          createdAt
-                        }
-                      }
-                    }
-              
-              getUserByUsername:
-                summary: Get user by username
-                value:
-                  query: |
-                    {
-                      user(username: "john_doe") {
-                        id
-                        username
-                        email
-                        posts {
-                          id
-                          title
-                          content
-                        }
-                      }
-                    }
-              
-              getAllPosts:
-                summary: Get all posts with authors
-                value:
-                  query: |
-                    {
-                      allPosts {
-                        id
-                        title
-                        content
-                        createdAt
-                        author {
-                          id
-                          username
-                          email
-                        }
-                      }
-                    }
-              
-              getPostsByUser:
-                summary: Get posts by specific user
-                value:
-                  query: |
-                    {
-                      postsByUser(userId: 1) {
-                        id
-                        title
-                        content
-                        createdAt
-                        author {
-                          username
-                          email
-                        }
-                      }
-                    }
-              
-              complexQuery:
-                summary: Complex nested query
-                value:
-                  query: |
-                    {
-                      allUsers {
-                        username
-                        email
-                        posts {
-                          title
-                          createdAt
-                        }
-                      }
-                      allPosts {
-                        title
-                        author {
-                          username
-                        }
-                      }
-                    }
-
-      responses:
-        '200':
-          description: Successful GraphQL response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    description: The response data from the GraphQL query
-                  errors:
-                    type: array
-                    description: Any errors that occurred during query execution
-                    items:
-                      type: object
-                      properties:
-                        message:
-                          type: string
-                        locations:
-                          type: array
-                          items:
-                            type: object
-                        path:
-                          type: array
-                          items:
-                            type: string
-              examples:
-                usersResponse:
-                  summary: Response for allUsers query
-                  value:
-                    data:
-                      allUsers:
-                        - id: 1
-                          username: "john_doe"
-                          email: "john@example.com"
-                          createdAt: "2024-01-15T10:30:00Z"
-                          posts:
-                            - id: 1
-                              title: "Getting Started with Python"
-                              content: "Python is a great programming language for beginners..."
-                              createdAt: "2024-01-15T11:00:00Z"
-                            - id: 2
-                              title: "Web Development Tips"
-                              content: "Here are some tips for web development..."
-                              createdAt: "2024-01-15T12:00:00Z"
-                
-                userByIdResponse:
-                  summary: Response for user by ID query
-                  value:
-                    data:
-                      user:
-                        id: 1
-                        username: "john_doe"
+                    mutation {
+                      addEmergencyContact(
+                        senId: 1
+                        name: "John Smith"
                         email: "john@example.com"
-                        createdAt: "2024-01-15T10:30:00Z"
-                        posts:
-                          - title: "Getting Started with Python"
-                            content: "Python is a great programming language for beginners..."
-                            createdAt: "2024-01-15T11:00:00Z"
-                
-                postsResponse:
-                  summary: Response for allPosts query
-                  value:
-                    data:
-                      allPosts:
-                        - id: 1
-                          title: "Getting Started with Python"
-                          content: "Python is a great programming language for beginners..."
-                          createdAt: "2024-01-15T11:00:00Z"
-                          author:
-                            id: 1
-                            username: "john_doe"
-                            email: "john@example.com"
-                        - id: 2
-                          title: "Machine Learning Basics"
-                          content: "Understanding the fundamentals of ML..."
-                          createdAt: "2024-01-15T14:00:00Z"
-                          author:
-                            id: 2
-                            username: "jane_smith"
-                            email: "jane@example.com"
-                
-                errorResponse:
-                  summary: Error response example
-                  value:
-                    errors:
-                      - message: "Cannot query field 'invalidField' on type 'User'"
-                        locations:
-                          - line: 3
-                            column: 5
-                        path: ["user"]
+                        phoneNum: "1234567890"
+                        relationship: "Son"
+                        sendAlert: true
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              addDocReview:
+                summary: Add doctor review
+                value:
+                  query: |
+                    mutation {
+                      addDocReview(
+                        docId: 1
+                        senId: 1
+                        rating: 5
+                        review: "Great doctor!"
+                      ) {
+                        message
+                        status
+                      }
+                    }
 
-        '400':
-          description: Bad Request - Invalid GraphQL query
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        message:
-                          type: string
-              example:
-                errors:
-                  - message: "Syntax Error: Expected Name, found }"
-
-  /:
-    get:
-      summary: Application Home Page
-      description: Landing page with GraphQL examples and links
       responses:
         '200':
-          description: HTML page with GraphQL examples
+          description: Successful response
           content:
-            text/html:
-              schema:
-                type: string
+            application/json:
+              examples:
+                tokenSuccess:
+                  summary: Successful authentication
+                  value:
+                    data:
+                      getToken:
+                        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        message: null
+                        status: null
+                tokenError:
+                  summary: Authentication failed
+                  value:
+                    data:
+                      getToken:
+                        token: null
+                        message: "No user found"
+                        status: 404
+                registerSuccess:
+                  summary: Registration successful
+                  value:
+                    data:
+                      register:
+                        message: "Registration successful."
+                        status: 200
+                registerError:
+                  summary: Registration error
+                  value:
+                    data:
+                      register:
+                        message: "User with the given email already exists."
+                        status: 409
+                getSeniorsSuccess:
+                  summary: Successfully retrieved seniors
+                  value:
+                    data:
+                      getSeniors: [
+                        {
+                          "senId": 1,
+                          "ezId": "ez-sen-1234",
+                          "gender": "M",
+                          "dob": "1950-01-01T00:00:00Z",
+                          "address": "123 Main St",
+                          "pincode": "560001",
+                          "alternatePhoneNum": "9876543210",
+                          "medicalInfo": {"conditions": ["diabetes"]}
+                        }
+                      ]
+                getDoctorsSuccess:
+                  summary: Successfully retrieved doctors
+                  value:
+                    data:
+                      getDoctors: [
+                        {
+                          "docId": 1,
+                          "ezId": "ez-doc-1234",
+                          "gender": "M",
+                          "dob": "1980-01-01T00:00:00Z",
+                          "address": "123 Hospital St",
+                          "pincode": "560001",
+                          "alternatePhoneNum": "9876543210",
+                          "licenseNumber": "MED123456",
+                          "specialization": "Cardiology",
+                          "affiliation": {"hospital": "City Hospital"},
+                          "qualification": {"degree": "MBBS", "university": "Medical University"},
+                          "experience": 10,
+                          "consultationFee": 500.0,
+                          "workingHours": "9:00-17:00",
+                          "availability": {"monday": true, "tuesday": true},
+                          "appointmentWindow": 30
+                        }
+                      ]
+                addSeniorSuccess:
+                  summary: Senior profile added successfully
+                  value:
+                    data:
+                      addSenior:
+                        message: "Senior added successfully"
+                        status: 201
+                getSeniorSuccess:
+                  summary: Successfully retrieved senior
+                  value:
+                    data:
+                      getSenior: {
+                        "senId": 1,
+                        "ezId": "ez-sen-1234",
+                        "gender": "M",
+                        "dob": "1950-01-01T00:00:00Z",
+                        "address": "123 Main St",
+                        "pincode": "560001",
+                        "alternatePhoneNum": "9876543210",
+                        "medicalInfo": {"conditions": ["diabetes"]}
+                      }
+                getSeniorError:
+                  summary: Senior not found
+                  value:
+                    data:
+                      getSenior: null
+                doctorError:
+                  summary: Doctor not found
+                  value:
+                    data:
+                      getDoctor: null
+                getAppointmentsSuccess:
+                  summary: Successfully retrieved appointments
+                  value:
+                    data:
+                      getAppointmentsForSenior: [
+                        {
+                          "appId": 1,
+                          "senId": 1,
+                          "docId": 1,
+                          "remTime": "2024-01-01T10:00:00Z",
+                          "reason": "Regular checkup",
+                          "status": 0
+                        }
+                      ]
+                bookAppointmentSuccess:
+                  summary: Appointment booked successfully
+                  value:
+                    data:
+                      bookAppointment:
+                        message: "Appointment booked successfully with reminders"
+                        status: 201
+                getAvailableSlotsSuccess:
+                  summary: Successfully retrieved available slots
+                  value:
+                    data:
+                      getAvailableSlots: {
+                        "slots": [
+                          "09:00 AM",
+                          "10:00 AM",
+                          "11:00 AM",
+                          "12:00 PM",
+                          "01:00 PM",
+                          "02:00 PM",
+                          "03:00 PM",
+                          "04:00 PM",
+                          "05:00 PM"
+                        ]
+                      }
+                getGroupsSuccess:
+                  summary: Successfully retrieved groups
+                  value:
+                    data:
+                      getGroups: [
+                        {
+                          "grpId": 1,
+                          "label": "Diabetes Care",
+                          "timing": "2024-01-01T10:00:00Z",
+                          "admin": 1,
+                          "pincode": "560001",
+                          "location": "Community Center",
+                          "joinee": [
+                            {
+                              "senId": 1,
+                              "joinedAt": "2024-01-01T09:00:00Z"
+                            }
+                          ]
+                        }
+                      ]
+                getGroupMembersSuccess:
+                  summary: Successfully retrieved group members
+                  value:
+                    data:
+                      getGroupMembers: [
+                        {
+                          "senId": 1,
+                          "joinedAt": "2024-01-01T09:00:00Z"
+                        }
+                      ]
+                getVitalTypesSuccess:
+                  summary: Successfully retrieved vital types
+                  value:
+                    data:
+                      getVitalTypes: [
+                        {
+                          "typeId": 1,
+                          "label": "Blood Pressure",
+                          "unit": "mmHg",
+                          "threshold": {"low": 90, "high": 120}
+                        }
+                      ]
+                getVitalTypeSuccess:
+                  summary: Successfully retrieved vital type
+                  value:
+                    data:
+                      getVitalType: {
+                        "typeId": 1,
+                        "label": "Blood Pressure",
+                        "unit": "mmHg",
+                        "threshold": {"low": 90, "high": 120}
+                      }
+                getEmergencyContactsSuccess:
+                  summary: Successfully retrieved emergency contacts
+                  value:
+                    data:
+                      getEmergencyContacts: [
+                        {
+                          "contId": 1,
+                          "name": "John Smith",
+                          "email": "john@example.com",
+                          "phoneNum": "1234567890",
+                          "sendAlert": true,
+                          "relationship": "Son"
+                        }
+                      ]
+                addEmergencyContactSuccess:
+                  summary: Emergency contact added successfully
+                  value:
+                    data:
+                      addEmergencyContact:
+                        message: "Emergency contact added successfully"
+                        status: 201
+                addDocReviewSuccess:
+                  summary: Doctor review added successfully
+                  value:
+                    data:
+                      addDocReview:
+                        message: "Review added successfully"
+                        status: 201
+                getDocReviewsSuccess:
+                  summary: Successfully retrieved doctor reviews
+                  value:
+                    data:
+                      getDocReviews: [
+                        {
+                          "reviewId": 1,
+                          "docId": 1,
+                          "senId": 1,
+                          "rating": 5,
+                          "review": "Great doctor!"
+                        }
+                      ]
+                getAverageRatingSuccess:
+                  summary: Successfully retrieved average rating
+                  value:
+                    data:
+                      getAverageRating: 4.5
+                getReviewCountSuccess:
+                  summary: Successfully retrieved review count
+                  value:
+                    data:
+                      getReviewCount: 10
+                getAllReviewsSuccess:
+                  summary: Successfully retrieved all reviews
+                  value:
+                    data:
+                      getAllReviews: [
+                        {
+                          "reviewId": 1,
+                          "docId": 1,
+                          "senId": 1,
+                          "rating": 5,
+                          "review": "Great doctor!"
+                        }
+                      ]
 
 components:
   schemas:
-    User:
+    AuthToken:
       type: object
       properties:
-        id:
-          type: integer
-          description: Unique user identifier
-        username:
+        token:
           type: string
-          description: User's username (unique)
+          description: JWT authentication token
+        message:
+          type: string
+          description: Error message if authentication fails
+        status:
+          type: integer
+          enum: [200, 404]
+          description: Response status code
+
+    RegisterInput:
+      type: object
+      required:
+        - email
+        - role
+        - password
+        - confirmPassword
+        - name
+        - phoneNum
+      properties:
         email:
           type: string
           format: email
-          description: User's email address (unique)
-        createdAt:
+        role:
+          type: integer
+          enum: [0, 1]
+          description: "0 = Senior Citizen, 1 = Health Professional"
+        password:
           type: string
-          format: date-time
-          description: User creation timestamp
-        posts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Post'
-          description: Posts created by this user
-    
-    Post:
+          format: password
+        confirmPassword:
+          type: string
+          format: password
+        name:
+          type: string
+        phoneNum:
+          type: string
+          pattern: "^[0-9]{10}$"
+
+    RegisterResponse:
       type: object
       properties:
-        id:
+        message:
+          type: string
+        status:
           type: integer
-          description: Unique post identifier
-        title:
+          enum: [200, 400, 402, 403, 409, 500]
+          description: |
+            Status codes:
+            * 200 - Success
+            * 400 - Insufficient information
+            * 402 - Invalid role
+            * 403 - Passwords don't match
+            * 409 - Email exists
+            * 500 - Server error
+
+    SeniorInfo:
+      type: object
+      properties:
+        senId:
+          type: integer
+          description: Unique identifier for senior citizen
+        ezId:
           type: string
-          description: Post title
-        content:
+          description: EZCare ID of the senior citizen
+        gender:
           type: string
-          description: Post content
-        createdAt:
+          enum: [M, F, O]
+        dob:
           type: string
           format: date-time
-          description: Post creation timestamp
-        userId:
-          type: integer
-          description: ID of the user who created the post
-        author:
-          $ref: '#/components/schemas/User'
-          description: User who created the post
+        address:
+          type: string
+        pincode:
+          type: string
+        alternatePhoneNum:
+          type: string
+        medicalInfo:
+          type: object
+          description: JSON object containing medical information
 
-tags:
-  - name: GraphQL
-    description: GraphQL operations
-  - name: Web Interface
-    description: Web interface endpoints
+    AddSeniorInput:
+      type: object
+      required:
+        - ezId
+      properties:
+        ezId:
+          type: string
+        gender:
+          type: string
+          enum: [M, F, O]
+        dob:
+          type: string
+          format: date-time
+        address:
+          type: string
+        pincode:
+          type: string
+        alternatePhoneNum:
+          type: string
+        medicalInfo:
+          type: object
+
+    GetSeniorInput:
+      type: object
+      required:
+        - senId
+      properties:
+        senId:
+          type: integer
+          description: ID of the senior citizen to retrieve
+
+    DoctorInfo:
+      type: object
+      properties:
+        docId:
+          type: integer
+          description: Unique identifier for doctor
+        ezId:
+          type: string
+          description: EZCare ID of the doctor
+        gender:
+          type: string
+          enum: [M, F, O]
+        dob:
+          type: string
+          format: date-time
+        address:
+          type: string
+        pincode:
+          type: string
+        alternatePhoneNum:
+          type: string
+        licenseNumber:
+          type: string
+          description: Medical license number
+        specialization:
+          type: string
+        affiliation:
+          type: object
+          description: JSON object containing hospital affiliation details
+        qualification:
+          type: object
+          description: JSON object containing education details
+        experience:
+          type: integer
+          description: Years of experience
+        consultationFee:
+          type: number
+          format: float
+        workingHours:
+          type: string
+        availability:
+          type: object
+          description: JSON object containing availability schedule
+        documents:
+          type: object
+          description: JSON object containing document references
+        appointmentWindow:
+          type: integer
+          description: Appointment duration in minutes
+
+    DoctorFilters:
+      type: object
+      properties:
+        pin:
+          type: string
+          description: Filter doctors by pincode
+        specialization:
+          type: string
+          description: Filter doctors by specialization
+
+    AppointmentInfo:
+      type: object
+      properties:
+        appId:
+          type: integer
+          description: Unique identifier for appointment
+        senId:
+          type: integer
+          description: Senior citizen ID
+        docId:
+          type: integer
+          description: Doctor ID
+        remTime:
+          type: string
+          format: date-time
+          description: Appointment time
+        reason:
+          type: string
+          description: Reason for appointment
+        status:
+          type: integer
+          enum: [-1, 0, 1]
+          description: "-1 = Cancelled, 0 = Pending, 1 = Confirmed"
+
+    BookAppointmentInput:
+      type: object
+      required:
+        - senId
+        - docId
+        - remTime
+        - reason
+      properties:
+        senId:
+          type: integer
+        docId:
+          type: integer
+        remTime:
+          type: string
+          format: date-time
+        reason:
+          type: string
+
+    UpdateAppointmentInput:
+      type: object
+      required:
+        - appId
+        - status
+      properties:
+        appId:
+          type: integer
+        status:
+          type: integer
+          enum: [-1, 1]
+          description: "1 = Confirm, -1 = Reject"
+
+    AvailableSlotsType:
+      type: object
+      properties:
+        slots:
+          type: array
+          items:
+            type: string
+          description: List of available appointment time slots
+
+    GroupInfo:
+      type: object
+      properties:
+        grpId:
+          type: integer
+          description: Unique identifier for group
+        label:
+          type: string
+        timing:
+          type: string
+          format: date-time
+        admin:
+          type: integer
+          description: Senior ID of group admin
+        pincode:
+          type: string
+        location:
+          type: string
+        joinee:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoineeInfo'
+
+    JoineeInfo:
+      type: object
+      properties:
+        senId:
+          type: integer
+        joinedAt:
+          type: string
+          format: date-time
+
+    EmergencyContactInfo:
+      type: object
+      properties:
+        contId:
+          type: integer
+        senId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNum:
+          type: string
+        sendAlert:
+          type: boolean
+        relationship:
+          type: string
+
+    VitalTypeInfo:
+      type: object
+      properties:
+        typeId:
+          type: integer
+        label:
+          type: string
+        unit:
+          type: string
+        threshold:
+          type: object
+          description: JSON object containing threshold values
+
+    DocReviewInfo:
+      type: object
+      properties:
+        reviewId:
+          type: integer
+        docId:
+          type: integer
+        senId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        review:
+          type: string
+
+    AddEmergencyContactInput:
+      type: object
+      required:
+        - senId
+        - name
+      properties:
+        senId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNum:
+          type: string
+        relationship:
+          type: string
+        sendAlert:
+          type: boolean
+
+    CreateGroupInput:
+      type: object
+      required:
+        - admin
+        - label
+        - timing
+      properties:
+        admin:
+          type: integer
+        label:
+          type: string
+        timing:
+          type: string
+          format: date-time
+        location:
+          type: string
+        pincode:
+          type: string
+
+    AddDocReviewInput:
+      type: object
+      required:
+        - docId
+        - senId
+        - rating
+      properties:
+        docId:
+          type: integer
+        senId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        review:
+          type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

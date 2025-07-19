@@ -11,14 +11,14 @@ class DoctorType(SQLAlchemyObjectType):
 
 
 class DoctorsQuery(graphene.ObjectType):
-    get_doctors = graphene.List(DoctorType, pin=graphene.String(required=False),specialization=graphene.String(required=False))
+    get_doctors = graphene.List(DoctorType, pincode=graphene.String(required=False),specialization=graphene.String(required=False))
     get_doctor = graphene.Field(DoctorType, doc_id=graphene.Int(required=True))
     
 
-    def resolve_get_doctors(self, info, pin=None, specialization=None):
+    def resolve_get_doctors(self, info, pincode=None, specialization=None):
         query = DocInfo.query
-        if pin:
-            query=DocInfo.query.filter_by(pin=pin)
+        if pincode:
+            query=DocInfo.query.filter_by(pincode=pincode)
         if specialization:
             query=DocInfo.query.filter_by(specialization=specialization)
         return query.all()

@@ -11,13 +11,17 @@ class AppointmentType(SQLAlchemyObjectType):
         model = Appointments
 
 
+class AvailableSlotsType(graphene.ObjectType):
+    slots = graphene.List(graphene.String)
+
+
 class AppointmentsQuery(graphene.ObjectType):
     get_appointments_for_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True))
     get_appointments_for_doctor = graphene.List(AppointmentType, doc_id=graphene.Int(required=True))
     get_appointments_for_doctor_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True), doc_id=graphene.Int(required=True))
     get_appointment_data = graphene.List(AppointmentType)
-    get_available_slots = graphene.List(
-        graphene.String,
+    get_available_slots = graphene.Field(
+        AvailableSlotsType,
         doc_id=graphene.Int(required=True),
         date=graphene.String(required=True)
     )
@@ -40,7 +44,8 @@ class AppointmentsQuery(graphene.ObjectType):
             Appointments.status != -1
         ).all()
         booked_times = {apt.rem_time.strftime('%I:%M %p') for apt in appointments}
-        return [slot for slot in slots if slot not in booked_times]
+        available_slots = [slot for slot in slots if slot not in booked_times]
+        return AvailableSlotsType(slots=available_slots)
 
 
 class BookAppointment(graphene.Mutation):
