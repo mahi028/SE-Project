@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
 from flask_graphql import GraphQLView
+from .utils.mailService import mail
 from config import DevelopmentConfig, ProductionConfig
 import chromadb
 import insightface
@@ -11,7 +12,6 @@ from .models import db
 from.utils.remScheduler import scheduler, check_reminders
 from .graphql.auth import jwt
 import os
-import sys
 
 migration = Migrate()
 csrf = CSRFProtect()
@@ -40,12 +40,13 @@ def create_app():
 
     csrf.init_app(app)
     jwt.init_app(app)
+    mail.init_app(app)
 
     scheduler.init_app(app)
     scheduler.start()
     scheduler.add_job(
         id='check_reminders',
-        func=check_reminders,
+        func=lambda: check_reminders(app),
         trigger='interval',
         seconds=60  # check every minute
     )
