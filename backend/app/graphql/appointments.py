@@ -160,3 +160,7 @@ class AppointmentsMutation(graphene.ObjectType):
     book_appointment = BookAppointment.Field()
     update_appointment_status = UpdateAppointmentStatus.Field()
     cancel_appointment = CancelAppointment.Field()
+
+#Dev
+#IncreaseCommits
+#FightForTopSpot
