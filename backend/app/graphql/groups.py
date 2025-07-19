@@ -1,5 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
+from ..utils.dbUtils import commitdb, adddb, rollbackdb
 from ..models import Group, Joinee, db, Reminders, SenInfo
 from .return_types import ReturnType
 from datetime import timedelta
@@ -16,15 +17,18 @@ class JoineeType(SQLAlchemyObjectType):
 class GroupQuery(graphene.ObjectType):
     get_groups = graphene.List(
         GroupType,
-        admin=graphene.Int(),
+        admin_id=graphene.Int(),
         pincode=graphene.String()
     )
     get_group_members = graphene.List(JoineeType, grp_id=graphene.Int(required=True))
 
-    def resolve_get_groups(self, info, admin=None, pincode=None):
+    def resolve_get_groups(self, info, admin_id=None, pincode=None):
         query = Group.query
-        if admin is not None:
-            query = query.filter_by(admin=admin)
+        if admin_id is not None:
+            if SenInfo.query.get(admin_id):
+                query = query.filter_by(admin=admin_id)
+            else:
+                pass
         if pincode is not None:
             query = query.filter_by(pincode=pincode)
         return query.all()
@@ -37,23 +41,33 @@ class CreateGroup(graphene.Mutation):
     class Arguments:
         label = graphene.String(required=True)
         timing = graphene.DateTime(required=True)
-        admin = graphene.Int(required=True)
+        admin_id = graphene.Int(required=True)
         pincode = graphene.String()
         location = graphene.String()
 
     Output = ReturnType
 
-    def mutate(self, info, label, timing, admin, pincode=None, location=None):
+    def mutate(self, info, label, timing, admin_id, pincode=None, location=None):
+        admin = SenInfo.query.get(admin_id)
+
+        if not admin:
+            pass
+
         group = Group(
             label=label,
             timing=timing,
-            admin=admin,
+            admin=admin_id,
             pincode=pincode,
             location=location
         )
-        db.session.add(group)
-        db.session.commit()
-        return ReturnType(message="Group created successfully", status=1)
+        try:
+            adddb(group)
+            commitdb()
+            return ReturnType(message="Group created successfully", status=1)
+        except Exception as e:
+            rollbackdb()
+            print(f"Error adding emergency contact: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=500)
 
 class JoinGroup(graphene.Mutation):
     class Arguments:
@@ -77,7 +91,7 @@ class JoinGroup(graphene.Mutation):
             return ReturnType(message="Senior not found", status=404)
 
         joinee = Joinee(grp_id=grp_id, sen_id=sen_id)
-        db.session.add(joinee)
+        adddb(joinee)
 
         # Create reminder 1 hour before group timing
         hour_before = group.timing - timedelta(hours=1)
@@ -94,14 +108,15 @@ class JoinGroup(graphene.Mutation):
             times_per_day=1,
             time_slots=None
         )
-        db.session.add(reminder)
+        adddb(reminder)
 
         try:
-            db.session.commit()
+            commitdb()
             return ReturnType(message="Joined group successfully and reminder set", status=1)
         except Exception as e:
-            db.session.rollback()
-            return ReturnType(message=f"Error joining group: {str(e)}", status=403)
+            rollbackdb()
+            print(f"Error adding emergency contact: {str(e)}")
+            return ReturnType(message=f"Something went wrong", status=500)
 
 class GroupMutation(graphene.ObjectType):
     create_group = CreateGroup.Field()

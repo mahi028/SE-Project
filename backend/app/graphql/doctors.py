@@ -59,9 +59,9 @@ class AddDoctor(graphene.Mutation):
         if user.role != 1:
             return ReturnType(message="User is not a health professional", status=403)
         
-        if DocInfo.query.filter_by(ez_id=ez_id).first():
+        if DocInfo.query.filter_by(ez_id=ez_id).one_or_none():
             return ReturnType(message="Doctor already exists", status=0)
-        if DocInfo.query.filter_by(license_number=license_number).first():
+        if DocInfo.query.filter_by(license_number=license_number).one_or_none():
             return ReturnType(message="Doctor with this license number already exists", status=0)
 
         doctor = DocInfo(ez_id=ez_id, license_number=license_number, **kwargs)

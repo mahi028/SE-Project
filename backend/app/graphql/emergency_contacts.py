@@ -1,6 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import EmergencyContacts, db
+from ..models import EmergencyContacts, db, SenInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
 
@@ -20,14 +20,19 @@ class AddEmergencyContact(graphene.Mutation):
     class Arguments:
         sen_id = graphene.Int(required=True)
         name = graphene.String(required=True)
-        email = graphene.String()
-        phone_num = graphene.String()
-        send_alert = graphene.Boolean()
-        relationship = graphene.String()
+        email = graphene.String(required=True)
+        phone_num = graphene.String(required=True)
+        send_alert = graphene.Boolean(required=True)
+        relationship = graphene.String(required=True)
 
     Output = ReturnType
 
-    def mutate(self, info, sen_id, name, email=None, phone_num=None, send_alert=False, relationship=None):
+    def mutate(self, info, sen_id, name, email, phone_num, send_alert, relationship):
+        senior = SenInfo.query.get(sen_id)
+
+        if not senior:
+            pass
+
         contact = EmergencyContacts(
             sen_id=sen_id,
             name=name,
@@ -38,12 +43,12 @@ class AddEmergencyContact(graphene.Mutation):
         )
         adddb(contact)
         try:
-            commitdb(db)    
+            commitdb()    
             return ReturnType(message="Emergency contact added successfully", status=201)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             print(f"Error adding emergency contact: {str(e)}")
-            return ReturnType(message=f"Something went wrong", status=403)
+            return ReturnType(message=f"Something went wrong", status=500)
         
 
 # Mutation for updating an emergency contact
@@ -73,10 +78,10 @@ class UpdateEmergencyContact(graphene.Mutation):
         if relationship is not None:
             contact.relationship = relationship
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Emergency contact updated successfully", status=200)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             print(f"Error updating emergency contact: {str(e)}")
             return ReturnType(message=f"Something went wrong", status=403)
         

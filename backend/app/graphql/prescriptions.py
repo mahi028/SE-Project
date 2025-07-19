@@ -74,10 +74,10 @@ class AddPrescription(graphene.Mutation):
             )
             adddb(reminder)
 
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Prescription and reminders added successfully", status=201)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error adding prescription: {str(e)}", status=403)
 
 class UpdatePrescription(graphene.Mutation):
@@ -102,10 +102,10 @@ class UpdatePrescription(graphene.Mutation):
             prescription.instructions = instructions
             
         try:
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Prescription updated successfully", status=200)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error updating prescription: {str(e)}", status=403)
 
 class DeletePrescription(graphene.Mutation):
@@ -121,10 +121,10 @@ class DeletePrescription(graphene.Mutation):
         
         try:
             deletedb(prescription)
-            commitdb(db)
+            commitdb()
             return ReturnType(message="Prescription deleted successfully", status=200)
         except Exception as e:
-            rollbackdb(db)
+            rollbackdb()
             return ReturnType(message=f"Error deleting prescription: {str(e)}", status=403)
 
 class PrescriptionsMutation(graphene.ObjectType):

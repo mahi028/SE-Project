@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort
 from ..utils.embedding_func import *
+from ..models import SenInfo
 
 lookup = Blueprint('lookup', __name__)
 
@@ -9,11 +10,13 @@ def register():
     try:
         video = request.files.get('video')
         ez_id = request.form.get('ez_id')
-        print('EZID:', ez_id)
+        
+        senior = SenInfo.query.filter_by(ez_id = ez_id).one_or_none()
+        if not senior:
+            abort(404, description="User not Found!")
 
         if not video or video.filename == '':
             return jsonify({"error": "No video uploaded"}), 400
-
 
         try:
             video_bytes = video.read()
@@ -28,31 +31,31 @@ def register():
 
             # Clear existing embeddings for this ez_id in ChromaDB
             try:
-                existing_results = face_collection.get(where={"ez_id": ez_id})
+                existing_results = face_collection.get(where={"ez_id": senior.ez_id})
                 if existing_results['ids']:
                     face_collection.delete(ids=existing_results['ids'])
             except Exception as e:
                 print(f"Error clearing existing embeddings: {e}")
 
             # Store embeddings in ChromaDB
-            success = store_embeddings_in_chroma(ez_id, embeddings)
+            success = store_embeddings_in_chroma(senior.ez_id, embeddings)
 
             if not success:
                 return jsonify({"error": "Failed to store face embeddings"}), 500
 
             return jsonify({
                 "message": f"User registered successfully from video with {len(embeddings)} face embeddings",
-                "ez_id": ez_id,
+                "ez_id": senior.ez_id,
                 "total_embeddings": len(embeddings),
                 "frames_processed": len(frames)
             }), 200
 
         except Exception as e:
             print(f"Error processing video {video.filename}: {e}")
-            return jsonify({"error": f"Failed to process video: {str(e)}"}), 500
+            return jsonify({"error": f"Failed to process video!"}), 500
 
     except Exception as e:
-        return jsonify({"error": f"Video registration failed: {str(e)}"}), 500
+        return jsonify({"error": f"Video registration failed! Try Again Later."}), 500
 
 @lookup.route('/recognize', methods=['POST'])
 def recognize():
@@ -113,4 +116,4 @@ def recognize():
         })
         
     except Exception as e:
-        return jsonify({"error": f"Recognition failed: {str(e)}"}), 500
+        return jsonify({"error": f"Recognition failed! Try Again."}), 500
