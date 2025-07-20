@@ -5,46 +5,104 @@ info:
   description: |
     GraphQL endpoint documentation for the EZCare Healthcare Platform.
     
-    ## Available Queries
-    - getToken - Authenticate user and get JWT token
-    - register - Register new user
-    - getSeniors - Get all senior citizens
-    - getSenior - Get senior citizen by ID
-    - getDoctors - Get all doctors (with optional pin/specialization filters)
-    - getDoctor - Get doctor by ID
-    - getAppointmentsForSenior - Get appointments for a senior citizen
-    - getAppointmentsForDoctor - Get appointments for a doctor
-    - getAppointmentsForDoctorSenior - Get appointments between a doctor and senior
-    - getAvailableSlots - Get available appointment slots for a doctor
-    - getGroups - Get groups (filtered by admin/pincode)
-    - getGroupMembers - Get members of a group
-    - getVitalTypes - Get all vital types
-    - getVitalType - Get vital type by ID
-    - getEmergencyContacts - Get emergency contacts for a senior
-    - getDocReviews - Get reviews for a doctor
-    - getAverageRating - Get average rating for a doctor
-    - getReviewCount - Get review count for a doctor
-    - getAllReviews - Get all reviews
+    ## What is GraphQL?
+    GraphQL is a query language and runtime for APIs that allows clients to request exactly the data they need. Unlike REST APIs with multiple endpoints, GraphQL provides a single endpoint (`/graphql`) that handles all operations through queries and mutations.
     
-    ## Available Mutations
-    - addSenior - Add new senior citizen profile
-    - updateSenior - Update existing senior citizen profile
-    - addDoctor - Add new doctor profile
-    - updateDoctor - Update existing doctor profile
-    - bookAppointment - Book new appointment
-    - updateAppointmentStatus - Update appointment status
-    - cancelAppointment - Cancel an appointment
-    - createGroup - Create a new group
-    - joinGroup - Join an existing group
-    - addVitalType - Add new vital type
-    - updateVitalType - Update vital type
-    - addEmergencyContact - Add emergency contact
-    - updateEmergencyContact - Update emergency contact
-    - addDocReview - Add doctor review
+    ## How to Use the GraphQL Endpoint
+    
+    ### Making Requests
+    All GraphQL operations are sent as POST requests to `/graphql` with the following structure:
+    ```json
+    {
+      "query": "your GraphQL query or mutation here",
+      "variables": { "optional": "variables object" }
+    }
+    ```
+    
+    ### Queries vs Mutations
+    - **Queries**: Used for reading/fetching data (similar to GET in REST)
+    - **Mutations**: Used for modifying data (similar to POST/PUT/DELETE in REST)
+    
+    ### Authentication
+    Most operations require a JWT token obtained from the `getToken` query. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ### Benefits of GraphQL
+    - **Single Endpoint**: All operations go through `/graphql`
+    - **Flexible Queries**: Request only the fields you need
+    - **Strong Type System**: Self-documenting with schema introspection
+    - **Real-time**: Support for subscriptions (if implemented)
+    
+    ### Example Usage
+    1. First authenticate to get a token
+    2. Use the token for subsequent requests
+    3. Query exactly the data you need
+    4. Use mutations to modify data
+    
+    ## Authentication Queries
+    - **getToken** - Authenticate user and retrieve JWT token for API access
+    - **register** - Register new user account (senior citizen or health professional)
+    
+    ## User Profile Queries
+    - **getSeniors** - Retrieve all senior citizens with their profile information
+    - **getSenior** - Get detailed profile of a specific senior citizen by ID
+    - **getDoctors** - Get all doctors with optional filtering by pincode and specialization
+    - **getDoctor** - Get detailed profile of a specific doctor by ID
+    
+    ## Appointment Management Queries
+    - **getAppointmentsForSenior** - Get all appointments for a specific senior citizen
+    - **getAppointmentsForDoctor** - Get all appointments for a specific doctor
+    - **getAppointmentsForDoctorSenior** - Get appointments between a specific doctor and senior
+    - **getAvailableSlots** - Get available appointment time slots for a doctor on a specific date
+    
+    ## Group Management Queries
+    - **getGroups** - Get community groups filtered by admin or pincode
+    - **getGroupMembers** - Get list of members in a specific group
+    
+    ## Health Monitoring Queries
+    - **getVitalTypes** - Get all available vital sign types and their configurations
+    - **getVitalType** - Get specific vital type configuration by ID
+    
+    ## Emergency & Support Queries
+    - **getEmergencyContacts** - Get emergency contacts for a senior citizen
+    - **getDocReviews** - Get all reviews and ratings for a specific doctor
+    - **getAverageRating** - Get average rating score for a doctor
+    - **getReviewCount** - Get total number of reviews for a doctor
+    - **getAllReviews** - Get all reviews across the platform
+    
+    ## User Profile Mutations
+    - **addSenior** - Create new senior citizen profile with medical information
+    - **updateSenior** - Update existing senior citizen profile details
+    - **addDoctor** - Create new doctor profile with credentials and specialization
+    - **updateDoctor** - Update existing doctor profile information
+    
+    ## Appointment Management Mutations
+    - **bookAppointment** - Schedule new appointment between senior and doctor
+    - **updateAppointmentStatus** - Confirm or reject appointment requests
+    - **cancelAppointment** - Cancel existing appointment
+    
+    ## Group Management Mutations
+    - **createGroup** - Create new community support group
+    - **joinGroup** - Join an existing community group
+    
+    ## Health Monitoring Mutations
+    - **addVitalType** - Add new vital sign type configuration
+    - **updateVitalType** - Update existing vital type settings
+    
+    ## Emergency & Support Mutations
+    - **addEmergencyContact** - Add new emergency contact for a senior
+    - **updateEmergencyContact** - Update existing emergency contact information
+    - **addDocReview** - Submit review and rating for a doctor
 
-    ## User Lookup REST Endpoints
-    - POST /user-lookup/register - Register user face using video
-    - POST /user-lookup/recognize - Recognize user from photo
+    ## REST Endpoints
+    ### User Lookup Service
+    - **POST /user-lookup/register** - Register user's face biometrics using video upload
+    - **POST /user-lookup/recognize** - Identify user through facial recognition from photo
+    
+    ### Hospital Search Service
+    - **GET /hospitals** - Find nearby hospitals by pincode with distance and rating information
 
 servers:
   - url: http://localhost:5000
@@ -685,6 +743,56 @@ paths:
               example:
                 error: "Recognition failed! Try Again."
 
+  /hospitals:
+    get:
+      summary: Get hospitals by pincode
+      description: Retrieve a list of hospitals near the specified pincode
+      operationId: get-hospital
+      tags:
+        - Hospitals
+      parameters:
+        - name: pincode
+          in: query
+          required: true
+          description: Pincode to search for nearby hospitals
+          schema:
+            type: string
+            pattern: '^[0-9]{6}$'
+            example: "110001"
+      responses:
+        '200':
+          description: Successfully retrieved hospitals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hospitals:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Hospital'
+                  total:
+                    type: integer
+                    description: Total number of hospitals found
+        '400':
+          description: Bad request - Invalid pincode format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No hospitals found for the given pincode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     AuthToken:
@@ -1153,6 +1261,45 @@ components:
           format: float
           description: Minimum distance found (for recognition failures)
 
+    Hospital:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique hospital identifier
+        name:
+          type: string
+          description: Hospital name
+        address:
+          type: string
+          description: Complete hospital address
+        pincode:
+          type: string
+          description: Hospital pincode
+        phone:
+          type: string
+          description: Hospital contact number
+        distance:
+          type: number
+          format: float
+          description: Distance from searched pincode in kilometers
+        specialties:
+          type: array
+          items:
+            type: string
+          description: Medical specialties available
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: Hospital rating out of 5
+      required:
+        - id
+        - name
+        - address
+        - pincode
+
   securitySchemes:
     BearerAuth:
       type: http
@@ -1167,3 +1314,5 @@ tags:
     description: GraphQL endpoint for main application features
   - name: User Lookup
     description: REST endpoints for face recognition and registration
+  - name: Hospitals
+    description: Hospital search and information endpoints
