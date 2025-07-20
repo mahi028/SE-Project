@@ -19,7 +19,6 @@ class AppointmentsQuery(graphene.ObjectType):
     get_appointments_for_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True))
     get_appointments_for_doctor = graphene.List(AppointmentType, doc_id=graphene.Int(required=True))
     get_appointments_for_doctor_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True), doc_id=graphene.Int(required=True))
-    get_appointment_data = graphene.List(AppointmentType)
     get_available_slots = graphene.Field(
         AvailableSlotsType,
         doc_id=graphene.Int(required=True),
