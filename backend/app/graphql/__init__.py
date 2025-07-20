@@ -9,6 +9,7 @@ from .vital_types import VitalTypesQuery, VitalTypesMutation
 from .vital_logs import VitalLogsQuery, VitalLogsMutation
 from .groups import GroupQuery, GroupMutation
 from .auth import GetToken, AuthMutation
+from .hospitals import HospitalsQuery, HospitalsMutation
 
 class Query(UsersQuery, 
             SeniorsQuery,
@@ -20,6 +21,7 @@ class Query(UsersQuery,
             VitalLogsQuery,
             GroupQuery,
             GetToken, 
+            HospitalsQuery,
             graphene.ObjectType):
     pass
 
@@ -34,6 +36,7 @@ class Mutation(UsersMutation,
                VitalLogsMutation,
                GroupMutation,            
                AuthMutation, 
+               HospitalsMutation,
                graphene.ObjectType):
     pass 
     

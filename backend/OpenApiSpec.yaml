@@ -96,13 +96,16 @@ info:
     - **updateEmergencyContact** - Update existing emergency contact information
     - **addDocReview** - Submit review and rating for a doctor
 
+    ## Hospital Management Queries
+    - **getHospitals** - Get hospitals filtered by pincode
+
+    ## Hospital Management Mutations  
+    - **addHospital** - Add new hospital with details and services
+
     ## REST Endpoints
     ### User Lookup Service
     - **POST /user-lookup/register** - Register user's face biometrics using video upload
     - **POST /user-lookup/recognize** - Identify user through facial recognition from photo
-    
-    ### Hospital Search Service
-    - **GET /hospitals** - Find nearby hospitals by pincode with distance and rating information
     
 servers:
   - url: http://localhost:5000
@@ -703,6 +706,42 @@ paths:
                         status
                       }
                     }
+              getHospitals:
+                summary: Get hospitals by pincode
+                value:
+                  query: |
+                    {
+                      getHospitals(pincode: "560001") {
+                        hospitalId
+                        name
+                        address
+                        pincode
+                        phone
+                        email
+                        hType
+                        services
+                        coordinates
+                      }
+                    }
+              addHospital:
+                summary: Add new hospital
+                value:
+                  query: |
+                    mutation {
+                      addHospital(
+                        name: "City Care Hospital"
+                        address: "123 Main Road, Shanti Nagar, Delhi"
+                        pincode: "110001"
+                        phone: "+91-9876543210"
+                        email: "contact@citycarehospital.com"
+                        hType: "Multi-specialty"
+                        services: "[\"Emergency\", \"Cardiology\", \"Orthopedics\", \"Radiology\", \"Pharmacy\"]"
+                        coordinates: "{\"lat\": 28.6139, \"lng\": 77.2090}"
+                      ) {
+                        message
+                        status
+                      }
+                    }
       responses:
         '200':
           description: Successful response
@@ -1255,56 +1294,6 @@ paths:
               example:
                 error: "Recognition failed! Try Again."
 
-  /hospitals:
-    get:
-      summary: Get hospitals by pincode
-      description: Retrieve a list of hospitals near the specified pincode
-      operationId: get-hospital
-      tags:
-        - Hospitals
-      parameters:
-        - name: pincode
-          in: query
-          required: true
-          description: Pincode to search for nearby hospitals
-          schema:
-            type: string
-            pattern: '^[0-9]{6}$'
-            example: "110001"
-      responses:
-        '200':
-          description: Successfully retrieved hospitals
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  hospitals:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Hospital'
-                  total:
-                    type: integer
-                    description: Total number of hospitals found
-        '400':
-          description: Bad request - Invalid pincode format
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: No hospitals found for the given pincode
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
 components:
   schemas:
     AuthToken:
@@ -1800,12 +1789,6 @@ components:
           items:
             type: string
           description: Medical specialties available
-        rating:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 5
-          description: Hospital rating out of 5
       required:
         - id
         - name
@@ -1826,5 +1809,3 @@ tags:
     description: GraphQL endpoint for main application features
   - name: User Lookup
     description: REST endpoints for face recognition and registration
-  - name: Hospitals
-    description: Hospital search and information endpoints
