@@ -34,7 +34,7 @@ pip install -r requirements.txt
 To start the backend server:
 
 ```sh
-python3 app.py
+python3 run.py
 ```
 
 ## Environment Requirements
