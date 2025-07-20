@@ -2,7 +2,6 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_wtf import CSRFProtect
 from flask_migrate import Migrate
-from flask_graphql import GraphQLView
 from .utils.mailService import mail
 from config import DevelopmentConfig, ProductionConfig
 import chromadb
@@ -10,7 +9,7 @@ import insightface
 from .graphql import schema
 from .models import db
 from.utils.remScheduler import scheduler, check_reminders
-from .graphql.auth import jwt
+from .graphql.auth import jwt, AuthenticatedGraphQLView
 import os
 
 migration = Migrate()
@@ -56,7 +55,7 @@ def create_app():
 
     app.add_url_rule(
         '/graphql',
-        view_func=GraphQLView.as_view(
+        view_func=AuthenticatedGraphQLView.as_view(
             'graphql',
             schema=schema,
             graphiql=True

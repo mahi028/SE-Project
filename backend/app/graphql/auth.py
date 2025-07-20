@@ -1,11 +1,11 @@
-from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, JWTManager, set_access_cookies
-from graphene_sqlalchemy import SQLAlchemyObjectType
+from flask_jwt_extended import create_access_token, get_jwt_identity, JWTManager, verify_jwt_in_request
+from flask import request
 from ..utils.hash import checkpw, hashpw
 from ..utils.dbUtils import adddb, commitdb, generate_ez_id
-from ..models import User, Roles
+from ..models import User
 import graphene
+from flask_graphql import GraphQLView
 from .return_types import ReturnType
-from datetime import datetime
 jwt = JWTManager()
 
 @jwt.user_identity_loader
@@ -17,6 +17,19 @@ def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
     return User.query.get(identity)
 
+class AuthenticatedGraphQLView(GraphQLView):
+    def get_context(self):
+        # Start with a custom dict (not the raw request object)
+        context = {"request": request}
+        
+        try:
+            verify_jwt_in_request(optional=True)
+            user = get_jwt_identity()
+        except Exception:
+            user = None
+        
+        context["current_user"] = user
+        return context
 
 class AuthTokenType(graphene.ObjectType):
     token = graphene.String()
@@ -33,9 +46,9 @@ class GetToken(graphene.ObjectType):
             user = User.query.filter(User.email == email).first()
         else:
             return AuthTokenType(token=None, message="No user found", status=404)
-        
         if user:
             if checkpw(password, user.password):
+                print('hello')
                 access_token = create_access_token(identity=user)
                 return AuthTokenType(token = access_token)
 
