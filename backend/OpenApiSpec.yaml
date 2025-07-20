@@ -103,7 +103,7 @@ info:
     
     ### Hospital Search Service
     - **GET /hospitals** - Find nearby hospitals by pincode with distance and rating information
-
+    
 servers:
   - url: http://localhost:5000
     description: Development server
@@ -325,7 +325,384 @@ paths:
                         status
                       }
                     }
-
+              getAppointmentsForDoctor:
+                summary: Get appointments for a doctor
+                value:
+                  query: |
+                    {
+                      getAppointmentsForDoctor(docId: 1) {
+                        appId
+                        senId
+                        docId
+                        remTime
+                        reason
+                        status
+                      }
+                    }
+              getAppointmentsForDoctorSenior:
+                summary: Get appointments for a specific doctor and senior
+                value:
+                  query: |
+                    {
+                      getAppointmentsForDoctorSenior(senId: 1, docId: 1) {
+                        appId
+                        senId
+                        docId
+                        remTime
+                        reason
+                        status
+                      }
+                    }
+              updateAppointmentStatus:
+                summary: Update appointment status
+                value:
+                  query: |
+                    mutation {
+                      updateAppointmentStatus(
+                        appId: 1
+                        status: 1
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              cancelAppointment:
+                summary: Cancel an appointment
+                value:
+                  query: |
+                    mutation {
+                      cancelAppointment(
+                        appId: 1
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getDocReviews:
+                summary: Get reviews for a doctor
+                value:
+                  query: |
+                    {
+                      getDocReviews(docId: 1) {
+                        reviewId
+                        docId
+                        senId
+                        rating
+                        review
+                      }
+                    }
+              getAllReviews:
+                summary: Get all reviews in the system
+                value:
+                  query: |
+                    {
+                      getAllReviews {
+                        reviewId
+                        docId
+                        senId
+                        rating
+                        review
+                      }
+                    }
+              getAverageRating:
+                summary: Get average rating for a doctor
+                value:
+                  query: |
+                    {
+                      getAverageRating(docId: 1)
+                    }
+              getReviewCount:
+                summary: Get total number of reviews for a doctor
+                value:
+                  query: |
+                    {
+                      getReviewCount(docId: 1)
+                    }
+              addDoctor:
+                summary: Add new doctor
+                value:
+                  query: |
+                    mutation {
+                      addDoctor(
+                        ezId: "ez-doc-1234"
+                        gender: "M"
+                        dob: "1980-01-01T00:00:00Z"
+                        address: "123 Hospital St"
+                        pincode: "560001"
+                        alternatePhoneNum: "9876543210"
+                        licenseNumber: "MED123456"
+                        specialization: "Cardiology"
+                        affiliation: {hospital: "City Hospital"}
+                        qualification: {degree: "MBBS", university: "Medical University"}
+                        experience: 10
+                        consultationFee: 500.0
+                        workingHours: "9:00-17:00"
+                        availability: {monday: true, tuesday: true}
+                        documents: {license: "license.pdf"}
+                        appointmentWindow: 30
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              updateDoctor:
+                summary: Update doctor information
+                value:
+                  query: |
+                    mutation {
+                      updateDoctor(
+                        docId: 1
+                        address: "456 Hospital St"
+                        pincode: "560002"
+                        alternatePhoneNum: "9876543211"
+                        affiliation: {hospital: "New City Hospital"}
+                        consultationFee: 600.0
+                        workingHours: "10:00-18:00"
+                        availability: {monday: true, tuesday: true, wednesday: true}
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              deleteEmergencyContact:
+                summary: Delete emergency contact
+                value:
+                  query: |
+                    mutation {
+                      deleteEmergencyContact(
+                        contId: 1
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              updateEmergencyContact:
+                summary: Update emergency contact
+                value:
+                  query: |
+                    mutation {
+                      updateEmergencyContact(
+                        contId: 1
+                        name: "John Smith Jr"
+                        email: "john.jr@example.com"
+                        phoneNum: "9876543210"
+                        relationship: "Son"
+                        sendAlert: false
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              createGroup:
+                summary: Create new group
+                value:
+                  query: |
+                    mutation {
+                      createGroup(
+                        admin: 1
+                        label: "Diabetes Care"
+                        timing: "2024-01-01T10:00:00Z"
+                        location: "Community Center"
+                        pincode: "560001"
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getGroupMembers:
+                summary: Get members of a group
+                value:
+                  query: |
+                    {
+                      getGroupMembers(grpId: 1) {
+                        senId
+                        joinedAt
+                      }
+                    }
+              joinGroup:
+                summary: Join a group
+                value:
+                  query: |
+                    mutation {
+                      joinGroup(
+                        grpId: 1
+                        senId: 1
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              leaveGroup:
+                summary: Leave a group
+                value:
+                  query: |
+                    mutation {
+                      leaveGroup(
+                        grpId: 1
+                        senId: 1
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              addPrescription:
+                summary: Add new prescription
+                value:
+                  query: |
+                    mutation {
+                      addPrescription(
+                        senId: 1
+                        docId: 1
+                        medicines: [
+                          {
+                            name: "Medicine A"
+                            dosage: "1 tablet"
+                            frequency: "twice daily"
+                            duration: "7 days"
+                            instructions: "After meals"
+                          }
+                        ]
+                        instructions: "Take medicines as prescribed"
+                        followUp: "2024-02-01T10:00:00Z"
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getPrescriptionsForSenior:
+                summary: Get prescriptions for a senior
+                value:
+                  query: |
+                    {
+                      getPrescriptionsForSenior(senId: 1) {
+                        presId
+                        senId
+                        docId
+                        medicines
+                        instructions
+                        followUp
+                        createdAt
+                      }
+                    }
+              getPrescriptionsForDoctor:
+                summary: Get prescriptions given by a doctor
+                value:
+                  query: |
+                    {
+                      getPrescriptionsForDoctor(docId: 1) {
+                        presId
+                        senId
+                        docId
+                        medicines
+                        instructions
+                        followUp
+                        createdAt
+                      }
+                    }
+              addVitalLog:
+                summary: Add new vital log entry
+                value:
+                  query: |
+                    mutation {
+                      addVitalLog(
+                        senId: 1
+                        typeId: 1
+                        value: 120
+                        measuredAt: "2024-01-01T08:00:00Z"
+                        notes: "Morning reading"
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getVitalLogs:
+                summary: Get vital logs for a senior and type
+                value:
+                  query: |
+                    {
+                      getVitalLogs(senId: 1, typeId: 1) {
+                        logId
+                        senId
+                        typeId
+                        value
+                        measuredAt
+                        notes
+                      }
+                    }
+              getVitalTypes:
+                summary: Get all vital types
+                value:
+                  query: |
+                    {
+                      getVitalTypes {
+                        typeId
+                        label
+                        unit
+                        threshold
+                      }
+                    }
+              getVitalType:
+                summary: Get vital type by ID
+                value:
+                  query: |
+                    {
+                      getVitalType(typeId: 1) {
+                        typeId
+                        label
+                        unit
+                        threshold
+                      }
+                    }
+              addSenior:
+                summary: Add new senior citizen
+                value:
+                  query: |
+                    mutation {
+                      addSenior(
+                        ezId: "ez-sen-1234"
+                        gender: "M"
+                        dob: "1950-01-01T00:00:00Z"
+                        address: "123 Main St"
+                        pincode: "560001"
+                        alternatePhoneNum: "9876543210"
+                        medicalInfo: {"conditions": ["diabetes"]}
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getSenior:
+                summary: Get senior by ID
+                value:
+                  query: |
+                    {
+                      getSenior(senId: 1) {
+                        senId
+                        ezId
+                        gender
+                        dob
+                        address
+                        pincode
+                        alternatePhoneNum
+                        medicalInfo
+                      }
+                    }
+              updateSenior:
+                summary: Update senior information
+                value:
+                  query: |
+                    mutation {
+                      updateSenior(
+                        senId: 1
+                        address: "456 Main St"
+                        pincode: "560002"
+                        alternatePhoneNum: "9876543211"
+                        medicalInfo: {"conditions": ["hypertension", "diabetes"]}
+                      ) {
+                        message
+                        status
+                      }
+                    }
       responses:
         '200':
           description: Successful response
@@ -513,16 +890,6 @@ paths:
                           "threshold": {"low": 90, "high": 120}
                         }
                       ]
-                getVitalTypeSuccess:
-                  summary: Successfully retrieved vital type
-                  value:
-                    data:
-                      getVitalType: {
-                        "typeId": 1,
-                        "label": "Blood Pressure",
-                        "unit": "mmHg",
-                        "threshold": {"low": 90, "high": 120}
-                      }
                 getEmergencyContactsSuccess:
                   summary: Successfully retrieved emergency contacts
                   value:
@@ -587,7 +954,152 @@ paths:
                           "review": "Great doctor!"
                         }
                       ]
-
+                addDoctorSuccess:
+                  summary: Doctor added successfully
+                  value:
+                    data:
+                      addDoctor:
+                        message: "Doctor added successfully"
+                        status: 201
+                updateDoctorSuccess:
+                  summary: Doctor updated successfully
+                  value:
+                    data:
+                      updateDoctor:
+                        message: "Doctor information updated successfully"
+                        status: 200
+                deleteEmergencyContactSuccess:
+                  summary: Emergency contact deleted successfully
+                  value:
+                    data:
+                      deleteEmergencyContact:
+                        message: "Emergency contact deleted successfully"
+                        status: 200
+                updateEmergencyContactSuccess:
+                  summary: Emergency contact updated successfully
+                  value:
+                    data:
+                      updateEmergencyContact:
+                        message: "Emergency contact updated successfully"
+                        status: 200
+                createGroupSuccess:
+                  summary: Successfully created group
+                  value:
+                    data:
+                      createGroup:
+                        message: "Group created successfully"
+                        status: 201
+                joinGroupSuccess:
+                  summary: Successfully joined group
+                  value:
+                    data:
+                      joinGroup:
+                        message: "Successfully joined group"
+                        status: 200
+                leaveGroupSuccess:
+                  summary: Successfully left group
+                  value:
+                    data:
+                      leaveGroup:
+                        message: "Successfully left group"
+                        status: 200
+                addPrescriptionSuccess:
+                  summary: Successfully added prescription
+                  value:
+                    data:
+                      addPrescription:
+                        message: "Prescription added successfully"
+                        status: 201
+                getPrescriptionsForSeniorSuccess:
+                  summary: Successfully retrieved prescriptions for senior
+                  value:
+                    data:
+                      getPrescriptionsForSenior: [
+                        {
+                          "presId": 1,
+                          "senId": 1,
+                          "docId": 1,
+                          "medicines": [
+                            {
+                              "name": "Medicine A",
+                              "dosage": "1 tablet",
+                              "frequency": "twice daily",
+                              "duration": "7 days",
+                              "instructions": "After meals"
+                            }
+                          ],
+                          "instructions": "Take medicines as prescribed",
+                          "followUp": "2024-02-01T10:00:00Z",
+                          "createdAt": "2024-01-01T10:00:00Z"
+                        }
+                      ]
+                getPrescriptionsForDoctorSuccess:
+                  summary: Successfully retrieved prescriptions by doctor
+                  value:
+                    data:
+                      getPrescriptionsForDoctor: [
+                        {
+                          "presId": 1,
+                          "senId": 1,
+                          "docId": 1,
+                          "medicines": [
+                            {
+                              "name": "Medicine A",
+                              "dosage": "1 tablet",
+                              "frequency": "twice daily",
+                              "duration": "7 days",
+                              "instructions": "After meals"
+                            }
+                          ],
+                          "instructions": "Take medicines as prescribed",
+                          "followUp": "2024-02-01T10:00:00Z",
+                          "createdAt": "2024-01-01T10:00:00Z"
+                        }
+                      ]
+                addVitalLogSuccess:
+                  summary: Successfully added vital log
+                  value:
+                    data:
+                      addVitalLog:
+                        message: "Vital log added successfully"
+                        status: 201
+                getVitalLogsSuccess:
+                  summary: Successfully retrieved vital logs
+                  value:
+                    data:
+                      getVitalLogs: [
+                        {
+                          "logId": 1,
+                          "senId": 1,
+                          "typeId": 1,
+                          "value": 120,
+                          "measuredAt": "2024-01-01T08:00:00Z",
+                          "notes": "Morning reading"
+                        }
+                      ]
+                updateSenior:
+                  summary: Update senior information
+                  value:
+                    query: |
+                      mutation {
+                        updateSenior(
+                          senId: 1
+                          address: "456 Main St"
+                          pincode: "560002"
+                          alternatePhoneNum: "9876543211"
+                          medicalInfo: {"conditions": ["hypertension", "diabetes"]}
+                        ) {
+                          message
+                          status
+                        }
+                      }
+                updateSeniorSuccess:
+                  summary: Senior updated successfully
+                  value:
+                    data:
+                      updateSenior:
+                        message: "Senior updated successfully"
+                        status: 200
   /user-lookup/register:
     post:
       summary: Register user face using video
