@@ -101,7 +101,17 @@ class DocReviews(db.Model):
     rating = db.Column(db.Integer)
     review = db.Column(db.Text)
 
-
+class Hospitals(db.Model):
+    __tablename__ = 'hospitals'
+    hospital_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(256), nullable=False)
+    address = db.Column(db.Text, nullable=False)
+    pincode = db.Column(db.String(6), nullable=False)
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
+    h_type = db.Column(db.String(64))  # e.g., "Multi-specialty", "General", "Specialty"
+    services = db.Column(db.JSON)  # Array of services like ["Emergency", "Cardiology"]
+    coordinates = db.Column(db.JSON)  # {"lat": 28.6139, "lng": 77.2090}
 
 class Reminders(db.Model):
     __tablename__ = 'reminders'

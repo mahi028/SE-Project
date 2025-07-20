@@ -96,6 +96,12 @@ info:
     - **updateEmergencyContact** - Update existing emergency contact information
     - **addDocReview** - Submit review and rating for a doctor
 
+    ## Hospital Management Queries
+    - **getHospitals** - Get hospitals filtered by pincode
+
+    ## Hospital Management Mutations  
+    - **addHospital** - Add new hospital with details and services
+
     ## REST Endpoints
     ### User Lookup Service
     - **POST /user-lookup/register** - Register user's face biometrics using video upload
@@ -698,6 +704,42 @@ paths:
                         pincode: "560002"
                         alternatePhoneNum: "9876543211"
                         medicalInfo: {"conditions": ["hypertension", "diabetes"]}
+                      ) {
+                        message
+                        status
+                      }
+                    }
+              getHospitals:
+                summary: Get hospitals by pincode
+                value:
+                  query: |
+                    {
+                      getHospitals(pincode: "560001") {
+                        hospitalId
+                        name
+                        address
+                        pincode
+                        phone
+                        email
+                        hType
+                        services
+                        coordinates
+                      }
+                    }
+              addHospital:
+                summary: Add new hospital
+                value:
+                  query: |
+                    mutation {
+                      addHospital(
+                        name: "City Care Hospital"
+                        address: "123 Main Road, Shanti Nagar, Delhi"
+                        pincode: "110001"
+                        phone: "+91-9876543210"
+                        email: "contact@citycarehospital.com"
+                        hType: "Multi-specialty"
+                        services: "[\"Emergency\", \"Cardiology\", \"Orthopedics\", \"Radiology\", \"Pharmacy\"]"
+                        coordinates: "{\"lat\": 28.6139, \"lng\": 77.2090}"
                       ) {
                         message
                         status
