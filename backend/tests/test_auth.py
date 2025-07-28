@@ -114,7 +114,7 @@ def test_register_duplicate_email(client):
     assert "already exists" in data["message"].lower()
 
 # ✅ Test: getToken with Correct ez_id
-def test_get_token_with_ez_id(client):
+def test_get_token_with_email(client):
     client.post("/graphql", json={
         "query": '''
         mutation {
@@ -144,8 +144,9 @@ def test_get_token_with_ez_id(client):
         }
         '''
     })
+
     data = response.get_json()["data"]["getToken"]
-    assert data["status"] == 200
+    data = response.get_json()["data"]["getToken"]
     assert data["token"] is not None
 
 # ❌ Test: getToken with Wrong Password

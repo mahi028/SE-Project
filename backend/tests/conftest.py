@@ -7,8 +7,8 @@ from flask_jwt_extended import JWTManager
 # Make sure app/ is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.models import db as _db
-from app.graphql.auth import AuthMutation
+from app.models import db as _db, User
+from app.graphql.auth import AuthMutation, GetToken
 from app.graphql.users import UsersQuery, UsersMutation
 import graphene
 from flask_graphql import GraphQLView
@@ -23,12 +23,23 @@ def app():
     app.config["JWT_SECRET_KEY"] = "test-secret"
 
     _db.init_app(app)
-    JWTManager(app)
+    
+    jwt = JWTManager()
+    jwt.init_app(app)
+    
+    @jwt.user_identity_loader
+    def user_identity_lookup(user):
+        return user.ez_id
+
+    @jwt.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):        
+        identity = jwt_data["sub"]
+        return User.query.get(identity)
 
     class Mutation(AuthMutation, UsersMutation, graphene.ObjectType):
         pass
 
-    class Query(UsersQuery, graphene.ObjectType):
+    class Query(UsersQuery, GetToken, graphene.ObjectType):
         pass
 
     schema = graphene.Schema(query=Query, mutation=Mutation)
