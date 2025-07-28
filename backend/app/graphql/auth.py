@@ -38,7 +38,7 @@ class AuthTokenType(graphene.ObjectType):
 
 
 class GetToken(graphene.ObjectType):
-    get_token = graphene.Field(AuthTokenType, ez_id=graphene.String(), password=graphene.String())
+    get_token = graphene.Field(AuthTokenType, ez_id=graphene.String(), email=graphene.String(), password=graphene.String())
     def resolve_get_token(self, info, password, ez_id=None, email=None):
         if ez_id:
             user = User.query.get(ez_id)
