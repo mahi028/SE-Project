@@ -1,6 +1,6 @@
 import pytest
 
-# ✅ Test: Successful Registration
+# Test: Successful Registration
 def test_register_success(client):
     response = client.post("/graphql", json={
         "query": '''
@@ -23,7 +23,7 @@ def test_register_success(client):
     assert data["status"] == 200
     assert "successful" in data["message"].lower()
 
-# ❌ Test: Passwords Do Not Match
+# Test: Passwords Do Not Match
 def test_register_password_mismatch(client):
     response = client.post("/graphql", json={
         "query": '''
@@ -46,7 +46,7 @@ def test_register_password_mismatch(client):
     assert data["status"] == 403
     assert "passwords do not match" in data["message"].lower()
 
-# ❌ Test: Missing Required Field (email)
+# Test: Missing Required Field (email)
 def test_register_missing_email(client):
     response = client.post("/graphql", json={
         "query": '''
@@ -64,10 +64,9 @@ def test_register_missing_email(client):
         }
         '''
     })
-    # GraphQL will throw an error here due to missing required field
     assert "errors" in response.get_json()
 
-# ❌ Test: Invalid Role (not 0 or 1)
+# Test: Invalid Role (not 0 or 1)
 def test_register_invalid_role(client):
     response = client.post("/graphql", json={
         "query": '''
@@ -90,7 +89,7 @@ def test_register_invalid_role(client):
     assert data["status"] == 402
     assert "role must be either" in data["message"].lower()
 
-# ❌ Test: Duplicate Email Registration
+# Test: Duplicate Email Registration
 def test_register_duplicate_email(client):
     mutation = '''
     mutation {
@@ -107,13 +106,13 @@ def test_register_duplicate_email(client):
         }
     }
     '''
-    client.post("/graphql", json={"query": mutation})  # First time
-    response = client.post("/graphql", json={"query": mutation})  # Duplicate
+    client.post("/graphql", json={"query": mutation})
+    response = client.post("/graphql", json={"query": mutation})
     data = response.get_json()["data"]["register"]
     assert data["status"] == 409
     assert "already exists" in data["message"].lower()
 
-# ✅ Test: getToken with Correct ez_id
+# Test: getToken with Correct Email
 def test_get_token_with_email(client):
     client.post("/graphql", json={
         "query": '''
@@ -146,15 +145,32 @@ def test_get_token_with_email(client):
     })
 
     data = response.get_json()["data"]["getToken"]
-    data = response.get_json()["data"]["getToken"]
     assert data["token"] is not None
 
-# ❌ Test: getToken with Wrong Password
+# Test: getToken with Wrong Password
 def test_get_token_wrong_password(client):
+    client.post("/graphql", json={
+        "query": '''
+        mutation {
+            register(
+                email: "wrongpass@example.com",
+                role: 0,
+                password: "correctpass",
+                confirmPassword: "correctpass",
+                name: "Wrong Password User",
+                phoneNum: "9999999999"
+            ) {
+                status
+                message
+            }
+        }
+        '''
+    })
+
     response = client.post("/graphql", json={
         "query": '''
         query {
-            getToken(ezId: "EZ0001", password: "wrongpass") {
+            getToken(email: "wrongpass@example.com", password: "wrongpass") {
                 token
                 message
                 status
@@ -162,15 +178,17 @@ def test_get_token_wrong_password(client):
         }
         '''
     })
-    data = response.get_json()["data"]["getToken"]
-    assert data["token"] is None
 
-# ❌ Test: getToken with Invalid User ID
+    json_data = response.get_json()
+    assert "errors" not in json_data
+    assert json_data["data"]["getToken"] is None
+
+# Test: getToken with Invalid Email
 def test_get_token_invalid_user(client):
     response = client.post("/graphql", json={
         "query": '''
         query {
-            getToken(ezId: "EZ9999", password: "any") {
+            getToken(email: "doesnotexist@example.com", password: "any") {
                 token
                 message
                 status
@@ -178,10 +196,12 @@ def test_get_token_invalid_user(client):
         }
         '''
     })
-    data = response.get_json()["data"]["getToken"]
-    assert data["token"] is None
 
-# ❌ Test: getToken without ez_id or email
+    json_data = response.get_json()
+    assert "errors" not in json_data
+    assert json_data["data"]["getToken"] is None
+
+# Test: getToken without ez_id or email
 def test_get_token_missing_fields(client):
     response = client.post("/graphql", json={
         "query": '''

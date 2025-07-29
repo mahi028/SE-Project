@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from app.models import db as _db, User
 from app.graphql.auth import AuthMutation, GetToken
 from app.graphql.users import UsersQuery, UsersMutation
+from app.graphql.seniors import SeniorsQuery, SeniorsMutation
 import graphene
 from flask_graphql import GraphQLView
 
@@ -36,10 +37,10 @@ def app():
         identity = jwt_data["sub"]
         return User.query.get(identity)
 
-    class Mutation(AuthMutation, UsersMutation, graphene.ObjectType):
+    class Mutation(AuthMutation, UsersMutation, SeniorsMutation, graphene.ObjectType):
         pass
 
-    class Query(UsersQuery, GetToken, graphene.ObjectType):
+    class Query(UsersQuery, GetToken, SeniorsQuery, graphene.ObjectType):
         pass
 
     schema = graphene.Schema(query=Query, mutation=Mutation)
