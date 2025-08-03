@@ -1,5 +1,28 @@
 import pytest
 
+def create_user_and_get_ezid(client, db_user, suffix="001", role=0):
+    email = f"user{suffix}@example.com"
+    client.post("/graphql", json={
+        "query": f'''
+        mutation {{
+            register(
+                email: "{email}",
+                role: {role},
+                password: "pass123",
+                confirmPassword: "pass123",
+                name: "User {suffix}",
+                phoneNum: "123456{suffix.zfill(4)}"
+            ) {{
+                status
+                message
+            }}
+        }}
+        '''
+    })
+    user = db_user.query.filter_by(email=email).first()
+    assert user is not None, "User not found in database after registration"
+    return email, user.ez_id
+
 # ✅ Test: Successful Registration
 def test_register_success(client):
     response = client.post("/graphql", json={
@@ -114,38 +137,24 @@ def test_register_duplicate_email(client):
     assert "already exists" in data["message"].lower()
 
 # ✅ Test: getToken with Correct ez_id
-def test_get_token_with_email(client):
-    client.post("/graphql", json={
-        "query": '''
-        mutation {
-            register(
-                email: "tokenuser@example.com",
-                role: 0,
-                password: "test123",
-                confirmPassword: "test123",
-                name: "Token User",
-                phoneNum: "3333333333"
-            ) {
-                status
-                message
-            }
-        }
-        '''
-    })
-
+def test_get_token_with_email(client,db_user,app):
+    with app.app_context():
+        # Create a user and get ez_id
+        email, ez_id = create_user_and_get_ezid(client, db_user, "tokenuser", 1)
+    
     response = client.post("/graphql", json={
-        "query": '''
-        query {
-            getToken(email: "tokenuser@example.com", password: "test123") {
+        "query": f'''
+        query {{
+            getToken(ezId: "{ez_id}", password: "test123") {{
                 token
                 message
                 status
-            }
-        }
+            }}
+        }}
         '''
     })
-
-    data = response.get_json()["data"]["getToken"]
+    print(response.get_json())
+    print(ez_id,email)
     data = response.get_json()["data"]["getToken"]
     assert data["token"] is not None
 
