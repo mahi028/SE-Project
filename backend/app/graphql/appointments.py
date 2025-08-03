@@ -4,6 +4,7 @@ from ..models import Appointments, Reminders, db, SenInfo, DocInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 from datetime import timedelta
+from ..utils.authControl import get_doctor, get_senior, get_user
 
 
 class AppointmentType(SQLAlchemyObjectType):
@@ -16,8 +17,8 @@ class AvailableSlotsType(graphene.ObjectType):
 
 
 class AppointmentsQuery(graphene.ObjectType):
-    get_appointments_for_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True))
-    get_appointments_for_doctor = graphene.List(AppointmentType, doc_id=graphene.Int(required=True))
+    get_appointments_for_senior = graphene.List(AppointmentType)
+    get_appointments_for_doctor = graphene.List(AppointmentType)
     get_appointments_for_doctor_senior = graphene.List(AppointmentType, sen_id=graphene.Int(required=True), doc_id=graphene.Int(required=True))
     get_available_slots = graphene.Field(
         AvailableSlotsType,
@@ -25,11 +26,13 @@ class AppointmentsQuery(graphene.ObjectType):
         date=graphene.String(required=True)
     )
 
-    def resolve_get_appointments_for_senior(self, info, sen_id):
-        return Appointments.query.filter_by(sen_id=sen_id).all()
+    def resolve_get_appointments_for_senior(self, info):
+        senior = get_senior(info)
+        return Appointments.query.filter_by(sen_id=senior.sen_id).all()
 
-    def resolve_get_appointments_for_doctor(self, info, doc_id):
-        return Appointments.query.filter_by(doc_id=doc_id).all()
+    def resolve_get_appointments_for_doctor(self, info):
+        doctor = get_doctor(info)
+        return Appointments.query.filter_by(doc_id=doctor.doc_id).all()
     
     def resolve_get_appointments_for_doctor_senior(self, info, sen_id, doc_id):
         return Appointments.query.filter_by(sen_id=sen_id, doc_id=doc_id).all()
@@ -49,25 +52,18 @@ class AppointmentsQuery(graphene.ObjectType):
 
 class BookAppointment(graphene.Mutation):
     class Arguments:
-        sen_id = graphene.Int(required=True)
         doc_id = graphene.Int(required=True)
         rem_time = graphene.DateTime(required=True)
         reason = graphene.String(required=True)
 
     Output = ReturnType
 
-    def mutate(self, info, sen_id, doc_id, rem_time, reason):
-        senior = SenInfo.query.get(sen_id)
+    def mutate(self, info, doc_id, rem_time, reason):
+        senior = get_senior(info)
         doctor = DocInfo.query.get(doc_id)
 
-        if not senior:
-            pass
-
-        if not doctor:
-            pass
-
         appointment = Appointments(
-            sen_id=sen_id,
+            sen_id=senior.sen_id,
             doc_id=doc_id,
             rem_time=rem_time,
             reason=reason,
@@ -126,9 +122,13 @@ class UpdateAppointmentStatus(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, app_id, status):
+        doctor = get_doctor(info)
+
         appointment = Appointments.query.get(app_id)
         if not appointment:
             return ReturnType(message="Appointment not found", status=0)
+        if appointment.doc_info.doc_id != doctor.doc_id:
+            return ReturnType(message="UnAuthorised", status=401)
         if status not in [1, -1]:
             return ReturnType(message="Invalid status", status=0)
         appointment.status = status
@@ -147,19 +147,27 @@ class CancelAppointment(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, app_id):
+
+        user = get_user(info)
+
         appointment = Appointments.query.get(app_id)
+
         if not appointment:
             return ReturnType(message="Appointment not found", status=0)
-        appointment.status = -1  # Mark as cancelled
-        commitdb()
-        return ReturnType(message="Appointment cancelled successfully", status=1)
+        if appointment.sen_info.ez_id == user.ez_id:
+            return ReturnType(message="UnAuthorised", status=401)
+        if appointment.doc_info.ez_id == user.ez_id:
+            return ReturnType(message="UnAuthorised", status=401)
+        try:
+            appointment.status = -1  # Mark as cancelled
+            commitdb()
+            return ReturnType(message="Appointment cancelled successfully", status=1)
+        except Exception as e:
+            rollbackdb()
+            return ReturnType(message=f"Error updating appointment status", status=403)
 
 
 class AppointmentsMutation(graphene.ObjectType):
     book_appointment = BookAppointment.Field()
     update_appointment_status = UpdateAppointmentStatus.Field()
     cancel_appointment = CancelAppointment.Field()
-
-#Dev
-#IncreaseCommits
-#FightForTopSpot

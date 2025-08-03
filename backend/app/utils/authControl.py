@@ -3,14 +3,14 @@ from flask_jwt_extended import jwt_required, current_user
 from flask import request, abort
 from ..models import User
 
-def check_user(info):
+def get_user(info):
     ez_id = info.context.get("current_user")
     if not ez_id:
         raise Exception("Authentication required")
     user = User.query.get(ez_id)
     return user
 
-def check_senior(info):
+def get_senior(info):
     ez_id = info.context.get("current_user")
     if not ez_id:
         raise Exception("Authentication required")
@@ -21,7 +21,7 @@ def check_senior(info):
         raise Exception("Senior Profile Not Complete!.")
     return senior
 
-def check_doctor(info):
+def get_doctor(info):
     ez_id = info.context.get("current_user")
     if not ez_id:
         raise Exception("Authentication required")
@@ -32,7 +32,7 @@ def check_doctor(info):
         raise Exception("Doctor Profile Not Complete!.")
     return doctor
 
-def check_mod(info):
+def get_mod(info):
     ez_id = info.context.get("current_user")
     if not ez_id:
         raise Exception("Authentication required")

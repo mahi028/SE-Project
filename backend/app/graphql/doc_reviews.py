@@ -3,6 +3,7 @@ import graphene
 from ..models import DocReviews, db, SenInfo, DocInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
+from ..utils.authControl import get_senior
 
 class DocReviewType(SQLAlchemyObjectType):
     class Meta:
@@ -35,14 +36,13 @@ class DocReviewsQuery(graphene.ObjectType):
 class AddDocReview(graphene.Mutation):
     class Arguments:
         doc_id = graphene.Int(required=True)
-        sen_id = graphene.Int(required=True)
         rating = graphene.Int(required=True)
         review = graphene.String()
 
     Output = ReturnType
 
-    def mutate(self, info, doc_id, sen_id, rating, review=None):
-        senior = SenInfo.query.get(sen_id)
+    def mutate(self, info, doc_id, rating, review=None):
+        senior = get_senior(info)
         doctor = DocInfo.query.get(doc_id)
 
         if not senior:
@@ -53,7 +53,7 @@ class AddDocReview(graphene.Mutation):
 
         doc_review = DocReviews(
             doc_id=doc_id,
-            sen_id=sen_id,
+            sen_id=senior.sen_id,
             rating=rating,
             review=review
         )

@@ -3,6 +3,7 @@ import graphene
 from ..models import EmergencyContacts, db, SenInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
+from ..utils.authControl import get_senior
 
 class EmergencyContactType(SQLAlchemyObjectType):
     class Meta:
@@ -12,13 +13,13 @@ class EmergencyContactType(SQLAlchemyObjectType):
 class EmergencyContactsQuery(graphene.ObjectType):
     get_emergency_contacts = graphene.List(EmergencyContactType, sen_id=graphene.Int(required=True))
 
-    def resolve_get_emergency_contacts(self, info, sen_id):
-        return EmergencyContacts.query.filter_by(sen_id=sen_id).all()
+    def resolve_get_emergency_contacts(self, info):
+        senior = get_senior(info)
+        return EmergencyContacts.query.filter_by(sen_id=senior.sen_id).all()
 
 # Mutation for adding an emergency contact
 class AddEmergencyContact(graphene.Mutation):
     class Arguments:
-        sen_id = graphene.Int(required=True)
         name = graphene.String(required=True)
         email = graphene.String(required=True)
         phone_num = graphene.String(required=True)
@@ -27,14 +28,11 @@ class AddEmergencyContact(graphene.Mutation):
 
     Output = ReturnType
 
-    def mutate(self, info, sen_id, name, email, phone_num, send_alert, relationship):
-        senior = SenInfo.query.get(sen_id)
-
-        if not senior:
-            pass
+    def mutate(self, info, name, email, phone_num, send_alert, relationship):
+        senior = get_senior(info)
 
         contact = EmergencyContacts(
-            sen_id=sen_id,
+            sen_id=senior.sen_id,
             name=name,
             email=email,
             phone_num=phone_num,
@@ -64,9 +62,13 @@ class UpdateEmergencyContact(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, cont_id, name=None, email=None, phone_num=None, send_alert=None, relationship=None):
+        senior = get_senior(info)
         contact = EmergencyContacts.query.filter_by(cont_id=cont_id).first()
         if not contact:
             return ReturnType(message="Contact not found", status=0)
+        if contact.sen_info.sen_id != senior.sen_id:
+            return ReturnType(message="UnAuthorized", status=401)
+
         if name is not None:
             contact.name = name
         if email is not None:

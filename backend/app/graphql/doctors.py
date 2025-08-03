@@ -3,6 +3,7 @@ import graphene
 from ..models import User,DocInfo, db
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
+from ..utils.authControl import get_user, get_doctor
 
 class DoctorType(SQLAlchemyObjectType):
     class Meta:
@@ -12,7 +13,7 @@ class DoctorType(SQLAlchemyObjectType):
 
 class DoctorsQuery(graphene.ObjectType):
     get_doctors = graphene.List(DoctorType, pincode=graphene.String(required=False),specialization=graphene.String(required=False))
-    get_doctor = graphene.Field(DoctorType, doc_id=graphene.Int(required=True))
+    get_doctor = graphene.Field(DoctorType)
     
 
     def resolve_get_doctors(self, info, pincode=None, specialization=None):
@@ -24,15 +25,15 @@ class DoctorsQuery(graphene.ObjectType):
         return query.all()
 
 
-    def resolve_get_doctor(self, info, doc_id):
-        return DocInfo.query.get(doc_id)
+    def resolve_get_doctor(self, info):
+        return get_doctor(info)
 
 
 
 # Example Mutations for adding/updating doctors (expand as needed)
 class AddDoctor(graphene.Mutation):
     class Arguments:
-        ez_id = graphene.String(required=True)
+        # ez_id = graphene.String(required=True)
         gender = graphene.String()
         dob = graphene.DateTime()
         address = graphene.String()
@@ -51,20 +52,20 @@ class AddDoctor(graphene.Mutation):
 
     Output = ReturnType
 
-    def mutate(self, info, ez_id, license_number, **kwargs):
+    def mutate(self, info, license_number, **kwargs):
         # Check if doctor with same license number exists
-        user = User.query.get(ez_id)
+        user = get_user(info)
         if not user:
             return ReturnType(message="User not found", status=404)
         if user.role != 1:
             return ReturnType(message="User is not a health professional", status=403)
         
-        if DocInfo.query.filter_by(ez_id=ez_id).one_or_none():
+        if DocInfo.query.filter_by(ez_id=user.ez_id).one_or_none():
             return ReturnType(message="Doctor already exists", status=0)
         if DocInfo.query.filter_by(license_number=license_number).one_or_none():
             return ReturnType(message="Doctor with this license number already exists", status=0)
 
-        doctor = DocInfo(ez_id=ez_id, license_number=license_number, **kwargs)
+        doctor = DocInfo(ez_id=user.ez_id, license_number=license_number, **kwargs)
         adddb(doctor)
         try:
             commitdb()
@@ -77,7 +78,6 @@ class AddDoctor(graphene.Mutation):
 
 class UpdateDoctor(graphene.Mutation):
     class Arguments:
-        doc_id = graphene.Int(required=True)
         address = graphene.String()
         pincode = graphene.String()
         alternate_phone_num = graphene.String()
@@ -93,7 +93,7 @@ class UpdateDoctor(graphene.Mutation):
     Output = ReturnType
 
     def mutate(self, info, doc_id, **kwargs):
-        doctor = DocInfo.query.filter_by(doc_id=doc_id).first()
+        doctor = get_doctor(info)
         if not doctor:
             return ReturnType(message="Health Professional not found", status=403)
 

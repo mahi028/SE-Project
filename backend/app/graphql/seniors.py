@@ -3,6 +3,7 @@ import graphene
 from ..models import User, SenInfo, db
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
+from ..utils.authControl import get_user, get_senior
 
 class SeniorType(SQLAlchemyObjectType):
     class Meta:
@@ -12,14 +13,14 @@ class SeniorType(SQLAlchemyObjectType):
 
 class SeniorsQuery(graphene.ObjectType):
     get_seniors = graphene.List(SeniorType)
-    get_senior = graphene.Field(SeniorType, sen_id=graphene.Int(required=True))
+    get_senior = graphene.Field(SeniorType)
     
-    def resolve_get_seniors(self, info,):
+    def resolve_get_seniors(self, info):
         return SenInfo.query.all()
 
 
-    def resolve_get_senior(self, info, sen_id):
-        return SenInfo.query.get(sen_id)
+    def resolve_get_senior(self, info):
+        return get_senior(info)
 
 
 
@@ -27,7 +28,7 @@ class SeniorsQuery(graphene.ObjectType):
 
 class AddSenior(graphene.Mutation):
     class Arguments:
-        ez_id = graphene.String(required=True)
+        # ez_id = graphene.String(required=True)
         gender = graphene.String()
         dob = graphene.DateTime()
         address = graphene.String()
@@ -37,17 +38,17 @@ class AddSenior(graphene.Mutation):
 
     Output = ReturnType
 
-    def mutate(self, info, ez_id, gender, dob, address, pincode, alternate_phone_num, medical_info=None):
-        user = User.query.get(ez_id)
+    def mutate(self, info, gender, dob, address, pincode, alternate_phone_num=None, medical_info=None):
+        user = get_user(info)
         if not user:
             return ReturnType(message="User not found", status=404)
         if user.role != 0:
             return ReturnType(message="User is not a senior citizen", status=403)
         
-        if SenInfo.query.filter_by(ez_id=ez_id).first():
+        if SenInfo.query.filter_by(ez_id=user.ez_id).first():
             return ReturnType(message="Senior citizen already exists", status=403)
         
-        senior = SenInfo(ez_id=ez_id, gender=gender, dob=dob, address=address, pincode=pincode, alternate_phone_num=alternate_phone_num, medical_info=medical_info)
+        senior = SenInfo(ez_id=user.ez_id, gender=gender, dob=dob, address=address, pincode=pincode, alternate_phone_num=alternate_phone_num, medical_info=medical_info)
 
         adddb(senior)
         try:
@@ -62,7 +63,7 @@ class AddSenior(graphene.Mutation):
 
 class UpdateSenior(graphene.Mutation):
     class Arguments:
-        sen_id = graphene.Int(required=True)
+        # sen_id = graphene.Int(required=True)
         address = graphene.String()
         pincode = graphene.String()
         alternate_phone_num = graphene.String()
@@ -70,8 +71,9 @@ class UpdateSenior(graphene.Mutation):
 
     Output = ReturnType
 
-    def mutate(self, info, sen_id, address, pincode, alternate_phone_num, medical_info=None):
-        senior = SenInfo.query.get(sen_id)
+    def mutate(self, info, address, pincode, alternate_phone_num, medical_info=None):
+        # senior = SenInfo.query.get(sen_id)
+        senior = get_senior(info)
         if not senior:
             return ReturnType(message="Senior not found", status=0)
         if medical_info is not None:
