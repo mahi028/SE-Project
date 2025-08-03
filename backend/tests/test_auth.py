@@ -145,7 +145,7 @@ def test_get_token_with_email(client,db_user,app):
     response = client.post("/graphql", json={
         "query": f'''
         query {{
-            getToken(ezId: "{ez_id}", password: "test123") {{
+            getToken(email: "{email}", password: "pass123") {{
                 token
                 message
                 status
@@ -153,29 +153,35 @@ def test_get_token_with_email(client,db_user,app):
         }}
         '''
     })
-    print(response.get_json())
-    print(ez_id,email)
     data = response.get_json()["data"]["getToken"]
     assert data["token"] is not None
 
 # ❌ Test: getToken with Wrong Password
-def test_get_token_wrong_password(client):
+def test_get_token_wrong_password(client, db_user, app):
+    with app.app_context():
+        # Create a user and get ez_id
+        email, ez_id = create_user_and_get_ezid(client, db_user, "tokenuser", 1)
+    
     response = client.post("/graphql", json={
-        "query": '''
-        query {
-            getToken(ezId: "EZ0001", password: "wrongpass") {
+        "query": f'''
+        query {{
+            getToken(ezId: "{ez_id}", password: "pass124") {{
                 token
                 message
                 status
-            }
-        }
+            }}
+        }}
         '''
     })
     data = response.get_json()["data"]["getToken"]
     assert data["token"] is None
 
 # ❌ Test: getToken with Invalid User ID
-def test_get_token_invalid_user(client):
+def test_get_token_invalid_user(client, db_user, app):
+    with app.app_context():
+        # Create a user and get ez_id
+        email, ez_id = create_user_and_get_ezid(client, db_user, "tokenuser", 1)
+    
     response = client.post("/graphql", json={
         "query": '''
         query {
@@ -192,6 +198,7 @@ def test_get_token_invalid_user(client):
 
 # ❌ Test: getToken without ez_id or email
 def test_get_token_missing_fields(client):
+    
     response = client.post("/graphql", json={
         "query": '''
         query {
