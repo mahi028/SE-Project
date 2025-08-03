@@ -48,9 +48,10 @@ class GetToken(graphene.ObjectType):
             return AuthTokenType(token=None, message="No user found", status=404)
         if user:
             if checkpw(password, user.password):
-                print('hello')
                 access_token = create_access_token(identity=user)
                 return AuthTokenType(token = access_token)
+            return AuthTokenType(token=None, message="Wrong Credentials", status=402)
+        return AuthTokenType(token=None, message="No User Found", status=404)
 
 
 class Register(graphene.Mutation):
