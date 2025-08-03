@@ -4,6 +4,7 @@ from ..models import VitalLogs, VitalTypes, SenInfo, db
 from datetime import datetime
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
+from ..utils.authControl import get_senior
 
 class VitalLogType(SQLAlchemyObjectType):
     class Meta:
@@ -28,18 +29,15 @@ class VitalLogsQuery(graphene.ObjectType):
 
 class AddVitalLog(graphene.Mutation):
     class Arguments:
-        sen_id = graphene.Int(required=True)
         vital_type_id = graphene.Int(required=True)
         reading = graphene.String(required=True)
         logged_at = graphene.DateTime()
 
     Output = ReturnType
 
-    def mutate(self, info, sen_id, vital_type_id, reading, logged_at=None):
+    def mutate(self, info, vital_type_id, reading, logged_at=None):
         # Validate senior exists
-        senior = SenInfo.query.get(sen_id)
-        if not senior:
-            return ReturnType(message="Senior not found", status=0)
+        senior = get_senior(info)
 
         # Validate vital type exists
         vital_type = VitalTypes.query.get(vital_type_id)
@@ -51,7 +49,7 @@ class AddVitalLog(graphene.Mutation):
             logged_at = datetime.utcnow()
 
         vital_log = VitalLogs(
-            sen_id=sen_id,
+            sen_id=senior.sen_id,
             vital_type_id=vital_type_id,
             reading=reading,
             logged_at=logged_at

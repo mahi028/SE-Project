@@ -4,6 +4,7 @@ from ..utils.dbUtils import commitdb, adddb, rollbackdb
 from ..models import Group, Joinee, db, Reminders, SenInfo
 from .return_types import ReturnType
 from datetime import timedelta
+from ..utils.authControl import get_senior
 
 class GroupType(SQLAlchemyObjectType):
     class Meta:
@@ -41,22 +42,18 @@ class CreateGroup(graphene.Mutation):
     class Arguments:
         label = graphene.String(required=True)
         timing = graphene.DateTime(required=True)
-        admin_id = graphene.Int(required=True)
         pincode = graphene.String()
         location = graphene.String()
 
     Output = ReturnType
 
-    def mutate(self, info, label, timing, admin_id, pincode=None, location=None):
-        admin = SenInfo.query.get(admin_id)
-
-        if not admin:
-            pass
+    def mutate(self, info, label, timing, pincode=None, location=None):
+        admin = get_senior(info)
 
         group = Group(
             label=label,
             timing=timing,
-            admin=admin_id,
+            admin=admin.sen_id,
             pincode=pincode,
             location=location
         )
@@ -72,25 +69,26 @@ class CreateGroup(graphene.Mutation):
 class JoinGroup(graphene.Mutation):
     class Arguments:
         grp_id = graphene.Int(required=True)
-        sen_id = graphene.Int(required=True)
 
     Output = ReturnType
 
-    def mutate(self, info, grp_id, sen_id):
+    def mutate(self, info, grp_id):
+        senior = get_senior(info)
+
         group = Group.query.get(grp_id)
         if not group:
             return ReturnType(message="Group not found", status=404)
             
-        existing = Joinee.query.filter_by(grp_id=grp_id, sen_id=sen_id).first()
+        existing = Joinee.query.filter_by(grp_id=grp_id, sen_id=senior.sen_id).first()
         if existing:
             return ReturnType(message="Already joined", status=0)
 
         # Get senior's ez_id for reminder
-        senior = SenInfo.query.get(sen_id)
+        senior = SenInfo.query.get(senior.sen_id)
         if not senior:
             return ReturnType(message="Senior not found", status=404)
 
-        joinee = Joinee(grp_id=grp_id, sen_id=sen_id)
+        joinee = Joinee(grp_id=grp_id, sen_id=senior.sen_id)
         adddb(joinee)
 
         # Create reminder 1 hour before group timing

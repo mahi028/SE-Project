@@ -4,6 +4,7 @@ from ..models import Prescription, Reminders, SenInfo, db
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb, deletedb
 from datetime import datetime, time
+from ..utils.authControl import get_senior, get_doctor
 
 class PrescriptionType(SQLAlchemyObjectType):
     class Meta:
@@ -11,18 +12,20 @@ class PrescriptionType(SQLAlchemyObjectType):
 
 class PrescriptionsQuery(graphene.ObjectType):
     get_prescription = graphene.Field(PrescriptionType, pres_id=graphene.Int(required=True))
-    get_prescriptions_for_senior = graphene.List(PrescriptionType, sen_id=graphene.Int(required=True))
-    get_prescriptions_for_doctor = graphene.List(PrescriptionType, doc_id=graphene.Int(required=True))
+    get_prescriptions_for_senior = graphene.List(PrescriptionType)
+    get_prescriptions_for_doctor = graphene.List(PrescriptionType)
     get_all_prescriptions = graphene.List(PrescriptionType)
 
     def resolve_get_prescription(self, info, pres_id):
         return Prescription.query.get(pres_id)
 
-    def resolve_get_prescriptions_for_senior(self, info, sen_id):
-        return Prescription.query.filter_by(sen_id=sen_id).all()
+    def resolve_get_prescriptions_for_senior(self, info):
+        senior = get_senior(info)
+        return Prescription.query.filter_by(sen_id=senior.sen_id).all()
 
-    def resolve_get_prescriptions_for_doctor(self, info, doc_id):
-        return Prescription.query.filter_by(doc_id=doc_id).all()
+    def resolve_get_prescriptions_for_doctor(self, info):
+        doctor = get_doctor(info)
+        return Prescription.query.filter_by(doc_id=doctor.doc_id).all()
     
     def resolve_get_all_prescriptions(self, info):
         return Prescription.query.all()
