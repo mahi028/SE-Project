@@ -154,9 +154,7 @@ class CancelAppointment(graphene.Mutation):
 
         if not appointment:
             return ReturnType(message="Appointment not found", status=0)
-        if appointment.sen_info.ez_id == user.ez_id:
-            return ReturnType(message="UnAuthorised", status=401)
-        if appointment.doc_info.ez_id == user.ez_id:
+        if appointment.sen_info.ez_id != user.ez_id and appointment.doc_info.ez_id != user.ez_id:
             return ReturnType(message="UnAuthorised", status=401)
         try:
             appointment.status = -1  # Mark as cancelled
