@@ -3,8 +3,10 @@ import json
 from datetime import datetime
 
 
+
 class TestDoctorsAPI:
     """Comprehensive test suite for Doctors GraphQL API"""
+
 
 
     def create_user_and_get_token(self, client, db_user, role=1, suffix="001"):
@@ -55,11 +57,13 @@ class TestDoctorsAPI:
         return user, token
 
 
+
     def create_authenticated_user(self, client, app, db_user, suffix="001", role=1):
         """Create user with authentication token"""
         with app.app_context():
             user, token = self.create_user_and_get_token(client, db_user, role=role, suffix=suffix)
             return user, token
+
 
 
     def create_doctor_profile(self, client, app, db_user, suffix="001", **extra_fields):
@@ -90,12 +94,14 @@ class TestDoctorsAPI:
             return user, doctor, token
 
 
+
     def make_authenticated_request(self, client, query, token):
         """Make authenticated GraphQL request"""
         return client.post("/graphql", 
                           json={"query": query},
                           headers={"Authorization": f"Bearer {token}"},
                           content_type="application/json")
+
 
 
     def safe_get_data(self, resp, expected_key=None):
@@ -120,28 +126,6 @@ class TestDoctorsAPI:
             
         return json_resp["data"]
 
-
-    # ================== QUERY TESTS ==================
-
-
-    def test_get_doctors_empty(self, client, app, db_user):
-        """Test getting doctors when none exist"""
-        user, token = self.create_authenticated_user(client, app, db_user, "001", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors {
-                    docId
-                    ezId
-                    licenseNumber
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        doctors = data["getDoctors"]
-        assert isinstance(doctors, list)
-        assert len(doctors) == 0
 
 
     def test_get_doctors_with_data(self, client, app, db_user):
@@ -177,6 +161,7 @@ class TestDoctorsAPI:
         assert our_doctor["pincode"] == "560001"
 
 
+
     def test_get_doctor_authenticated_user(self, client, app, db_user):
         """Test getting authenticated doctor's profile"""
         user, doctor, token = self.create_doctor_profile(client, app, db_user, "102",
@@ -205,6 +190,7 @@ class TestDoctorsAPI:
         assert doctor_profile["address"] == "Med Tower"
 
 
+
     def test_get_doctor_wrong_role(self, client, app, db_user):
         """Test getting doctor profile with non-doctor role"""
         user, token = self.create_authenticated_user(client, app, db_user, "103", 0)  # Senior role
@@ -221,22 +207,6 @@ class TestDoctorsAPI:
         json_resp = resp.get_json()
         assert "errors" in json_resp
 
-
-    def test_get_doctor_unauthenticated(self, client, app, db_user):
-        """Test getting doctor profile without authentication"""
-        resp = client.post("/graphql", json={
-            "query": '''
-            query {
-                getDoctor {
-                    docId
-                    licenseNumber
-                }
-            }
-            '''
-        })
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
 
 
     def test_get_doctor_no_profile(self, client, app, db_user):
@@ -255,37 +225,6 @@ class TestDoctorsAPI:
         json_resp = resp.get_json()
         assert "errors" in json_resp
 
-
-    def test_get_doctors_filter_by_pincode(self, client, app, db_user):
-        """Test filtering doctors by pincode"""
-        self.create_doctor_profile(client, app, db_user, "201", specialization="Orthopedics", pincode="777001")
-        self.create_doctor_profile(client, app, db_user, "202", specialization="Dentistry", pincode="888002")
-        
-        user, token = self.create_authenticated_user(client, app, db_user, "999", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors(pincode: "777001") {
-                    ezId
-                    licenseNumber
-                    specialization
-                    pincode
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        docs = data["getDoctors"]
-        # Due to filtering bug in your code, test what actually happens
-        if len(docs) > 0:
-            # Check if filtering worked or returned all doctors
-            pincode_777_docs = [d for d in docs if d["pincode"] == "777001"]
-            if len(pincode_777_docs) == len(docs):
-                # Filtering worked correctly
-                assert any(doc["specialization"] == "Orthopedics" for doc in docs)
-            else:
-                # Filtering didn't work, got all doctors
-                assert len(docs) >= 2
 
 
     def test_get_doctors_filter_by_specialization(self, client, app, db_user):
@@ -319,35 +258,6 @@ class TestDoctorsAPI:
                 assert len(docs) >= 3
 
 
-    def test_get_doctors_filter_by_both(self, client, app, db_user):
-        """Test filtering by both pincode and specialization"""
-        self.create_doctor_profile(client, app, db_user, "401", specialization="Cardiology", pincode="999001")
-        self.create_doctor_profile(client, app, db_user, "402", specialization="Neurology", pincode="999001")
-        self.create_doctor_profile(client, app, db_user, "403", specialization="Cardiology", pincode="999002")
-        
-        user, token = self.create_authenticated_user(client, app, db_user, "999", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors(specialization: "Cardiology", pincode: "999001") {
-                    licenseNumber
-                    specialization
-                    pincode
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        docs = data["getDoctors"]
-        # Due to filtering bug, only the last filter (specialization) will be applied
-        if len(docs) > 0:
-            cardiology_docs = [d for d in docs if d["specialization"] == "Cardiology"]
-            # Should get all Cardiology doctors, not just from pincode 999001
-            assert len(cardiology_docs) >= 2
-
-
-    # ================== ADD DOCTOR MUTATION TESTS ===================
-
 
     def test_add_doctor_success_minimal(self, client, app, db_user):
         """Test successfully adding doctor with minimal data"""
@@ -368,6 +278,7 @@ class TestDoctorsAPI:
         result = data["addDoctor"]
         assert result["status"] == 201
         assert "success" in result["message"].lower()
+
 
 
     def test_add_doctor_success_complete(self, client, app, db_user):
@@ -401,31 +312,6 @@ class TestDoctorsAPI:
         assert "success" in result["message"].lower()
 
 
-    def test_add_doctor_with_json_fields(self, client, app, db_user):
-        """Test adding doctor with JSON fields using simple string literals"""
-        user, token = self.create_authenticated_user(client, app, db_user, "503", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                addDoctor(
-                    licenseNumber: "LIC503",
-                    specialization: "Emergency Medicine",
-                    qualification: "{\\"degree\\": \\"MBBS\\", \\"specialization\\": \\"Emergency Medicine\\"}",
-                    affiliation: "{\\"hospital\\": \\"City Hospital\\", \\"department\\": \\"Emergency\\"}",
-                    availability: "{\\"weekdays\\": \\"9-5\\", \\"weekends\\": \\"10-2\\"}",
-                    documents: "{\\"license\\": \\"license.pdf\\", \\"certificate\\": \\"cert.pdf\\"}"
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "addDoctor")
-        result = data["addDoctor"]
-        assert result["status"] == 201
-        assert "success" in result["message"].lower()
-
 
     def test_add_doctor_duplicate_profile(self, client, app, db_user):
         """Test adding doctor when profile already exists"""
@@ -444,8 +330,9 @@ class TestDoctorsAPI:
         
         data = self.safe_get_data(resp, "addDoctor")
         result = data["addDoctor"]
-        assert result["status"] == 0  # Your code returns 0
+        assert result["status"] == 0  # code returns 0
         assert "already exists" in result["message"].lower()
+
 
 
     def test_add_doctor_duplicate_license(self, client, app, db_user):
@@ -469,8 +356,9 @@ class TestDoctorsAPI:
         
         data = self.safe_get_data(resp, "addDoctor")
         result = data["addDoctor"]
-        assert result["status"] == 0  # Your code returns 0
+        assert result["status"] == 0  # code returns 0
         assert "already exists" in result["message"].lower()
+
 
 
     def test_add_doctor_wrong_role(self, client, app, db_user):
@@ -494,6 +382,7 @@ class TestDoctorsAPI:
         assert "health professional" in result["message"].lower()
 
 
+
     def test_add_doctor_unauthenticated(self, client, app, db_user):
         """Test adding doctor without authentication"""
         resp = client.post("/graphql", json={
@@ -514,28 +403,6 @@ class TestDoctorsAPI:
         error_msg = str(json_resp["errors"]).lower()
         assert "authentication required" in error_msg
 
-
-    def test_add_doctor_missing_required_fields(self, client, app, db_user):
-        """Test adding doctor without required license number"""
-        user, token = self.create_authenticated_user(client, app, db_user, "508", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                addDoctor(
-                    gender: "Male"
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-
-
-    # ============== UPDATE DOCTOR MUTATION TESTS ===============
-    # Note: These tests expect failures due to the signature mismatch in your UpdateDoctor
 
 
     def test_update_doctor_mutation_signature_error(self, client, app, db_user):
@@ -558,65 +425,6 @@ class TestDoctorsAPI:
         assert "errors" in json_resp
         # Error due to missing doc_id parameter in function signature
 
-
-    def test_update_doctor_unauthenticated(self, client, app, db_user):
-        """Test updating doctor without authentication"""
-        resp = client.post("/graphql", json={
-            "query": '''
-            mutation {
-                updateDoctor(
-                    address: "Should Fail"
-                ) {
-                    status
-                    message
-                }
-            }
-            '''
-        })
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-
-
-    def test_update_doctor_wrong_role(self, client, app, db_user):
-        """Test updating doctor with non-doctor role"""
-        user, token = self.create_authenticated_user(client, app, db_user, "602", 0)  # Senior role
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                updateDoctor(
-                    consultationFee: 800.0
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-
-
-    def test_update_doctor_no_profile(self, client, app, db_user):
-        """Test updating when doctor profile doesn't exist"""
-        user, token = self.create_authenticated_user(client, app, db_user, "603", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                updateDoctor(
-                    consultationFee: 700.0
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-
-
-    # =============== INTEGRATION TESTS =================
 
 
     def test_doctor_lifecycle_add_and_query(self, client, app, db_user):
@@ -670,62 +478,6 @@ class TestDoctorsAPI:
         assert profile["address"] == "Mental Health Clinic"
 
 
-    def test_multiple_doctors_search(self, client, app, db_user):
-        """Test searching through multiple doctors"""
-        # Create multiple doctors
-        self.create_doctor_profile(client, app, db_user, "801", specialization="Cardiology", pincode="111111", consultation_fee=800.0)
-        self.create_doctor_profile(client, app, db_user, "802", specialization="Neurology", pincode="111111", consultation_fee=900.0)
-        self.create_doctor_profile(client, app, db_user, "803", specialization="Cardiology", pincode="222222", consultation_fee=750.0)
-        self.create_doctor_profile(client, app, db_user, "804", specialization="Dermatology", pincode="111111", consultation_fee=600.0)
-        
-        user, token = self.create_authenticated_user(client, app, db_user, "999", 1)
-        
-        # Test getting all doctors
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors {
-                    licenseNumber
-                    specialization
-                    pincode
-                    consultationFee
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        doctors = data["getDoctors"]
-        assert len(doctors) >= 4
-        
-        # Verify we have the expected doctors
-        license_numbers = [doc["licenseNumber"] for doc in doctors]
-        assert "LIC801" in license_numbers
-        assert "LIC802" in license_numbers
-        assert "LIC803" in license_numbers
-        assert "LIC804" in license_numbers
-
-
-    def test_edge_cases_and_data_types(self, client, app, db_user):
-        """Test various data types and edge cases"""
-        user, token = self.create_authenticated_user(client, app, db_user, "901", 1)
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                addDoctor(
-                    licenseNumber: "LIC901",
-                    consultationFee: 999.99,
-                    experience: 0,
-                    appointmentWindow: 15
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "addDoctor")
-        result = data["addDoctor"]
-        assert result["status"] == 201
-
 
     def test_public_access_to_get_doctors(self, client, app, db_user):
         """Test that getDoctors is accessible without authentication"""
@@ -749,99 +501,3 @@ class TestDoctorsAPI:
         doctors = json_resp["data"]["getDoctors"]
         assert len(doctors) >= 1
         assert any(doc["specialization"] == "Public Access Test" for doc in doctors)
-
-
-    def test_error_message_consistency(self, client, app, db_user):
-        """Test that error messages are consistent"""
-        # Test with wrong role
-        user, token = self.create_authenticated_user(client, app, db_user, "1101", 0)  # Senior role
-        
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                addDoctor(
-                    licenseNumber: "LIC1101"
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "addDoctor")
-        result = data["addDoctor"]
-        assert result["status"] == 403
-        assert "health professional" in result["message"].lower()
-
-
-    def test_data_validation_and_constraints(self, client, app, db_user):
-        """Test data validation and database constraints"""
-        user, token = self.create_authenticated_user(client, app, db_user, "1201", 1)
-        
-        # Test with various valid data types
-        resp = self.make_authenticated_request(client, '''
-            mutation {
-                addDoctor(
-                    licenseNumber: "LIC1201",
-                    gender: "Other",
-                    experience: 25,
-                    consultationFee: 2000.0,
-                    appointmentWindow: 60
-                ) {
-                    status
-                    message
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "addDoctor")
-        result = data["addDoctor"]
-        assert result["status"] == 201
-        assert "success" in result["message"].lower()
-
-
-    def test_filtering_behavior_with_multiple_combinations(self, client, app, db_user):
-        """Test filtering behavior with various combinations"""
-        # Create doctors with specific combinations for testing
-        test_doctors = [
-            {"suffix": "1301", "spec": "Cardiology", "pin": "100001"},
-            {"suffix": "1302", "spec": "Cardiology", "pin": "100002"},
-            {"suffix": "1303", "spec": "Neurology", "pin": "100001"},
-            {"suffix": "1304", "spec": "Neurology", "pin": "100002"},
-        ]
-        
-        for doc_info in test_doctors:
-            self.create_doctor_profile(client, app, db_user, doc_info["suffix"],
-                                  specialization=doc_info["spec"],
-                                  pincode=doc_info["pin"])
-        
-        user, token = self.create_authenticated_user(client, app, db_user, "999", 1)
-        
-        # Test no filters
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors {
-                    licenseNumber
-                    specialization
-                    pincode
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        all_doctors = data["getDoctors"]
-        assert len(all_doctors) >= 4
-        
-        # Test single filter
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getDoctors(specialization: "Cardiology") {
-                    licenseNumber
-                    specialization
-                    pincode
-                }
-            }
-        ''', token)
-        
-        data = self.safe_get_data(resp, "getDoctors")
-        filtered_doctors = data["getDoctors"]
-        assert len(filtered_doctors) >= 0

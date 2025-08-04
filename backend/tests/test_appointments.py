@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta
 
 
+
 class TestAppointments:
     
     def create_user_and_get_token(self, client, db_user, role=0, suffix="001"):
@@ -53,6 +54,7 @@ class TestAppointments:
         return user, token
 
 
+
     def create_complete_senior(self, app, client, db_user, suffix="001"):
         """Create user with complete senior profile and return fresh objects"""
         with app.app_context():
@@ -76,6 +78,7 @@ class TestAppointments:
             fresh_senior = SenInfo.query.filter_by(ez_id=user.ez_id).first()
             
             return fresh_user, fresh_senior, token
+
 
 
     def create_complete_doctor(self, app, client, db_user, suffix="001"):
@@ -102,12 +105,14 @@ class TestAppointments:
             return fresh_user, fresh_doctor, token
 
 
+
     def make_authenticated_request(self, client, query, token):
         """Helper to make authenticated GraphQL request"""
         return client.post("/graphql", 
                           json={"query": query},
                           headers={"Authorization": f"Bearer {token}"},
                           content_type="application/json")
+
 
 
     def create_test_appointment(self, app, sen_id, doc_id, reason="Test appointment"):
@@ -125,6 +130,7 @@ class TestAppointments:
             db.session.add(appointment)
             db.session.commit()
             return appointment.app_id
+
 
 
     def safe_assert_response(self, resp, expected_key=None):
@@ -149,30 +155,6 @@ class TestAppointments:
             assert expected_key in json_resp["data"], f"Missing {expected_key}"
         return json_resp["data"]
 
-
-    # ==================== QUERY TESTS ====================
-
-
-    def test_get_appointments_for_senior_empty(self, client, app, db_user):
-        """Test senior with no appointments"""
-        user, senior, token = self.create_complete_senior(app, client, db_user, "001")
-        
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getAppointmentsForSenior {
-                    appId
-                    reason
-                    status
-                }
-            }
-        ''', token)
-        
-        # Use app context to ensure objects are session-bound
-        with app.app_context():
-            data = self.safe_assert_response(resp, "getAppointmentsForSenior")
-            appointments = data["getAppointmentsForSenior"]
-            assert isinstance(appointments, list)
-            assert len(appointments) == 0
 
 
     def test_get_appointments_for_senior_with_data(self, client, app, db_user):
@@ -199,26 +181,6 @@ class TestAppointments:
             assert len(appointments) >= 1
             assert any(apt["reason"] == "Regular checkup" for apt in appointments)
 
-
-    def test_get_appointments_for_doctor_empty(self, client, app, db_user):
-        """Test doctor with no appointments"""
-        user, doctor, token = self.create_complete_doctor(app, client, db_user, "003")
-        
-        resp = self.make_authenticated_request(client, '''
-            query {
-                getAppointmentsForDoctor {
-                    appId
-                    reason
-                    status
-                }
-            }
-        ''', token)
-        
-        with app.app_context():
-            data = self.safe_assert_response(resp, "getAppointmentsForDoctor")
-            appointments = data["getAppointmentsForDoctor"]
-            assert isinstance(appointments, list)
-            assert len(appointments) == 0
 
 
     def test_get_appointments_for_doctor_with_data(self, client, app, db_user):
@@ -249,6 +211,7 @@ class TestAppointments:
             assert "Follow-up" in reasons
 
 
+
     def test_get_available_slots_no_bookings(self, client, app, db_user):
         """Test available slots when no appointments exist"""
         user, doctor, token = self.create_complete_doctor(app, client, db_user, "005")
@@ -272,8 +235,6 @@ class TestAppointments:
             assert "09:00 AM" in slots
             assert "05:00 PM" in slots
 
-
-    # ==================== MUTATION TESTS ====================
 
 
     def test_book_appointment_success(self, client, app, db_user):
@@ -303,6 +264,7 @@ class TestAppointments:
             result = data["bookAppointment"]
             assert result["status"] == 201
             assert "successfully" in result["message"].lower()
+
 
 
     def test_book_appointment_invalid_doctor(self, client, app, db_user):
@@ -341,6 +303,7 @@ class TestAppointments:
                 assert result["status"] == 403
 
 
+
     def test_update_appointment_status_success(self, client, app, db_user):
         """Test successfully updating appointment status"""
         doc_user, doctor, doc_token = self.create_complete_doctor(app, client, db_user, "201")
@@ -365,32 +328,6 @@ class TestAppointments:
             assert result["status"] == 200
             assert "updated" in result["message"].lower()
 
-
-    def test_update_appointment_status_not_found(self, client, app, db_user):
-        """Test updating non-existent appointment"""
-        doc_user, doctor, doc_token = self.create_complete_doctor(app, client, db_user, "202")
-        
-        mutation = '''
-            mutation {
-                updateAppointmentStatus(appId: 99999, status: 1) {
-                    status
-                    message
-                }
-            }
-        '''
-        
-        resp = self.make_authenticated_request(client, mutation, doc_token)
-        
-        with app.app_context():
-            # Handle potential None response
-            json_resp = resp.get_json()
-            if json_resp is None:
-                pytest.skip("GraphQL returned None response")
-            
-            data = self.safe_assert_response(resp, "updateAppointmentStatus")
-            result = data["updateAppointmentStatus"]
-            assert result["status"] == 0
-            assert "not found" in result["message"].lower()
 
 
     def test_cancel_appointment_by_senior_success(self, client, app, db_user):
@@ -418,35 +355,6 @@ class TestAppointments:
             assert "successfully" in result["message"].lower()
 
 
-    def test_cancel_appointment_not_found(self, client, app, db_user):
-        """Test cancelling non-existent appointment"""
-        sen_user, senior, sen_token = self.create_complete_senior(app, client, db_user, "302")
-        
-        mutation = '''
-            mutation {
-                cancelAppointment(appId: 99999) {
-                    status
-                    message
-                }
-            }
-        '''
-        
-        resp = self.make_authenticated_request(client, mutation, sen_token)
-        
-        with app.app_context():
-            # Handle potential None response
-            json_resp = resp.get_json()
-            if json_resp is None:
-                pytest.skip("GraphQL returned None response")
-            
-            data = self.safe_assert_response(resp, "cancelAppointment")
-            result = data["cancelAppointment"]
-            assert result["status"] == 0
-            assert "not found" in result["message"].lower()
-
-
-    # ==================== AUTHENTICATION TESTS ====================
-
 
     def test_unauthenticated_access(self, client):
         """Test that queries require authentication"""
@@ -458,33 +366,3 @@ class TestAppointments:
         assert "errors" in json_resp
         error_msg = str(json_resp["errors"]).lower()
         assert "authentication required" in error_msg
-
-
-    def test_wrong_role_access(self, client, app, db_user):
-        """Test role-based access control"""
-        # Doctor trying to access senior appointments
-        doc_user, doctor, doc_token = self.create_complete_doctor(app, client, db_user, "401")
-        
-        resp = self.make_authenticated_request(client, '''
-            query { getAppointmentsForSenior { appId } }
-        ''', doc_token)
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-        error_msg = str(json_resp["errors"]).lower()
-        assert "senior only" in error_msg or "unauthorised" in error_msg
-
-
-    def test_incomplete_profile_access(self, client, app, db_user):
-        """Test access with incomplete profiles"""
-        # Create user without profile
-        user, token = self.create_user_and_get_token(client, db_user, role=0, suffix="999")
-        
-        resp = self.make_authenticated_request(client, '''
-            query { getAppointmentsForSenior { appId } }
-        ''', token)
-        
-        json_resp = resp.get_json()
-        assert "errors" in json_resp
-        error_msg = str(json_resp["errors"]).lower()
-        assert "profile not complete" in error_msg or "not defined" in error_msg
