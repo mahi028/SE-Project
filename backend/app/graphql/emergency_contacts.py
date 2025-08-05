@@ -11,7 +11,7 @@ class EmergencyContactType(SQLAlchemyObjectType):
 
 # Query for getting emergency contacts by senior citizen ID
 class EmergencyContactsQuery(graphene.ObjectType):
-    get_emergency_contacts = graphene.List(EmergencyContactType, sen_id=graphene.Int(required=True))
+    get_emergency_contacts = graphene.List(EmergencyContactType)
 
     def resolve_get_emergency_contacts(self, info):
         senior = get_senior(info)

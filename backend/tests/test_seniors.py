@@ -395,3 +395,25 @@ def test_add_senior_missing_required_field(client, app, db_user):
     json_resp = resp.get_json()
     # Should get GraphQL validation error for missing required field
     assert "errors" in json_resp
+
+def test_add_senior_emergency_contacts(client, app, db_user):
+    """Test adding senior's Emergency contacts"""
+    user, token = create_authenticated_user(app, client, db_user, role=0, suffix="006")
+    
+    resp = make_authenticated_request(client, '''
+        query {
+            addEmergencyContacts(
+                name: "Suraj"
+                email: "suraj@gmail.com"
+                phone_num: "1234567890"
+                send_alert: True
+                relationship: "Son"
+            ){
+                status
+                message
+            }
+        }
+    ''', token)
+    
+    json_resp = resp.get_json()
+    assert "errors" in json_resp
