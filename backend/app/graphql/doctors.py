@@ -78,6 +78,7 @@ class AddDoctor(graphene.Mutation):
 
 class UpdateDoctor(graphene.Mutation):
     class Arguments:
+        doc_id = graphene.Int(required=True)
         address = graphene.String()
         pincode = graphene.String()
         alternate_phone_num = graphene.String()
