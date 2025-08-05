@@ -37,6 +37,22 @@ To start the backend server:
 python3 run.py
 ```
 
+## Running the Application Tests
+
+To start the backend server:
+
+```sh
+pytest tests
+```
+
+## Running Specific Test modules
+
+To start the backend server:
+
+```sh
+pytest tests/{module_name}
+```
+
 ## Environment Requirements
 
 - **Operating System**: Linux (Ubuntu/Debian recommended)
