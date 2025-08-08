@@ -1,3 +1,73 @@
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue';
+
+const activeStep = ref(0);
+const submitted = ref(false);
+const daysOfWeek = [{ name: 'Monday' }, { name: 'Tuesday' }, { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' }, { name: 'Saturday' }, { name: 'Sunday' }];
+
+const formData = reactive({
+    fullName: '',
+    dob: '',
+    gender: '',
+    contact: '',
+    email: 'abcd@gmail.com',
+    licenseNumber: '',
+    licenseAuthority: '',
+    licenseValidUpto: null,
+    specialisation: '',
+    affiliation: { name: '', address: '', email: '', hoursFrom: '', hoursTo: '', days: [] },
+    qualifications: [{ name: '', year: '', institute: '' }],
+    documents: { idProof: '', licenseCert: '', qualificationCerts: '', passportPhoto: '' }
+});
+
+onMounted(() => {
+    const storedEmail = localStorage.getItem('email');
+    if (storedEmail) formData.email = storedEmail;
+});
+
+function nextStep() {
+    if (activeStep.value < 5) activeStep.value++;
+}
+function prevStep() {
+    if (activeStep.value > 0) activeStep.value--;
+}
+
+function onSelect(event, field) {
+    const file = event.files?.[0];
+    if (file) {
+        formData.documents[field] = file.name;
+    }
+}
+
+function resetForm() {
+    Object.assign(formData, {
+        fullName: '',
+        dob: '',
+        gender: '',
+        contact: '',
+        email: formData.email,
+        licenseNumber: '',
+        licenseAuthority: '',
+        licenseValidUpto: null,
+        specialisation: '',
+        affiliation: { name: '', address: '', email: '', hours: '', days: '' },
+        qualifications: [{ name: '', year: '', institute: '' }],
+        documents: { idProof: '', licenseCert: '', qualificationCerts: '', passportPhoto: '' }
+    });
+    submitted.value = false;
+    activeStep.value = 0;
+}
+function submitDoctor() {
+    submitted.value = true;
+    if (formData.fullName && formData.dob && formData.gender && formData.contact && formData.licenseNumber && formData.specialisation) {
+        console.log('Submitted Form Data:', JSON.stringify(formData, null, 2));
+        alert('Doctor Registration Submitted!');
+        resetForm();
+    }
+}
+</script>
+
 <template>
     <div>
         <h2>Doctor Registration</h2>
@@ -183,84 +253,6 @@
         </div>
     </div>
 </template>
-
-<script setup>
-import { ref, reactive, onMounted } from 'vue';
-import InputText from 'primevue/inputtext';
-import Calendar from 'primevue/calendar';
-import RadioButton from 'primevue/radiobutton';
-import Button from 'primevue/button';
-import Stepper from 'primevue/stepper';
-import StepList from 'primevue/steplist';
-import StepItem from 'primevue/stepitem';
-import MultiSelect from 'primevue/multiselect';
-import FileUpload from 'primevue/fileupload';
-
-const activeStep = ref(0);
-const submitted = ref(false);
-const daysOfWeek = [{ name: 'Monday' }, { name: 'Tuesday' }, { name: 'Wednesday' }, { name: 'Thursday' }, { name: 'Friday' }, { name: 'Saturday' }, { name: 'Sunday' }];
-
-const formData = reactive({
-    fullName: '',
-    dob: '',
-    gender: '',
-    contact: '',
-    email: 'abcd@gmail.com',
-    licenseNumber: '',
-    licenseAuthority: '',
-    licenseValidUpto: null,
-    specialisation: '',
-    affiliation: { name: '', address: '', email: '', hoursFrom: '', hoursTo: '', days: [] },
-    qualifications: [{ name: '', year: '', institute: '' }],
-    documents: { idProof: '', licenseCert: '', qualificationCerts: '', passportPhoto: '' }
-});
-
-onMounted(() => {
-    const storedEmail = localStorage.getItem('email');
-    if (storedEmail) formData.email = storedEmail;
-});
-
-function nextStep() {
-    if (activeStep.value < 5) activeStep.value++;
-}
-function prevStep() {
-    if (activeStep.value > 0) activeStep.value--;
-}
-
-function onSelect(event, field) {
-    const file = event.files?.[0];
-    if (file) {
-        formData.documents[field] = file.name;
-    }
-}
-
-function resetForm() {
-    Object.assign(formData, {
-        fullName: '',
-        dob: '',
-        gender: '',
-        contact: '',
-        email: formData.email,
-        licenseNumber: '',
-        licenseAuthority: '',
-        licenseValidUpto: null,
-        specialisation: '',
-        affiliation: { name: '', address: '', email: '', hours: '', days: '' },
-        qualifications: [{ name: '', year: '', institute: '' }],
-        documents: { idProof: '', licenseCert: '', qualificationCerts: '', passportPhoto: '' }
-    });
-    submitted.value = false;
-    activeStep.value = 0;
-}
-function submitDoctor() {
-    submitted.value = true;
-    if (formData.fullName && formData.dob && formData.gender && formData.contact && formData.licenseNumber && formData.specialisation) {
-        console.log('Submitted Form Data:', JSON.stringify(formData, null, 2));
-        alert('Doctor Registration Submitted!');
-        resetForm();
-    }
-}
-</script>
 
 <style scoped>
 .form-card {
