@@ -54,13 +54,13 @@ const router = createRouter({
                 {
                     path: 'doctor/registration',
                     name: 'DoctorRegistration',
-                    component: () => import('@/views/DoctorRegistration.vue'),
+                    component: () => import('@/views/pages/auth/DoctorRegistration.vue'),
                     meta: { roles: [1] },
                 },
                 {
                     path: 'senior/registration',
                     name: 'SeniorRegistration',
-                    component: () => import('@/views/SeniorRegistration.vue'),
+                    component: () => import('@/views/pages/auth/SeniorRegistration.vue'),
                     meta: { roles: [0] },
                 }
             ]
