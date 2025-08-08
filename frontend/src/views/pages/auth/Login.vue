@@ -14,9 +14,9 @@ const toast = useToast();
 const router = useRouter()
 
 const formData = ref({
-    email: 'mahi028@gmail.com',
-    ez_id: 'ez-sen-2508-0001',
-    password: 'password',
+    email: '',
+    ez_id: '',
+    password: '',
 })
 
 const checked = ref(false);
@@ -39,8 +39,21 @@ const GET_USER_DATA = gql`
     getUser {
       ezId
       name
+      email
       role
       profileImageUrl
+      senInfo {
+            gender
+            dob
+            address
+            pincode
+            alternatePhoneNum
+            medicalInfo
+        }
+      docInfo{
+            gender
+            dob
+      }
     }
   }
 `;
@@ -51,8 +64,6 @@ const { load: fetchUser , result: resultUser, loading: loadingUser, error: error
 const login = async ()=> {
     try {
         if (value.value == "EZID"){
-            console.log(value.value+ ": "+ formData.value.ez_id)
-
             await fetchToken(GET_TOKEN, {
                 ezId: formData.value.ez_id,
                 password: formData.value.password,
@@ -97,7 +108,11 @@ const setUserDataAndRedirect = async (token) => {
         const userRole = response?.role;
         if (userRole != null) {
             loginStore.setLoginDetails(response)
-            redirectByRole(userRole)
+            const complete = checkCompleteInfoAvailable(response)
+            if (!complete){
+                return
+            }
+            setuserDetailsAndRedirectByRole(response)
         } else {
             console.error('Redirect Failed, Try Again.')
         }
@@ -105,13 +120,32 @@ const setUserDataAndRedirect = async (token) => {
         console.error('Login error:', error.value || e)
     }
 }
-
-const redirectByRole = ( role ) => {
-    switch(role){
+const checkCompleteInfoAvailable = (details) => {
+    switch(details.role){
         case 0:  // Senior Redirect
+            if(details.senInfo == null){
+                router.push({ name: "SeniorRegistration" })
+                return false
+            }
+            return true
+        case 1:  // Health Pro Redirect
+            if(details.docInfo == null){
+                router.push({ name: "DoctorRegistration" })
+                return false
+            }
+            return true
+        default:
+            return false
+    }
+}
+const setuserDetailsAndRedirectByRole = ( details ) => {
+    switch(details.role){
+        case 0:  // Senior Redirect
+            loginStore.setSeniorDetails(details.senInfo)
             router.push({ name: "Seniordashboard" })
             break
         case 1:  // Health Pro Redirect
+            loginStore.setDoctorDetails(details.docInfo)
             router.push({ name: "Doctordashboard" })
             break
         case 2:  // Mod Redirect
