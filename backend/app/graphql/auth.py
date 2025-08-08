@@ -49,7 +49,7 @@ class GetToken(graphene.ObjectType):
         if user:
             if checkpw(password, user.password):
                 access_token = create_access_token(identity=user)
-                return AuthTokenType(token = access_token)
+                return AuthTokenType(token = access_token, message="Success", status=200)
             return AuthTokenType(token=None, message="Wrong Credentials", status=402)
         return AuthTokenType(token=None, message="No User Found", status=404)
 
@@ -96,5 +96,55 @@ class Register(graphene.Mutation):
 
         return ReturnType(status=200, message="Registration successful.")
     
+class ModRegister(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+        role = graphene.Int(required=True)
+        password = graphene.String(required=True)
+        confirm_password = graphene.String(required=True)
+        name = graphene.String(required=True)
+        phone_num = graphene.String(required=True)
+        mod_key = graphene.String(required=True)
+
+    Output = ReturnType
+
+    def mutate(root, info, email, role, password, confirm_password, name, phone_num, mod_key):
+        if mod_key is None:
+            return ReturnType(status=400, message="Insufficient information, Please Provide a ModKey.")
+        
+        if mod_key != mod_key:
+            return ReturnType(status=402, message="Unauthorized")
+
+        if email is None or role is None or password is None or confirm_password is None:
+            return ReturnType(status=400, message="Insufficient information.")
+
+        if role not in [2]:
+            return ReturnType(status=402, message="Role must be Mod (2). If not a mod, do not register from here.")
+
+        if password != confirm_password:
+            return ReturnType(status=403, message="Passwords do not match.")
+
+        if User.query.filter_by(email=email).first():
+            return ReturnType(status=409, message="User with the given email already exists.")
+
+        try:
+            ez_id = generate_ez_id(role)
+            new_user = User(
+                ez_id=ez_id,
+                role=role,
+                email=email,
+                password=hashpw(password),  # assuming hashpw is defined
+                name=name,
+                phone_num=phone_num,
+            )
+            adddb(new_user)  # assuming adddb is defined
+            commitdb()       # assuming commitdb is defined
+        except Exception as err:
+            print(err)
+            return ReturnType(status=500, message="Something went wrong. Please try again.")
+
+        return ReturnType(status=200, message="Registration successful.")
+    
 class AuthMutation(graphene.ObjectType):
     register = Register.Field()
+    mod_register = ModRegister.Field()
