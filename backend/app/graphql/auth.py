@@ -84,12 +84,12 @@ class Register(graphene.Mutation):
                 ez_id=ez_id,
                 role=role,
                 email=email,
-                password=hashpw(password),  # assuming hashpw is defined
+                password=hashpw(password),  
                 name=name,
                 phone_num=phone_num,
             )
-            adddb(new_user)  # assuming adddb is defined
-            commitdb()       # assuming commitdb is defined
+            adddb(new_user) 
+            commitdb()      
         except Exception as err:
             print(err)
             return ReturnType(status=500, message="Something went wrong. Please try again.")
