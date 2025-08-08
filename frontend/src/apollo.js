@@ -9,7 +9,7 @@ const httpLink = createHttpLink({
 
 // 🔐 Auth link to inject token
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('token'); // or use Pinia/store if stored elsewhere
+  const token = localStorage.getItem('EZCARE-LOGIN-TOKEN'); // or use Pinia/store if stored elsewhere
   return {
     headers: {
       ...headers,
@@ -22,4 +22,12 @@ const authLink = setContext((_, { headers }) => {
 export const apolloClient = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
+  defaultOptions: {
+    query: {
+      fetchPolicy: 'no-cache',
+    },
+    watchQuery: {
+      fetchPolicy: 'no-cache',
+    },
+  },
 });
