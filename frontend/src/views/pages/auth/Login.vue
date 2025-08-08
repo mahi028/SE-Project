@@ -14,9 +14,9 @@ const toast = useToast();
 const router = useRouter()
 
 const formData = ref({
-    email: '',
-    ez_id: 'ez-sen-2507-0002',
-    password: 'dummy',
+    email: 'mahi028@gmail.com',
+    ez_id: 'ez-sen-2508-0001',
+    password: 'password',
 })
 
 const checked = ref(false);
@@ -26,41 +26,106 @@ const options = ref(['Email', 'EZID']);
 
 
 const GET_TOKEN = gql`
-  query getToken($ezId: String!, $password: String!) {
-    getToken(ezId: $ezId, password: $password) {
+  query getToken($ezId: String, $email: String, $password: String!) {
+    getToken(ezId: $ezId, email: $email, password: $password) {
       token
+      status
+      message
+    }
+  }
+`;
+const GET_USER_DATA = gql`
+  query getUser {
+    getUser {
+      ezId
+      name
+      role
+      profileImageUrl
     }
   }
 `;
 
 const { load: fetchToken , result, loading, error } = useLazyQuery(GET_TOKEN)
+const { load: fetchUser , result: resultUser, loading: loadingUser, error: errorUser } = useLazyQuery(GET_USER_DATA)
 
-const login = async ()=>{
+const login = async ()=> {
     try {
-        await fetchToken(GET_TOKEN, {
-            ezId: formData.value.ez_id,
-            password: formData.value.password,
-        });
+        if (value.value == "EZID"){
+            console.log(value.value+ ": "+ formData.value.ez_id)
 
-        const token = result.value?.getToken?.token;
+            await fetchToken(GET_TOKEN, {
+                ezId: formData.value.ez_id,
+                password: formData.value.password,
+            });
+        }
+        else if (value.value == "Email"){
+            console.log(value.value+ ": "+ formData.value.email)
 
-        if (token) {
-            localStorage.setItem('token', token)
-            console.log('Logged in with token:', token)
+            await fetchToken(GET_TOKEN, {
+                email: formData.value.email,
+                password: formData.value.password,
+            });
+        }
+        const response = result.value?.getToken
+        if (response){
+            const token = result.value?.getToken?.token;
+            const status = result.value?.getToken?.status;
+            const message = result.value?.getToken?.message;
 
-            // Optional: redirect after login
-            // router.push('/dashboard') // or wherever
-        } else {
-            console.error('Login failed: no token received')
+            if (token) {
+                setUserDataAndRedirect(token);
+            } else {
+                console.error(status + ": " + message)
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: `Error ${status}: ${message}`,
+                    life: 3000
+                    })
+            }
         }
     } catch (e) {
         console.error('Login error:', error.value || e)
+    }
+}
+const setUserDataAndRedirect = async (token) => {
+    try{
+        loginStore.setLoginToken(token)
+        await fetchUser(GET_USER_DATA);
+
+        const response = resultUser.value?.getUser;
+        const userRole = response?.role;
+        if (userRole != null) {
+            loginStore.setLoginDetails(response)
+            redirectByRole(userRole)
+        } else {
+            console.error('Redirect Failed, Try Again.')
+        }
+    } catch (e) {
+        console.error('Login error:', error.value || e)
+    }
+}
+
+const redirectByRole = ( role ) => {
+    switch(role){
+        case 0:  // Senior Redirect
+            router.push({ name: "Seniordashboard" })
+            break
+        case 1:  // Health Pro Redirect
+            router.push({ name: "Doctordashboard" })
+            break
+        case 2:  // Mod Redirect
+            router.push({ name: "ModDashboard" })
+            break
+        default: // No redirect
+            // pass
     }
 }
 </script>
 
 <template>
     <FloatingConfigurator />
+    <Toast />
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
         <div class="flex flex-col items-center justify-center">
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">

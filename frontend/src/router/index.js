@@ -15,21 +15,21 @@ const router = createRouter({
             children: [
                 {
                     path: '/dashboard',
-                    name: 'dashboard',
+                    name: 'Seniordashboard',
                     component: () => import('@/views/pages/dashboards/SeniorDashboard.vue'),
-                    meta: { roles: ['senior'] },
+                    meta: { roles: [0] },
                 },
                 {
                     path: '/dashboard2',
                     name: 'Doctordashboard',
                     component: () => import('@/views/pages/dashboards/DoctorDashbaord.vue'),
-                    meta: { roles: ['doctor'] },
+                    meta: { roles: [1] },
                 },
                 {
                     path: '/mod-dashboard',
                     name: 'ModDashboard',
                     component: () => import('@/views/pages/dashboards/ModDashboard.vue'),
-                    meta: { roles: ['mod'] },
+                    meta: { roles: [2] },
                 },
                 {
                     path: '/hospital',
@@ -55,13 +55,13 @@ const router = createRouter({
                     path: 'doctor/registration',
                     name: 'DoctorRegistration',
                     component: () => import('@/views/DoctorRegistration.vue'),
-                    meta: { roles: ['doctor'] },
+                    meta: { roles: [1] },
                 },
                 {
                     path: 'senior/registration',
                     name: 'SeniorRegistration',
                     component: () => import('@/views/SeniorRegistration.vue'),
-                    meta: { roles: ['senior'] },
+                    meta: { roles: [0] },
                 }
             ]
         },

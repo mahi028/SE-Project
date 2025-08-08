@@ -6,8 +6,7 @@ import { useRouter } from 'vue-router';
 const { toggleDarkMode, isDarkTheme } = useLayout();
 const loginStore = useLoginStore()
 const router = useRouter()
-const logout = async () =>
-{
+const logout = async () => {
     loginStore.clearLoginDetails();
     router.push('/')
 }
@@ -56,7 +55,7 @@ const logout = async () =>
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </RouterLink>
-                    <Button v-if="loginStore.ez_id" @click="logout()" label="Logout" severity="danger" rounded />
+                    <Button v-if="loginStore.ezId" @click="logout()" label="Logout" severity="danger" rounded />
                 </div>
             </div>
         </div>
