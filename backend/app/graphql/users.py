@@ -8,6 +8,8 @@ from ..utils.authControl import get_user
 class UserType(SQLAlchemyObjectType):
     class Meta:
         model = User
+        exclude_fields = ('password',)
+
         
 
 class UsersQuery(graphene.ObjectType):
