@@ -28,8 +28,12 @@ def create_app():
     app = Flask(__name__,
                 static_folder=os.path.join(os.path.dirname(__file__), "static"),
                 )
-                
-    app.config.from_object(DevelopmentConfig) #Change DevelopmentConfig to ProductionConfig in production
+    
+    # Use production config if FLASK_ENV is set to production
+    if os.getenv('FLASK_ENV') == 'production':
+        app.config.from_object(ProductionConfig)
+    else:
+        app.config.from_object(DevelopmentConfig)
     CORS(app, origins=['*'], supports_credentials=True)
 
     db.init_app(app)
@@ -61,5 +65,10 @@ def create_app():
             graphiql=True
         )
     )
+    
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return {'status': 'healthy', 'message': 'EZCare backend is running'}, 200
     
     return app

@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: ezcare_db
+    environment:
+      POSTGRES_DB: ezcare
+      POSTGRES_USER: ezcare_user
+      POSTGRES_PASSWORD: ezcare_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"  # Changed to 5433 to avoid conflict with local PostgreSQL
+    networks:
+      - ezcare_network
+    restart: unless-stopped
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ezcare_backend
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=your_super_secret_key_change_in_production
+      - JWT_SECRET_KEY=your_jwt_secret_key_change_in_production
+      - SQLALCHEMY_DATABASE_URI=postgresql://ezcare_user:ezcare_password@db:5432/ezcare
+      - FRONTEND_BASE_URL=http://localhost:8080
+      - AI_API_KEY=${AI_API_KEY:-your_api_key}
+    volumes:
+      - backend_uploads:/app/static/uploads
+      - chroma_data:/app/chroma_db
+    depends_on:
+      - db
+    networks:
+      - ezcare_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ezcare_frontend
+    networks:
+      - ezcare_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Caddy Reverse Proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: ezcare_caddy
+    ports:
+      - "8080:8080"  # Frontend
+      - "5000:5000"  # Backend API
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - ezcare_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  chroma_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  ezcare_network:
+    driver: bridge
