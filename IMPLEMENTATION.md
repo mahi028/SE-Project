@@ -27,7 +27,7 @@ EZCare is a comprehensive Senior Care Management System designed to facilitate h
 | **Vue.js** | 3.x | Progressive JavaScript framework |
 | **Vite** | Latest | Fast build tool and development server |
 | **PrimeVue** | Latest | UI component library |
-| **Apollo Client** | 3.x | GraphQL client for state management |
+| **Apollo Client** | 3.x | GraphQL client |
 | **Tailwind CSS** | Latest | Utility-first CSS framework |
 | **SCSS** | Latest | CSS preprocessor |
 | **Axios** | Latest | HTTP client for REST APIs |
@@ -145,9 +145,6 @@ JWT_SECRET_KEY=your_jwt_secret_key_change_in_production
 # Application URLs
 FRONTEND_BASE_URL=http://localhost:8080
 BACKEND_BASE_URL=http://localhost:5000
-
-# AI Configuration (optional)
-AI_API_KEY=your_api_key_here
 
 # Email Configuration (optional)
 MAIL_SERVER=smtp.gmail.com
@@ -320,8 +317,8 @@ mutation {
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Service health check |
-| POST | `/user-lookup/search` | User search functionality |
-| GET | `/user-lookup/profile/{id}` | Get user profile |
+| POST | `/user-lookup/register` | User's Face Embeddings registeration |
+| POST | `/user-lookup/recognize` | Get user profile |
 
 ---
 
@@ -450,10 +447,6 @@ docker volume prune
 # Backend tests
 cd backend
 python -m pytest tests/
-
-# Frontend tests
-cd frontend
-npm run test
 ```
 
 ### **Building for Production**
@@ -513,7 +506,21 @@ docker compose ps
 
 ## 📝 License & Support
 
-This project is developed for educational and healthcare management purposes. For support or questions, please refer to the project documentation or create an issue in the repository.
+This project is exclusively built as a pre-requisite for Software Engineering Course for IIT-Madras by Team 6 | May'2025. For support or questions, please refer to the project documentation or create an issue in the repository.
+
+---
+
+## 👥 Contributors
+
+| Name | Role in Project | Roll Number |
+|------|-----------------|-------------|
+| **Mohit Tewari** | Frontend, Backend, API Integration, Project Design, Code Documentation | 23f1002364 |
+| **Akhileshwer Pandey** | Project Manager, Backend, Testing | 21f3002866 |
+| **Dev Gupta** | Backend, Project Documentation | 22f2000888 |
+| **Rashi Singal** | Frontend, Project Documentation | 21f1005286 |
+| **Affan Bin Nishat** | Testing | 21f1003441 |
+| **Ajay Sharma** | Frontend | 21f1005414 |
+| **Ambuj Pratap** | Frontend | 22f3002778 |
 
 ---
 
