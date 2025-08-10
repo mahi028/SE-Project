@@ -28,7 +28,6 @@ class SeniorsQuery(graphene.ObjectType):
 
 class AddSenior(graphene.Mutation):
     class Arguments:
-        # ez_id = graphene.String(required=True)
         gender = graphene.String()
         dob = graphene.DateTime()
         address = graphene.String()

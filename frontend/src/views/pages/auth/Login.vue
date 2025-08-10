@@ -206,6 +206,11 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
                             </div>
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
                         </div>
+                        <div class="flex items-center justify-end mt-2 mb-8 gap-8">
+                            <router-link :to="{ name: 'register'}" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">
+                                New User? Register!
+                            </router-link>
+                        </div>
                         <Button label="Sign In" class="w-full" @click="login"></Button>
                         <Divider layout="horizontal" class="!flex" align="center"><b>OR</b></Divider>
                         <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
