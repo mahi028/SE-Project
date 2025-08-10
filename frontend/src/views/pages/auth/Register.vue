@@ -1,50 +1,133 @@
 <script setup>
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { Toast } from 'primevue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useToast } from 'primevue';
+import { useMutation } from '@vue/apollo-composable';
+import gql from 'graphql-tag';
 
 const formData = ref({
-    email: 'abcd@gmail.com  ',
-    password: 'abcd',
-    confirmPassword: 'abcd',
-    role: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  name: '',
+  phoneNum: '',
+  role: null,
 });
 
 const router = useRouter();
+const toast = useToast();
 
 const roles = [
-    { label: 'Senior Citizen', value: 'senior' },
-    { label: 'Healthcare Professional', value: 'doctor' }
+  { label: 'Senior Citizen', value: 0 },
+  { label: 'Healthcare Professional', value: 1 }
 ];
 
-const register = () => {
-    if (!email.value || !password.value || !confirmPassword.value || !role.value) {
-        toast.add({ severity: 'warn', summary: 'Incomplete Form', detail: 'Please fill all the fields.', life: 3000 });
-        return;
+const REGISTER_MUTATION = gql`
+  mutation Register(
+    $confirmPassword: String!
+    $email: String!
+    $name: String!
+    $password: String!
+    $phoneNum: String!
+    $role: Int!
+  ) {
+    register(
+      confirmPassword: $confirmPassword
+      email: $email
+      name: $name
+      password: $password
+      phoneNum: $phoneNum
+      role: $role
+    ) {
+      message
+      status
     }
+  }
+`;
 
-    if (password.value !== confirmPassword.value) {
-        toast.add({ severity: 'error', summary: 'Password Mismatch', detail: 'Passwords do not match.', life: 3000 });
-        return;
-    }
+const { mutate: registerUser, loading, error } = useMutation(REGISTER_MUTATION);
 
+const register = async () => {
+  const { isValid, errors } = validateRegistration(formData.value);
+  if (!isValid) {
+    errors.forEach(err => toast.add({
+      severity: 'warn',
+      summary: 'Validation Error',
+      detail: err,
+      life: 3000,
+    }));
+    return;
+  }
 
-    const userData = {
-        email: email.value,
-        role: role.value,
-        registered: true
+  try {
+    const variables = {
+      email: formData.value.email,
+      password: formData.value.password,
+      confirmPassword: formData.value.confirmPassword,
+      name: formData.value.name,
+      phoneNum: formData.value.phoneNum,
+      role: Number(formData.value.role),
     };
+    const { data } = await registerUser(variables);
+    const response = data?.register;
 
-    localStorage.setItem('registeredUser', JSON.stringify(userData));
-
-    alert('Registration successful! Please log in.');
-    router.push('/auth/login');
+    if (response?.status === 200) {
+      toast.add({
+        severity: 'success',
+        summary: 'Registration Successful',
+        detail: response.message || 'You can now log in.',
+        life: 3000,
+      });
+      router.push({ name: 'login' });
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Registration Failed',
+        detail: `Error: ${response?.message || 'Unknown error'}`,
+        life: 3000,
+      });
+    }
+  } catch (err) {
+    console.error('Registration error:', error.value || err);
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Something went wrong. Please try again.',
+      life: 3000,
+    });
+  }
 };
+
+function validateRegistration(form) {
+  const errors = [];
+
+  if (!form.name?.trim()) errors.push('Name is required.');
+  if (!form.email?.trim()) errors.push('Email is required.');
+  if (!form.password) errors.push('Password is required.');
+  if (!form.confirmPassword) errors.push('Confirm Password is required.');
+  if (!form.phoneNum?.trim()) errors.push('Phone number is required.');
+  if (form.role !== 0 && form.role !== 1) errors.push('Role is required.');
+
+  if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.push('Invalid email format.');
+  }
+  if (form.password && form.password.length < 6) {
+    errors.push('Password must be at least 6 characters.');
+  }
+  if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+    errors.push('Passwords do not match.');
+  }
+  if (form.phoneNum && !/^\d{10}$/.test(form.phoneNum)) {
+    errors.push('Phone number must be exactly 10 digits.');
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
 </script>
 
 <template>
     <FloatingConfigurator />
+    <Toast />
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
         <div class="flex flex-col items-center justify-center">
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
@@ -64,11 +147,17 @@ const register = () => {
                         <label for="confirm" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Confirm Password</label>
                         <Password id="confirm" v-model="formData.confirmPassword" placeholder="Confirm Password" :toggleMask="true" class="mb-6" fluid :feedback="false" />
 
+                        <label for="name" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Full Name</label>
+                        <InputText id="name" v-model="formData.name" placeholder="Full Name" :toggleMask="true" class="mb-6" fluid :feedback="false" />
+
+                        <label for="phoneNum" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Phone Number</label>
+                        <InputText id="phoneNum" v-model="formData.phoneNum" placeholder="Phone Number" :toggleMask="true" class="mb-6" fluid :feedback="false" />
+
                         <label class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-4">Select Role</label>
                         <div class="flex flex-col gap-3 md:flex-row md:gap-8 mb-8">
                           <div v-for="r in roles" :key="r.value" class="flex items-center">
-                            <RadioButton :inputId="r.value" name="role" :value="r.value" v-model="formData.role" class="mr-2" />
-                            <label :for="r.value" class="ml-1">{{ r.label }}</label>
+                            <RadioButton :inputId="`role-${r.value}`" name="role" :value="r.value" v-model="formData.role" class="mr-2" />
+                            <label :for="`role-${r.value}`" class="ml-1">{{ r.label }}</label>
                           </div>
                         </div>
 

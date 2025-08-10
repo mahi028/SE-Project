@@ -33,7 +33,6 @@ class DoctorsQuery(graphene.ObjectType):
 # Example Mutations for adding/updating doctors (expand as needed)
 class AddDoctor(graphene.Mutation):
     class Arguments:
-        # ez_id = graphene.String(required=True)
         gender = graphene.String()
         dob = graphene.DateTime()
         address = graphene.String()
