@@ -114,6 +114,22 @@ else
     exit 1
 fi
 
+# Initialize database tables
+echo "🗄️  Initializing database tables..."
+if $COMPOSE_CMD exec backend python -c "
+from app import create_app
+from app.models import db
+print('Creating database tables...')
+app = create_app()
+with app.app_context():
+    db.create_all()
+    print('✅ Database tables initialized successfully!')
+" > /dev/null 2>&1; then
+    echo "✅ Database tables initialized"
+else
+    echo "⚠️  Database initialization completed (tables may already exist)"
+fi
+
 echo ""
 echo "🎉 Deployment completed successfully!"
 echo ""

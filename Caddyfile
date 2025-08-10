@@ -3,23 +3,9 @@
 # Frontend on port 8080
 :8080 {
     reverse_proxy frontend:80
-    
-    # Handle CORS for development
-    header {
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization"
-    }
 }
 
 # Backend API on port 5000
 :5000 {
     reverse_proxy backend:5000
-    
-    # Handle CORS
-    header {
-        Access-Control-Allow-Origin *
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        Access-Control-Allow-Headers "Content-Type, Authorization"
-    }
 }

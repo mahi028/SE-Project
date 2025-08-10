@@ -32,9 +32,12 @@ def create_app():
     # Use production config if FLASK_ENV is set to production
     if os.getenv('FLASK_ENV') == 'production':
         app.config.from_object(ProductionConfig)
+        # Production CORS - allow specific origins
+        CORS(app, origins=['http://localhost:8080'], supports_credentials=True)
     else:
         app.config.from_object(DevelopmentConfig)
-    CORS(app, origins=['*'], supports_credentials=True)
+        # Development CORS - allow all origins
+        CORS(app, origins=['*'], supports_credentials=True)
 
     db.init_app(app)
     migration.init_app(app, db, render_as_batch=True)
@@ -45,6 +48,7 @@ def create_app():
     jwt.init_app(app)
     mail.init_app(app)
 
+    # Initialize scheduler after database is set up
     scheduler.init_app(app)
     scheduler.start()
     scheduler.add_job(
