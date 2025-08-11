@@ -1,25 +1,160 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { seniorService } from '@/service/SeniorService'
-import { appointmentService } from '@/service/AppointmentService'
-import { vitals as vitalService } from '@/service/VitalService'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useLoginStore } from '@/store/loginStore'
-import { useRoute } from 'vue-router'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import { useLazyQuery } from '@vue/apollo-composable';
+import gql from 'graphql-tag';
 import InfoItem from '@/components/InfoItem.vue'
 import VitalLogs from '@/components/seniorDashboard/VitalLogs.vue'
 import VitalTrend from '@/components/VitalTrend.vue'
-import { useConfirm } from 'primevue/useconfirm'
-import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
+const router = useRouter()
 const loginStore = useLoginStore()
-const userDetails = ref({})
-const appointments = ref([])
-const vitals = ref([])
-const loading = ref(false)
-
+const showMedicalHistoryDialog = ref(false)
+const showPrescriptionDialog = ref(false)
+const showRoleMismatchDialog = ref(false)
+const foundUser = ref(null)
 const toast = useToast()
 const confirm = useConfirm()
+
+const GET_USER_DATA = gql`
+  query getUser($ezId: String!) {
+    getUser(ezId: $ezId) {
+      ezId
+      name
+      email
+      role
+      phoneNum
+      createdAt
+      profileImageUrl
+      senInfo {
+        senId
+        ezId
+        gender
+        dob
+        address
+        pincode
+        alternatePhoneNum
+        medicalInfo
+        vitalLogs {
+          logId
+          senId
+          vitalTypeId
+          reading
+          loggedAt
+        }
+      }
+    }
+  }
+`;
+
+const GET_APPOINTMENTS = gql`
+  query GetAppointments($senId: String!, $docId: String!) {
+    getAppointmentsForDoctorSenior(senId: $senId, docId: $docId) {
+      appId
+      senId
+      docId
+      remTime
+      reason
+      status
+      createdAt
+    }
+  }
+`;
+
+const { load: fetchUser, result, loading: userLoading, error } = useLazyQuery(GET_USER_DATA)
+const { load: fetchAppointments, result: appointmentsResult, loading: appointmentsLoading } = useLazyQuery(GET_APPOINTMENTS)
+
+// Computed properties to extract data from GraphQL result
+const userDetails = computed(() => {
+  const user = result.value?.getUser
+  if (!user) return null
+
+  // Check if user role matches expected role (0 for senior)
+  if (user.role !== 0) {
+    foundUser.value = user
+    showRoleMismatchDialog.value = true
+    return null
+  }
+
+  return {
+    name: user.name,
+    email: user.email,
+    ezId: user.ezId,
+    phoneNum: user.phoneNum,
+    address: user.senInfo?.address || '',
+    pincode: user.senInfo?.pincode || '',
+    alternatePhone: user.senInfo?.alternatePhoneNum || 'Not provided',
+    profileImageUrl: user.profileImageUrl
+  }
+})
+
+const appointments = computed(() => {
+  return appointmentsResult.value?.getAppointmentsForDoctorSenior || []
+})
+
+const vitals = computed(() => {
+  const vitalLogs = result.value?.getUser?.senInfo?.vitalLogs || []
+  // Transform vital logs to match expected format
+  return vitalLogs.map(log => ({
+    id: log.logId,
+    label: getVitalTypeLabel(log.vitalTypeId),
+    reading: log.reading,
+    unit: getVitalUnit(log.vitalTypeId),
+    date: new Date(log.loggedAt).toLocaleDateString(),
+    time: new Date(log.loggedAt).toLocaleTimeString(),
+    statusInfo: determineVitalStatus(log.vitalTypeId, log.reading)
+  }))
+})
+
+// Helper functions for vital data transformation
+const getVitalTypeLabel = (vitalTypeId) => {
+  const vitalTypes = {
+    1: 'Blood Pressure',
+    2: 'Heart Rate',
+    3: 'Temperature',
+    4: 'Blood Sugar',
+    5: 'Weight',
+    6: 'Oxygen Saturation'
+  }
+  return vitalTypes[vitalTypeId] || 'Unknown'
+}
+
+const getVitalUnit = (vitalTypeId) => {
+  const units = {
+    1: 'mmHg',
+    2: 'bpm',
+    3: '°F',
+    4: 'mg/dL',
+    5: 'kg',
+    6: '%'
+  }
+  return units[vitalTypeId] || ''
+}
+
+const determineVitalStatus = (vitalTypeId, reading) => {
+  // Simple status determination logic - can be enhanced
+  const numReading = parseFloat(reading)
+
+  switch(vitalTypeId) {
+    case 2: // Heart Rate
+      if (numReading < 60) return { status: 'Low' }
+      if (numReading > 100) return { status: 'High' }
+      return { status: 'Normal' }
+    case 3: // Temperature
+      if (numReading < 97) return { status: 'Low' }
+      if (numReading > 99.5) return { status: 'High' }
+      return { status: 'Normal' }
+    case 6: // Oxygen Saturation
+      if (numReading < 95) return { status: 'Low' }
+      return { status: 'Normal' }
+    default:
+      return { status: 'irrelevant' }
+  }
+}
 
 // Add method to get vital icons for doctor view
 const getVitalIcon = (vitalType) => {
@@ -42,30 +177,31 @@ const getVitalIcon = (vitalType) => {
 }
 
 onMounted(async () => {
-  loading.value = true
   try {
-    userDetails.value = await seniorService.getSenior({ "ez_id": route.params.ez_id })
+    await fetchUser(GET_USER_DATA, { ezId: route.params.ezId })
+    // console.log('user data:', result.value?.getUser)
 
-    // Only show appointments and vitals if a doctor is viewing the senior's profile
-    if (loginStore.role === 'doctor') {
-      // Doctor viewing senior profile - show appointments between them
-      appointments.value = await appointmentService.getAppointmentsBetweenDoctorAndSenior(
-        loginStore.ez_id,
-        route.params.ez_id
-      )
-      // Also load vitals for doctor to review
-      vitals.value = await vitalService.getVitalsBySenior(route.params.ez_id)
+    // Only fetch appointments if a doctor is viewing the senior's profile
+    if (loginStore.role === 1) {
+      await fetchAppointments(GET_APPOINTMENTS, {
+        senId: route.params.ezId,
+        docId: loginStore.ezId
+      })
     }
   } catch (error) {
     console.error('Failed to load user data:', error)
-  } finally {
-    loading.value = false
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to load profile data',
+      life: 3000
+    })
   }
 })
 
 const cancelAppointment = (appointment) => {
   confirm.require({
-    message: `Are you sure you want to cancel the appointment with ${userDetails.value.name} on ${appointment.date} at ${appointment.time}?`,
+    message: `Are you sure you want to cancel the appointment with ${userDetails.value.name} on ${new Date(appointment.remTime).toLocaleDateString()}?`,
     header: 'Cancel Appointment',
     icon: 'pi pi-exclamation-triangle',
     rejectProps: {
@@ -79,19 +215,20 @@ const cancelAppointment = (appointment) => {
     },
     accept: async () => {
       try {
-        // Simulate API call to cancel appointment
+        // TODO: Implement GraphQL mutation for canceling appointment
         await new Promise(resolve => setTimeout(resolve, 500))
-
-        // Remove appointment from list
-        appointments.value = appointments.value.filter(apt =>
-          !(apt.sen_id === appointment.sen_id && apt.date === appointment.date && apt.time === appointment.time)
-        )
 
         toast.add({
           severity: 'success',
           summary: 'Appointment Cancelled',
           detail: 'The appointment has been cancelled successfully.',
           life: 3000
+        })
+
+        // Refetch appointments
+        await fetchAppointments(GET_APPOINTMENTS, {
+          senId: route.params.ezId,
+          docId: loginStore.ezId
         })
       } catch (error) {
         toast.add({
@@ -106,132 +243,82 @@ const cancelAppointment = (appointment) => {
 }
 
 const isUpcomingAppointment = (appointment) => {
-  const appointmentDateTime = new Date(`${appointment.date} ${appointment.time}`)
-  return appointmentDateTime >= new Date()
+  return new Date(appointment.remTime) >= new Date()
 }
 
-const showMedicalHistoryDialog = ref(false)
-const showPrescriptionDialog = ref(false)
-const medicalHistory = ref([])
-const prescriptions = ref([])
-const loadingMedicalHistory = ref(false)
-const loadingPrescriptions = ref(false)
+// Transform medical info for display
+const medicalHistory = computed(() => {
+  const medicalInfo = result.value?.getUser?.senInfo?.medicalInfo
+  if (!medicalInfo) return []
 
-const viewMedicalHistory = async () => {
-  loadingMedicalHistory.value = true
   try {
-    // Simulate API call to fetch medical history
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Handle double-encoded JSON string from backend
+    const parsedOnce = typeof medicalInfo === 'string' ? JSON.parse(medicalInfo) : medicalInfo
+    const finalInfo = typeof parsedOnce === 'string' ? JSON.parse(parsedOnce) : parsedOnce
 
-    // Mock medical history data
-    medicalHistory.value = [
-      {
-        id: 'MH001',
-        date: '2024-01-15',
-        condition: 'Hypertension',
-        diagnosis: 'Essential Hypertension',
-        treatment: 'Prescribed Amlodipine 5mg daily',
-        doctor: 'Dr. Rajesh Kumar',
-        notes: 'Blood pressure well controlled with medication'
-      },
-      {
-        id: 'MH002',
-        date: '2023-12-10',
-        condition: 'Diabetes Type 2',
-        diagnosis: 'Type 2 Diabetes Mellitus',
-        treatment: 'Metformin 500mg twice daily',
-        doctor: 'Dr. Priya Sharma',
-        notes: 'HbA1c levels improving, continue current medication'
-      },
-      {
-        id: 'MH003',
-        date: '2023-11-05',
-        condition: 'Arthritis',
-        diagnosis: 'Osteoarthritis of knee joints',
-        treatment: 'Physiotherapy and pain management',
-        doctor: 'Dr. Vikram Malhotra',
-        notes: 'Patient responding well to physiotherapy'
-      }
-    ]
-
-    showMedicalHistoryDialog.value = true
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load medical history. Please try again.',
-      life: 3000
-    })
-  } finally {
-    loadingMedicalHistory.value = false
+    return finalInfo.medicalConditions?.map((condition, index) => ({
+      id: `MH${index + 1}`,
+      date: condition.diagnosedYear ? `${condition.diagnosedYear}-01-01` : 'Unknown',
+      condition: condition.name || 'Unknown condition',
+      diagnosis: condition.name || 'Unknown diagnosis',
+      treatment: 'As prescribed',
+      doctor: 'Medical Professional',
+      notes: condition.curingYear ? `Treatment until ${condition.curingYear}` : 'Ongoing treatment'
+    })) || []
+  } catch (e) {
+    console.error('Error parsing medical info:', e)
+    return []
   }
+})
+
+const prescriptions = computed(() => {
+  const medicalInfo = result.value?.getUser?.senInfo?.medicalInfo
+  if (!medicalInfo) return []
+
+  try {
+    // Handle double-encoded JSON string from backend
+    const parsedOnce = typeof medicalInfo === 'string' ? JSON.parse(medicalInfo) : medicalInfo
+    const finalInfo = typeof parsedOnce === 'string' ? JSON.parse(parsedOnce) : parsedOnce
+
+    return finalInfo.medications?.map((med, index) => ({
+      id: `RX${index + 1}`,
+      date: med.startDate || 'Unknown',
+      doctor: 'Medical Professional',
+      medications: [{
+        name: med.name || 'Unknown medication',
+        strength: med.dosage || 'As prescribed',
+        frequency: med.frequency || 'As directed',
+        duration: med.endDate === '' ? 'Ongoing' : '30 days',
+        instructions: med.route || 'Take as directed'
+      }],
+      notes: `Route: ${med.route || 'Not specified'}`
+    })) || []
+  } catch (e) {
+    console.error('Error parsing medical info:', e)
+    return []
+  }
+})
+
+// Update dialog functions to use computed data
+const viewMedicalHistory = async () => {
+  showMedicalHistoryDialog.value = true
 }
 
 const viewPrescriptions = async () => {
-  loadingPrescriptions.value = true
-  try {
-    // Simulate API call to fetch prescriptions
-    await new Promise(resolve => setTimeout(resolve, 500))
+  showPrescriptionDialog.value = true
+}
 
-    // Mock prescription data
-    prescriptions.value = [
-      {
-        id: 'RX001',
-        date: '2024-01-15',
-        doctor: 'Dr. Rajesh Kumar',
-        medications: [
-          {
-            name: 'Amlodipine',
-            strength: '5mg',
-            frequency: 'Once daily',
-            duration: '30 days',
-            instructions: 'Take with food in the morning'
-          },
-          {
-            name: 'Aspirin',
-            strength: '75mg',
-            frequency: 'Once daily',
-            duration: '30 days',
-            instructions: 'Take after dinner'
-          }
-        ],
-        notes: 'Continue current regimen, follow up in 4 weeks'
-      },
-      {
-        id: 'RX002',
-        date: '2023-12-10',
-        doctor: 'Dr. Priya Sharma',
-        medications: [
-          {
-            name: 'Metformin',
-            strength: '500mg',
-            frequency: 'Twice daily',
-            duration: '30 days',
-            instructions: 'Take with meals'
-          },
-          {
-            name: 'Glimepiride',
-            strength: '2mg',
-            frequency: 'Once daily',
-            duration: '30 days',
-            instructions: 'Take before breakfast'
-          }
-        ],
-        notes: 'Monitor blood glucose levels regularly'
-      }
-    ]
-
-    showPrescriptionDialog.value = true
-  } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Failed to load prescriptions. Please try again.',
-      life: 3000
-    })
-  } finally {
-    loadingPrescriptions.value = false
+const redirectToCorrectProfile = () => {
+  if (foundUser.value) {
+    const correctRoute = foundUser.value.role === 1 ? '/doctor/' : '/senior/'
+    router.push(correctRoute + foundUser.value.ezId)
   }
+  showRoleMismatchDialog.value = false
+}
+
+const closeRoleMismatchDialog = () => {
+  showRoleMismatchDialog.value = false
+  foundUser.value = null
 }
 </script>
 
@@ -241,199 +328,256 @@ const viewPrescriptions = async () => {
   <div class="p-4 max-w-7xl mx-auto">
     <Card class="w-full">
       <template #content>
-        <!-- Profile Header -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-5">
-          <!-- Profile Image -->
-          <div class="flex justify-center">
-						<img
-						src="/images/user.png"
-						alt="Profile Picture"
-						class="w-64 h-64 object-cover rounded-xl shadow"
-						/>
-					</div>
+        <!-- Loading state -->
+        <div v-if="userLoading" class="text-center py-8">
+          <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
+          <p class="mt-4">Loading profile...</p>
+        </div>
 
-          <!-- Basic Details -->
-          <div class="md:col-span-2">
-            <h2 class="text-3xl font-bold mb-4">{{ userDetails.name }}</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InfoItem type="basic" label="Address" :value="userDetails.address + ', ' + userDetails.pincode" />
-              <InfoItem type="basic" label="Contact" :value="userDetails.phone" />
-              <InfoItem
-                type="basic"
-                label="Email"
-                :value="userDetails.email"
+        <!-- Error state -->
+        <div v-else-if="error" class="text-center py-8">
+          <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
+          <p class="text-red-600">Failed to load profile data</p>
+        </div>
+
+        <!-- User not found state -->
+        <div v-else-if="!userDetails && !showRoleMismatchDialog" class="text-center py-8">
+          <i class="pi pi-user-times text-6xl text-gray-400 mb-4"></i>
+          <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">User Not Found</h2>
+          <p class="text-gray-600 dark:text-gray-400">The senior citizen profile you're looking for could not be found.</p>
+          <p class="text-gray-500 dark:text-gray-500 text-sm mt-2">The user may not exist or you may not have permission to view this profile.</p>
+        </div>
+
+        <!-- Profile content -->
+        <div v-else-if="userDetails">
+          <!-- Profile Header -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-5">
+            <!-- Profile Image -->
+            <div class="flex justify-center">
+              <img
+                src="/images/user.png"
+                alt="Profile Picture"
+                class="w-64 h-64 object-cover rounded-xl shadow"
               />
             </div>
-          </div>
-        </div>
-        <Divider />
 
-        <!-- Doctor Action Buttons - Only for doctors -->
-        <div v-if="loginStore.role === 'doctor'" class="mb-8">
-          <h3 class="text-2xl font-semibold mb-4 flex items-center gap-2">
-            <i class="pi pi-user-md text-blue-500"></i>
-            Medical Information
-          </h3>
-          <div class="flex flex-wrap gap-3">
-            <Button
-              label="View Medical History"
-              icon="pi pi-file-text"
-              severity="info"
-              @click="viewMedicalHistory"
-              :loading="loadingMedicalHistory"
-              class="flex-shrink-0"
-            />
-            <Button
-              label="View Prescriptions"
-              icon="pi pi-receipt"
-              severity="success"
-              @click="viewPrescriptions"
-              :loading="loadingPrescriptions"
-              class="flex-shrink-0"
-            />
-          </div>
-          <Divider />
-        </div>
-
-        <!-- Appointment History Section - Only for doctors -->
-        <div class="mt-8" v-if="loginStore.role === 'doctor'">
-          <h3 class="text-2xl font-semibold mb-6">Appointment History with {{ userDetails.name }}</h3>
-          <div v-if="loading" class="text-center py-6">
-            <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
-          </div>
-          <div v-else-if="appointments.length === 0" class="text-center py-10">
-            <div class="text-gray-500 mb-3">
-              <i class="pi pi-calendar-times text-5xl"></i>
+            <!-- Basic Details -->
+            <div class="md:col-span-2">
+              <h2 class="text-3xl font-bold mb-4">{{ userDetails.name }}</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InfoItem
+                  type="basic"
+                  label="Address"
+                  :value="userDetails.address ? `${userDetails.address}, ${userDetails.pincode}` : 'Not provided'"
+                />
+                <InfoItem type="basic" label="Primary Phone" :value="userDetails.phoneNum" />
+                <InfoItem type="basic" label="Alternate Phone" :value="userDetails.alternatePhone" />
+                <InfoItem type="basic" label="Email" :value="userDetails.email" />
+              </div>
             </div>
-            <p class="text-gray-600 text-lg">No appointments found between you and this patient.</p>
           </div>
-          <div v-else>
-            <DataTable
-              :value="appointments"
-              :rows="10"
-              :paginator="appointments.length > 10"
-              responsiveLayout="scroll"
-              class="p-datatable-lg text-base"
-            >
-              <Column field="date" header="Date" sortable style="width: 20%">
-                <template #body="{ data }">
-                  <span class="font-semibold text-base">{{ data.date }}</span>
-                </template>
-              </Column>
-              <Column field="time" header="Time" style="width: 15%">
-                <template #body="{ data }">
-                  <span class="text-base">{{ data.time }}</span>
-                </template>
-              </Column>
-              <Column field="reason" header="Reason" style="width: 50%">
-                <template #body="{ data }">
-                  <span class="text-base">{{ data.reason }}</span>
-                </template>
-              </Column>
-              <Column header="Actions" style="width: 15%">
-                <template #body="{ data }">
-                  <Button
-                    v-if="isUpcomingAppointment(data)"
-                    icon="pi pi-times"
-                    size="small"
-                    severity="danger"
-                    outlined
-                    @click="cancelAppointment(data)"
-                    v-tooltip.top="'Cancel Appointment'"
-                  />
-                  <span v-else class="text-surface-500 text-sm">Completed</span>
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-        </div>
 
-        <Divider v-if="loginStore.role === 'doctor'" />
-
-        <!-- Vital Logs and Trends Section - Only for doctors -->
-        <div v-if="loginStore.role === 'doctor'" class="mt-8 space-y-8">
-          <!-- Vital Trends Chart -->
-          <div>
-            <h3 class="text-2xl font-semibold mb-6 flex items-center gap-2">
-              <i class="pi pi-chart-line text-blue-500"></i>
-              <span>{{ userDetails.name }}'s Vital Trends</span>
+          <!-- Doctor Action Buttons -->
+          <div v-if="loginStore.role === 1" class="mb-8">
+            <h3 class="text-2xl font-semibold mb-4 flex items-center gap-2">
+              <i class="pi pi-user-md text-blue-500"></i>
+              Medical Information
             </h3>
-            <VitalTrend :ez_id="route.params.ez_id" />
+            <div class="flex flex-wrap gap-3">
+              <Button
+                label="View Medical History"
+                icon="pi pi-file-text"
+                severity="info"
+                @click="viewMedicalHistory"
+                class="flex-shrink-0"
+              />
+              <Button
+                label="View Prescriptions"
+                icon="pi pi-receipt"
+                severity="success"
+                @click="viewPrescriptions"
+                class="flex-shrink-0"
+              />
+            </div>
+            <Divider />
           </div>
 
-          <!-- Vital Logs Table -->
-          <div>
-            <h3 class="text-2xl font-semibold mb-6 flex items-center gap-2">
-              <i class="pi pi-heart text-red-500"></i>
-              <span>{{ userDetails.name }}'s Vital Logs</span>
-            </h3>
-
-            <div v-if="loading" class="text-center py-6">
+          <!-- Appointment History Section -->
+          <div class="mt-8" v-if="loginStore.role === 1">
+            <h3 class="text-2xl font-semibold mb-6">Appointment History with {{ userDetails.name }}</h3>
+            <div v-if="appointmentsLoading" class="text-center py-6">
               <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
             </div>
-            <div v-else-if="vitals.length === 0" class="text-center py-10">
+            <div v-else-if="appointments.length === 0" class="text-center py-10">
               <div class="text-gray-500 mb-3">
-                <i class="pi pi-heart text-5xl"></i>
+                <i class="pi pi-calendar-times text-5xl"></i>
               </div>
-              <p class="text-gray-600 text-lg">No vital logs found for this patient.</p>
+              <p class="text-gray-600 text-lg">No appointments found between you and this patient.</p>
             </div>
             <div v-else>
               <DataTable
-                :value="vitals"
+                :value="appointments"
                 :rows="10"
-                :paginator="vitals.length > 10"
+                :paginator="appointments.length > 10"
                 responsiveLayout="scroll"
                 class="p-datatable-lg text-base"
-                sortField="date"
-                :sortOrder="-1"
               >
-                <Column field="label" header="Vital Type" style="width: 25%">
+                <Column field="remTime" header="Date & Time" sortable style="width: 35%">
                   <template #body="{ data }">
-                    <div class="flex items-center gap-2">
-                      <i :class="getVitalIcon(data.label)" class="text-blue-500"></i>
-                      <span class="text-base font-medium">{{ data.label }}</span>
+                    <div>
+                      <div class="font-semibold text-base">{{ new Date(data.remTime).toLocaleDateString() }}</div>
+                      <div class="text-sm text-surface-600">{{ new Date(data.remTime).toLocaleTimeString() }}</div>
                     </div>
                   </template>
                 </Column>
-                <Column field="reading" header="Reading" style="width: 20%">
+                <Column field="reason" header="Reason" style="width: 50%">
                   <template #body="{ data }">
-                    <span class="font-semibold text-base">{{ data.reading }} {{ data.unit }}</span>
+                    <span class="text-base">{{ data.reason || 'General consultation' }}</span>
                   </template>
                 </Column>
-                <Column field="date" header="Date" sortable style="width: 20%">
+                <Column header="Actions" style="width: 15%">
                   <template #body="{ data }">
-                    <span class="text-base">{{ data.date }}</span>
-                  </template>
-                </Column>
-                <Column field="time" header="Time" style="width: 20%">
-                  <template #body="{ data }">
-                    <span class="text-base">{{ data.time }}</span>
-                  </template>
-                </Column>
-                <Column header="Status" style="width: 15%">
-                  <template #body="{ data }">
-                    <span
-                      v-if="data.statusInfo?.status === 'irrelevant'"
-                      class="text-gray-500 font-semibold text-base"
-                    >
-                      -
-                    </span>
-                    <Tag
-                      v-else
-                      :value="data.statusInfo?.status"
-                      :severity="data.statusInfo?.status === 'Normal' ? 'success' :
-                                data.statusInfo?.status === 'High' ? 'danger' :
-                                data.statusInfo?.status === 'Low' ? 'warning' : 'secondary'"
-                      class="text-sm"
+                    <Button
+                      v-if="isUpcomingAppointment(data)"
+                      icon="pi pi-times"
+                      size="small"
+                      severity="danger"
+                      outlined
+                      @click="cancelAppointment(data)"
+                      v-tooltip.top="'Cancel Appointment'"
                     />
+                    <span v-else class="text-surface-500 text-sm">Completed</span>
                   </template>
                 </Column>
               </DataTable>
             </div>
           </div>
+
+          <Divider v-if="loginStore.role === 1" />
+
+          <!-- Vital Logs and Trends Section - Only for doctors -->
+          <div v-if="loginStore.role === 1" class="mt-8 space-y-8">
+            <!-- Vital Trends Chart -->
+            <div>
+              <h3 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                <i class="pi pi-chart-line text-blue-500"></i>
+                <span>{{ userDetails.name }}'s Vital Trends</span>
+              </h3>
+              <VitalTrend :ezId="route.params.ezId" />
+            </div>
+
+            <!-- Vital Logs Table -->
+            <div>
+              <h3 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                <i class="pi pi-heart text-red-500"></i>
+                <span>{{ userDetails.name }}'s Vital Logs</span>
+              </h3>
+
+              <div v-if="vitals.length === 0" class="text-center py-10">
+                <div class="text-gray-500 mb-3">
+                  <i class="pi pi-heart text-5xl"></i>
+                </div>
+                <p class="text-gray-600 text-lg">No vital logs found for this patient.</p>
+              </div>
+              <div v-else>
+                <DataTable
+                  :value="vitals"
+                  :rows="10"
+                  :paginator="vitals.length > 10"
+                  responsiveLayout="scroll"
+                  class="p-datatable-lg text-base"
+                  sortField="date"
+                  :sortOrder="-1"
+                >
+                  <Column field="label" header="Vital Type" style="width: 25%">
+                    <template #body="{ data }">
+                      <div class="flex items-center gap-2">
+                        <i :class="getVitalIcon(data.label)" class="text-blue-500"></i>
+                        <span class="text-base font-medium">{{ data.label }}</span>
+                      </div>
+                    </template>
+                  </Column>
+                  <Column field="reading" header="Reading" style="width: 20%">
+                    <template #body="{ data }">
+                      <span class="font-semibold text-base">{{ data.reading }} {{ data.unit }}</span>
+                    </template>
+                  </Column>
+                  <Column field="date" header="Date" sortable style="width: 20%">
+                    <template #body="{ data }">
+                      <span class="text-base">{{ data.date }}</span>
+                    </template>
+                  </Column>
+                  <Column field="time" header="Time" style="width: 20%">
+                    <template #body="{ data }">
+                      <span class="text-base">{{ data.time }}</span>
+                    </template>
+                  </Column>
+                  <Column header="Status" style="width: 15%">
+                    <template #body="{ data }">
+                      <span
+                        v-if="data.statusInfo?.status === 'irrelevant'"
+                        class="text-gray-500 font-semibold text-base"
+                      >
+                        -
+                      </span>
+                      <Tag
+                        v-else
+                        :value="data.statusInfo?.status"
+                        :severity="data.statusInfo?.status === 'Normal' ? 'success' :
+                                  data.statusInfo?.status === 'High' ? 'danger' :
+                                  data.statusInfo?.status === 'Low' ? 'warning' : 'secondary'"
+                        class="text-sm"
+                      />
+                    </template>
+                  </Column>
+                </DataTable>
+              </div>
+            </div>
+          </div>
         </div>
       </template>
     </Card>
+
+    <!-- Role Mismatch Dialog -->
+    <Dialog
+      v-model:visible="showRoleMismatchDialog"
+      modal
+      header="Wrong Profile Type"
+      :style="{ width: '500px' }"
+      :closable="true"
+      :dismissableMask="false"
+    >
+      <div class="flex items-start gap-4">
+        <i class="pi pi-info-circle text-blue-500 text-2xl mt-1"></i>
+        <div>
+          <p class="mb-3">
+            The user ID you're looking for belongs to a
+            <strong>{{ foundUser?.role === 1 ? 'Doctor' : 'User' }}</strong>,
+            not a Senior Citizen.
+          </p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Would you like to be redirected to their correct profile page?
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <Button
+            label="Stay Here"
+            icon="pi pi-times"
+            outlined
+            @click="closeRoleMismatchDialog"
+          />
+          <Button
+            label="Go to Profile"
+            icon="pi pi-external-link"
+            severity="info"
+            @click="redirectToCorrectProfile"
+          />
+        </div>
+      </template>
+    </Dialog>
 
     <!-- Medical History Dialog -->
     <Dialog

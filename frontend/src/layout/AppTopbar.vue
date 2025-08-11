@@ -10,6 +10,16 @@ const logout = async () => {
     loginStore.clearLoginDetails();
     router.push('/')
 }
+const roleBasedDashboardName = (role) => {
+    switch (role){
+        case 0:
+            return "Seniordashboard";
+        case 1:
+            return "Doctordashboard";
+        case 2:
+            return "ModDashboard";
+    }
+};
 </script>
 
 <template>
@@ -18,7 +28,12 @@ const logout = async () => {
             <!-- <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
                 <i class="pi pi-bars"></i>
             </button> -->
-            <router-link to="/" class="layout-topbar-logo">
+
+            <router-link v-if="loginStore.ezId == null" :to="{name: 'landing'}" class="layout-topbar-logo">
+                <img src="/images/logo-transparent.png" alt="EZCare Logo" class="h-12 mr-2" />
+                <span>EZCare</span>
+            </router-link>
+            <router-link v-else :to="{name: roleBasedDashboardName(loginStore.role)}" class="layout-topbar-logo">
                 <img src="/images/logo-transparent.png" alt="EZCare Logo" class="h-12 mr-2" />
                 <span>EZCare</span>
             </router-link>

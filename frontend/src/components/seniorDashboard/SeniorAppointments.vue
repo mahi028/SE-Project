@@ -1,47 +1,76 @@
 <script setup>
-import { appointmentService } from '@/service/AppointmentService';
-import { doctorService } from '@/service/DoctorService';
-import { useLoginStore } from '@/store/loginStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
+import { useQuery, useMutation } from '@vue/apollo-composable';
+import gql from 'graphql-tag';
 
 const toast = useToast();
 const confirm = useConfirm();
-const appointments = ref([]);
-const doctors = ref([]);
-const loginStore = useLoginStore();
-const loading = ref(false);
 
-const fetchAppointments = async () => {
-    loading.value = true;
-    try {
-        const data = await appointmentService.getAppointmentsBySenior(loginStore.ez_id);
-        appointments.value = data;
-
-        // Fetch doctor details for each appointment
-        const doctorIds = [...new Set(data.map(apt => apt.doc_id))];
-        const doctorPromises = doctorIds.map(id => doctorService.getDoctor({ ez_id: id }));
-        const doctorData = await Promise.all(doctorPromises);
-        doctors.value = doctorData.filter(doc => doc);
-    } catch (error) {
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to fetch appointments',
-            life: 3000
-        });
-    } finally {
-        loading.value = false;
+// GraphQL queries and mutations
+const GET_APPOINTMENTS_FOR_SENIOR = gql`
+    query GetAppointmentsForSenior {
+        getAppointmentsForSenior {
+            appId
+            senId
+            docId
+            remTime
+            reason
+            status
+            createdAt
+            docInfo {
+                ezId
+                specialization
+                affiliation
+                consultationFee
+            }
+        }
     }
+`;
+
+const CANCEL_APPOINTMENT = gql`
+    mutation CancelAppointment($appId: Int!) {
+        cancelAppointment(appId: $appId) {
+            message
+            status
+        }
+    }
+`;
+
+// Apollo composables
+const { result, loading, error, refetch } = useQuery(GET_APPOINTMENTS_FOR_SENIOR);
+const { mutate: cancelAppointmentMutation } = useMutation(CANCEL_APPOINTMENT);
+
+// Computed property for appointments list
+const appointments = computed(() => {
+    return result.value?.getAppointmentsForSenior || [];
+});
+
+const getDoctorInfo = (appointment) => {
+    const docInfo = appointment?.docInfo || {};
+    let affiliation = {};
+
+    try {
+        affiliation = typeof docInfo.affiliation === 'string'
+            ? JSON.parse(docInfo.affiliation)
+            : (docInfo.affiliation || {});
+    } catch (e) {
+        console.error('Error parsing affiliation:', e);
+        affiliation = {};
+    }
+
+    return {
+        name: affiliation.name || `Doctor #${appointment?.docId || 'Unknown'}`,
+        specialization: docInfo.specialization || 'General Medicine',
+        hospital: affiliation.name || 'Medical Center',
+        phone: '', // Not available in current query
+        ez_id: docInfo.ezId || appointment?.docId
+    };
 };
 
-const getDoctorInfo = (docId) => {
-    return doctors.value.find(doc => doc.ez_id === docId) || {};
-};
-
-const getAppointmentStatus = (date, time) => {
-    const appointmentDateTime = new Date(`${date} ${time}`);
+const getAppointmentStatus = (remTime) => {
+    const appointmentDateTime = new Date(remTime);
     const now = new Date();
 
     if (appointmentDateTime < now) {
@@ -58,41 +87,26 @@ const getAppointmentStatus = (date, time) => {
     }
 };
 
-const getSpecializationColor = (specialization) => {
-    switch (specialization) {
-        case 'Cardiologist':
-            return 'danger';
-        case 'Neurologist':
-            return 'success';
-        case 'Pediatrician':
-            return 'info';
-        case 'Gynecologist':
-            return 'warning';
-        case 'Orthopedist':
-            return 'secondary';
-        default:
-            return 'primary';
-    }
-};
-
 const upcomingAppointments = computed(() => {
     return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
+        const appointmentDateTime = new Date(apt.remTime);
         return appointmentDateTime >= new Date();
-    }).sort((a, b) => new Date(`${a.date} ${a.time}`) - new Date(`${b.date} ${b.time}`));
+    }).sort((a, b) => new Date(a.remTime) - new Date(b.remTime));
 });
 
 const pastAppointments = computed(() => {
     return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
+        const appointmentDateTime = new Date(apt.remTime);
         return appointmentDateTime < new Date();
-    }).sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
+    }).sort((a, b) => new Date(b.remTime) - new Date(a.remTime));
 });
 
 const cancelAppointment = (appointment) => {
-    const doctorInfo = getDoctorInfo(appointment.doc_id);
+    const doctorInfo = getDoctorInfo(appointment);
+    const appointmentDate = new Date(appointment.remTime);
+
     confirm.require({
-        message: `Are you sure you want to cancel your appointment with ${doctorInfo.name || appointment.doctorEmail?.split('@')[0]} on ${appointment.date} at ${appointment.time}?`,
+        message: `Are you sure you want to cancel your appointment with ${doctorInfo.name} on ${appointmentDate.toLocaleDateString()} at ${appointmentDate.toLocaleTimeString()}?`,
         header: 'Cancel Appointment',
         icon: 'pi pi-exclamation-triangle',
         rejectProps: {
@@ -106,21 +120,32 @@ const cancelAppointment = (appointment) => {
         },
         accept: async () => {
             try {
-                // Simulate API call to cancel appointment
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Remove appointment from list
-                appointments.value = appointments.value.filter(apt =>
-                    !(apt.doc_id === appointment.doc_id && apt.date === appointment.date && apt.time === appointment.time)
-                );
-
-                toast.add({
-                    severity: 'success',
-                    summary: 'Appointment Cancelled',
-                    detail: 'Your appointment has been cancelled successfully.',
-                    life: 3000
+                const { data } = await cancelAppointmentMutation({
+                    appId: appointment.appId
                 });
+
+                const response = data?.cancelAppointment;
+
+                if (response?.status === 200) {
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Appointment Cancelled',
+                        detail: response.message || 'Your appointment has been cancelled successfully.',
+                        life: 3000
+                    });
+
+                    // Refetch appointments to update the list
+                    await refetch();
+                } else {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response?.message || 'Failed to cancel appointment. Please try again.',
+                        life: 3000
+                    });
+                }
             } catch (error) {
+                console.error('Error cancelling appointment:', error);
                 toast.add({
                     severity: 'error',
                     summary: 'Error',
@@ -132,8 +157,30 @@ const cancelAppointment = (appointment) => {
     });
 };
 
+const fetchAppointments = async () => {
+    try {
+        await refetch();
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to fetch appointments',
+            life: 3000
+        });
+    }
+};
+
 onMounted(() => {
-    fetchAppointments();
+    // Initial fetch is handled by useQuery, but we can add error handling here if needed
+    if (error.value) {
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load appointments',
+            life: 3000
+        });
+    }
 });
 </script>
 
@@ -162,8 +209,17 @@ onMounted(() => {
                     />
                 </div>
 
+                <!-- Loading state -->
                 <div v-if="loading" class="text-center py-8">
                     <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
+                    <p class="mt-4">Loading appointments...</p>
+                </div>
+
+                <!-- Error state -->
+                <div v-else-if="error" class="text-center py-8">
+                    <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
+                    <p class="text-red-600">Failed to load appointments</p>
+                    <Button label="Retry" @click="fetchAppointments" class="mt-3" />
                 </div>
 
                 <div v-else-if="appointments.length === 0" class="empty-state">
@@ -191,7 +247,7 @@ onMounted(() => {
                         <div class="appointment-list">
                             <Card
                                 v-for="appointment in upcomingAppointments"
-                                :key="appointment.appointment_id"
+                                :key="`upcoming-${appointment.appId}`"
                                 class="appointment-item upcoming"
                             >
                                 <template #content>
@@ -201,11 +257,11 @@ onMounted(() => {
                                                 <i class="pi pi-user-md text-blue-500"></i>
                                             </div>
                                             <div class="doctor-info">
-                                                <h4 class="doctor-name">{{ getDoctorInfo(appointment.doc_id).name || 'Dr. ' + appointment.doctorEmail?.split('@')[0] }}</h4>
-                                                <p class="doctor-specialization">{{ getDoctorInfo(appointment.doc_id).specialization || 'General Medicine' }}</p>
+                                                <h4 class="doctor-name">{{ getDoctorInfo(appointment).name }}</h4>
+                                                <p class="doctor-specialization">{{ getDoctorInfo(appointment).specialization }}</p>
                                                 <div class="doctor-hospital">
                                                     <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-700 dark:text-surface-300">{{ getDoctorInfo(appointment.doc_id).hospital || 'Medical Center' }}</span>
+                                                    <span class="text-surface-700 dark:text-surface-300">{{ getDoctorInfo(appointment).hospital }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -214,11 +270,11 @@ onMounted(() => {
                                             <div class="appointment-datetime">
                                                 <div class="date-info">
                                                     <i class="pi pi-calendar text-green-500"></i>
-                                                    <span class="font-medium">{{ appointment.date }}</span>
+                                                    <span class="font-medium">{{ new Date(appointment.remTime).toLocaleDateString() }}</span>
                                                 </div>
                                                 <div class="time-info">
                                                     <i class="pi pi-clock text-orange-500"></i>
-                                                    <span class="font-medium">{{ appointment.time }}</span>
+                                                    <span class="font-medium">{{ new Date(appointment.remTime).toLocaleTimeString() }}</span>
                                                 </div>
                                             </div>
 
@@ -230,8 +286,8 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment.remTime).label"
+                                                :severity="getAppointmentStatus(appointment.remTime).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
@@ -242,17 +298,10 @@ onMounted(() => {
                                                     outlined
                                                     v-tooltip.top="'View Doctor Profile'"
                                                     as="router-link"
-                                                    :to="`/doctor/${appointment.doc_id}`"
+                                                    :to="`/doctor/${getDoctorInfo(appointment).ez_id}`"
                                                     class="w-full mb-2"
                                                 />
                                                 <div class="flex gap-2">
-                                                    <Button
-                                                        icon="pi pi-phone"
-                                                        size="small"
-                                                        outlined
-                                                        v-tooltip.top="'Call Doctor'"
-                                                        :href="`tel:${getDoctorInfo(appointment.doc_id).phone || ''}`"
-                                                    />
                                                     <Button
                                                         icon="pi pi-times"
                                                         size="small"
@@ -270,7 +319,7 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Past Appointments - no cancel button needed -->
+                    <!-- Past Appointments -->
                     <div v-if="pastAppointments.length > 0" class="appointment-section">
                         <div class="section-divider">
                             <span class="section-label">Past Appointments</span>
@@ -280,7 +329,7 @@ onMounted(() => {
                         <div class="appointment-list">
                             <Card
                                 v-for="appointment in pastAppointments.slice(0, 5)"
-                                :key="appointment.appointment_id"
+                                :key="`past-${appointment.appId}`"
                                 class="appointment-item past"
                             >
                                 <template #content>
@@ -290,11 +339,11 @@ onMounted(() => {
                                                 <i class="pi pi-user-md text-surface-500"></i>
                                             </div>
                                             <div class="doctor-info">
-                                                <h4 class="doctor-name text-surface-800 dark:text-surface-200">{{ getDoctorInfo(appointment.doc_id).name || 'Dr. ' + appointment.doctorEmail?.split('@')[0] }}</h4>
-                                                <p class="doctor-specialization text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment.doc_id).specialization || 'General Medicine' }}</p>
+                                                <h4 class="doctor-name text-surface-800 dark:text-surface-200">{{ getDoctorInfo(appointment).name }}</h4>
+                                                <p class="doctor-specialization text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment).specialization }}</p>
                                                 <div class="doctor-hospital">
                                                     <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment.doc_id).hospital || 'Medical Center' }}</span>
+                                                    <span class="text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment).hospital }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -303,11 +352,11 @@ onMounted(() => {
                                             <div class="appointment-datetime">
                                                 <div class="date-info">
                                                     <i class="pi pi-calendar text-surface-400"></i>
-                                                    <span class="text-surface-600 dark:text-surface-400">{{ appointment.date }}</span>
+                                                    <span class="text-surface-600 dark:text-surface-400">{{ new Date(appointment.remTime).toLocaleDateString() }}</span>
                                                 </div>
                                                 <div class="time-info">
                                                     <i class="pi pi-clock text-surface-400"></i>
-                                                    <span class="text-surface-600 dark:text-surface-400">{{ appointment.time }}</span>
+                                                    <span class="text-surface-600 dark:text-surface-400">{{ new Date(appointment.remTime).toLocaleTimeString() }}</span>
                                                 </div>
                                             </div>
 
@@ -319,8 +368,8 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment.remTime).label"
+                                                :severity="getAppointmentStatus(appointment.remTime).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
@@ -331,7 +380,7 @@ onMounted(() => {
                                                     outlined
                                                     v-tooltip.top="'View Doctor Profile'"
                                                     as="router-link"
-                                                    :to="`/doctor/${appointment.doc_id}`"
+                                                    :to="`/doctor/${getDoctorInfo(appointment).ez_id}`"
                                                     class="w-full"
                                                 />
                                             </div>

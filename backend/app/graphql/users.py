@@ -14,13 +14,20 @@ class UserType(SQLAlchemyObjectType):
 
 class UsersQuery(graphene.ObjectType):
     all_users = graphene.List(UserType)
-    get_user = graphene.Field(UserType)
+    get_me = graphene.Field(UserType)
+    get_user = graphene.Field(UserType, ez_id = graphene.String(required=True))
 
     def resolve_all_users(self, info):
         return User.query.all()
     
-    def resolve_get_user(self, info):
+    def resolve_get_me(self, info):
         return get_user(info)
+    
+    def resolve_get_user(self, info, ez_id):
+        user = User.query.get(ez_id)
+        if user:
+            return User.query.get(ez_id)
+        return ReturnType(status=404, message="User Not Found")
 
 
 class UsersMutation(graphene.ObjectType):

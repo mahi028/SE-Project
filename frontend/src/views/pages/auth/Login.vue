@@ -35,8 +35,8 @@ const GET_TOKEN = gql`
   }
 `;
 const GET_USER_DATA = gql`
-  query getUser {
-    getUser {
+  query getMe {
+    getMe {
       ezId
       name
       email
@@ -70,8 +70,6 @@ const login = async ()=> {
             });
         }
         else if (value.value == "Email"){
-            console.log(value.value+ ": "+ formData.value.email)
-
             await fetchToken(GET_TOKEN, {
                 email: formData.value.email,
                 password: formData.value.password,
@@ -104,7 +102,7 @@ const setUserDataAndRedirect = async (token) => {
         loginStore.setLoginToken(token)
         await fetchUser(GET_USER_DATA);
 
-        const response = resultUser.value?.getUser;
+        const response = resultUser.value?.getMe;
         const userRole = response?.role;
         if (userRole != null) {
             loginStore.setLoginDetails(response)
