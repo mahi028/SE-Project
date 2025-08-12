@@ -763,7 +763,7 @@ const getAppointmentStatusInfo = (appointment) => {
             <!-- Profile Image -->
             <div class="flex justify-center">
               <img
-                src="/images/user.png"
+                src="/images/doctorIcon.avif"
                 alt="Profile Picture"
                 class="w-64 h-64 object-cover rounded-xl shadow"
               />

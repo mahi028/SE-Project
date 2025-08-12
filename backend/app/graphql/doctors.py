@@ -1,6 +1,6 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..models import User,DocInfo, db
+from ..models import User, DocInfo, DocReviews, db
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
 from ..utils.authControl import get_user, get_doctor
@@ -9,21 +9,45 @@ class DoctorType(SQLAlchemyObjectType):
     class Meta:
         model = DocInfo
 
-
-
 class DoctorsQuery(graphene.ObjectType):
-    get_doctors = graphene.List(DoctorType, pincode=graphene.String(required=False),specialization=graphene.String(required=False))
+    get_doctors = graphene.List(
+        DoctorType,
+        pincode=graphene.String(required=False),
+        specialization=graphene.String(required=False),
+        status=graphene.Int(required=False),
+        include_all_status=graphene.Boolean(required=False)
+    )
+    get_all_doctors = graphene.List(DoctorType)
     get_doctor = graphene.Field(DoctorType)
-    
+    get_approved_doctors = graphene.List(DoctorType, pincode=graphene.String(required=False))
 
-    def resolve_get_doctors(self, info, pincode=None, specialization=None):
-        query = DocInfo.query
+    def resolve_get_doctors(self, info, pincode=None, specialization=None, status=None, include_all_status=False):
+        query = DocInfo.query.join(User)
+
+        # For non-moderators, only show approved doctors unless specifically requested
+        if not include_all_status:
+            query = query.filter(DocInfo.availability_status == 1)
+
+        # Apply filters
         if pincode:
-            query=DocInfo.query.filter_by(pincode=pincode)
+            query = query.filter(DocInfo.pincode == pincode)
         if specialization:
-            query=DocInfo.query.filter_by(specialization=specialization)
+            query = query.filter(DocInfo.specialization.contains(specialization))
+        if status is not None:
+            query = query.filter(DocInfo.availability_status == status)
+
         return query.all()
 
+    def resolve_get_all_doctors(self, info):
+        # For moderators - get all doctors regardless of status
+        return DocInfo.query.join(User).all()
+
+    def resolve_get_approved_doctors(self, info, pincode=None):
+        # For regular users - only approved doctors
+        query = DocInfo.query.join(User).filter(DocInfo.availability_status == 1)
+        if pincode:
+            query = query.filter(DocInfo.pincode == pincode)
+        return query.all()
 
     def resolve_get_doctor(self, info):
         return get_doctor(info)
@@ -58,7 +82,7 @@ class AddDoctor(graphene.Mutation):
             return ReturnType(message="User not found", status=404)
         if user.role != 1:
             return ReturnType(message="User is not a health professional", status=403)
-        
+
         if DocInfo.query.filter_by(ez_id=user.ez_id).one_or_none():
             return ReturnType(message="Doctor already exists", status=0)
         if DocInfo.query.filter_by(license_number=license_number).one_or_none():
