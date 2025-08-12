@@ -1,43 +1,84 @@
 <script setup>
-import { appointmentService } from '@/service/AppointmentService';
-import { seniorService } from '@/service/SeniorService';
-import { useLoginStore } from '@/store/loginStore';
 import { ref, onMounted, computed } from 'vue';
+import { useQuery, useMutation } from '@vue/apollo-composable';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
+import gql from 'graphql-tag';
 
 const toast = useToast();
 const confirm = useConfirm();
-const appointments = ref([]);
-const seniors = ref([]);
-const loginStore = useLoginStore();
 const loading = ref(false);
 
-const fetchAppointments = async () => {
-    loading.value = true;
-    try {
-        const data = await appointmentService.getAppointmentsByDoctor(loginStore.ez_id);
-        appointments.value = data;
-
-        // Fetch senior details for each appointment
-        const seniorIds = [...new Set(data.map(apt => apt.sen_id))];
-        const seniorPromises = seniorIds.map(id => seniorService.getSenior({ ez_id: id }));
-        const seniorData = await Promise.all(seniorPromises);
-        seniors.value = seniorData.filter(senior => senior);
-    } catch (error) {
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to fetch appointments',
-            life: 3000
-        });
-    } finally {
-        loading.value = false;
+// GraphQL queries and mutations
+const GET_APPOINTMENTS_FOR_DOCTOR = gql`
+    query GetAppointmentsForDoctor {
+        getAppointmentsForDoctor {
+            appId
+            senId
+            docId
+            remTime
+            reason
+            status
+            createdAt
+            senInfo {
+                senId
+                ezId
+                gender
+                address
+                alternatePhoneNum
+                user {
+                    name
+                    email
+                    phoneNum
+                    profileImageUrl
+                }
+            }
+        }
     }
-};
+`;
+
+const CANCEL_APPOINTMENT = gql`
+    mutation CancelAppointment($appId: Int!) {
+        cancelAppointment(appId: $appId) {
+            message
+            status
+        }
+    }
+`;
+
+// Apollo composables
+const { result, loading: queryLoading, error, refetch } = useQuery(GET_APPOINTMENTS_FOR_DOCTOR);
+const { mutate: cancelAppointmentMutation } = useMutation(CANCEL_APPOINTMENT);
+
+// Filter appointments with status 1 (confirmed/accepted)
+const appointments = computed(() => {
+    const allAppointments = result.value?.getAppointmentsForDoctor || [];
+    return allAppointments
+        .filter(appointment => appointment.status === 1)
+        .map(appointment => ({
+            appointment_id: appointment.appId,
+            sen_id: appointment.senInfo?.ezId,
+            seniorName: appointment.senInfo?.user?.name || 'Unknown Patient',
+            seniorEmail: appointment.senInfo?.user?.email || 'No email provided',
+            seniorPhone: appointment.senInfo?.user?.phoneNum || appointment.senInfo?.alternatePhoneNum,
+            seniorProfile: appointment.senInfo?.user?.profileImageUrl,
+            date: new Date(appointment.remTime).toLocaleDateString(),
+            time: new Date(appointment.remTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            reason: appointment.reason || 'General consultation',
+            address: appointment.senInfo?.address,
+            gender: appointment.senInfo?.gender,
+            remTime: appointment.remTime
+        }))
+        .sort((a, b) => new Date(a.remTime) - new Date(b.remTime));
+});
 
 const getSeniorInfo = (senId) => {
-    return seniors.value.find(senior => senior.ez_id === senId) || {};
+    const appointment = appointments.value.find(apt => apt.sen_id === senId);
+    return {
+        name: appointment?.seniorName,
+        phone: appointment?.seniorPhone,
+        email: appointment?.seniorEmail
+    };
 };
 
 const getAppointmentStatus = (date, time) => {
@@ -60,21 +101,21 @@ const getAppointmentStatus = (date, time) => {
 
 const upcomingAppointments = computed(() => {
     return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
+        const appointmentDateTime = new Date(apt.remTime);
         return appointmentDateTime >= new Date();
-    }).sort((a, b) => new Date(`${a.date} ${a.time}`) - new Date(`${b.date} ${b.time}`));
+    });
 });
 
 const pastAppointments = computed(() => {
     return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
+        const appointmentDateTime = new Date(apt.remTime);
         return appointmentDateTime < new Date();
-    }).sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
+    }).sort((a, b) => new Date(b.remTime) - new Date(a.remTime));
 });
 
 const cancelAppointment = (appointment) => {
     confirm.require({
-        message: `Are you sure you want to cancel the appointment with ${getSeniorInfo(appointment.sen_id).name || appointment.seniorEmail?.split('@')[0]} on ${appointment.date} at ${appointment.time}?`,
+        message: `Are you sure you want to cancel the appointment with ${appointment.seniorName} on ${appointment.date} at ${appointment.time}?`,
         header: 'Cancel Appointment',
         icon: 'pi pi-exclamation-triangle',
         rejectProps: {
@@ -88,21 +129,31 @@ const cancelAppointment = (appointment) => {
         },
         accept: async () => {
             try {
-                // Simulate API call to cancel appointment
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Remove appointment from list
-                appointments.value = appointments.value.filter(apt =>
-                    !(apt.sen_id === appointment.sen_id && apt.date === appointment.date && apt.time === appointment.time)
-                );
-
-                toast.add({
-                    severity: 'success',
-                    summary: 'Appointment Cancelled',
-                    detail: 'The appointment has been cancelled successfully.',
-                    life: 3000
+                const { data } = await cancelAppointmentMutation({
+                    appId: appointment.appointment_id
                 });
+
+                const response = data?.cancelAppointment;
+                if (response?.status === 1) {
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Appointment Cancelled',
+                        detail: response.message || 'The appointment has been cancelled successfully.',
+                        life: 3000
+                    });
+
+                    // Refetch appointments to update the list
+                    await refetch();
+                } else {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response?.message || 'Failed to cancel appointment. Please try again.',
+                        life: 3000
+                    });
+                }
             } catch (error) {
+                console.error('Error cancelling appointment:', error);
                 toast.add({
                     severity: 'error',
                     summary: 'Error',
@@ -114,8 +165,24 @@ const cancelAppointment = (appointment) => {
     });
 };
 
+const fetchAppointments = async () => {
+    loading.value = true;
+    try {
+        await refetch();
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to fetch appointments',
+            life: 3000
+        });
+    } finally {
+        loading.value = false;
+    }
+};
+
 onMounted(() => {
-    fetchAppointments();
+    // Data is automatically fetched by useQuery
 });
 </script>
 
@@ -127,41 +194,52 @@ onMounted(() => {
             <template #header>
                 <div class="section-header">
                     <i class="pi pi-calendar text-blue-500"></i>
-                    <h3 class="section-title">My Appointments</h3>
+                    <h3 class="section-title">My Confirmed Appointments</h3>
                 </div>
             </template>
             <template #content>
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
                     <p class="text-surface-600 dark:text-surface-400">
-                        Manage your patient appointments and consultations.
+                        Manage your confirmed patient appointments and consultations.
                     </p>
                     <Button
                         icon="pi pi-refresh"
                         outlined
                         @click="fetchAppointments"
                         v-tooltip.top="'Refresh appointments'"
-                        :loading="loading"
+                        :loading="queryLoading || loading"
                     />
                 </div>
 
-                <div v-if="loading" class="text-center py-8">
+                <!-- Loading state -->
+                <div v-if="queryLoading" class="text-center py-8">
                     <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
+                    <p class="mt-4">Loading appointments...</p>
                 </div>
 
+                <!-- Error state -->
+                <div v-else-if="error" class="text-center py-8">
+                    <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
+                    <p class="text-red-600">Failed to load appointments</p>
+                    <Button label="Retry" @click="refetch" class="mt-3" />
+                </div>
+
+                <!-- Empty state -->
                 <div v-else-if="appointments.length === 0" class="empty-state">
                     <div class="text-center py-12">
                         <div class="text-surface-400 dark:text-surface-500 mb-4">
                             <i class="pi pi-calendar-times text-6xl"></i>
                         </div>
                         <h4 class="text-xl font-medium text-surface-700 dark:text-surface-300 mb-2">
-                            No Appointments Found
+                            No Confirmed Appointments
                         </h4>
                         <p class="text-surface-500 dark:text-surface-400 mb-4">
-                            You don't have any appointments scheduled yet.
+                            You don't have any confirmed appointments scheduled yet.
                         </p>
                     </div>
                 </div>
 
+                <!-- Appointments content -->
                 <div v-else class="appointments-content">
                     <!-- Upcoming Appointments -->
                     <div v-if="upcomingAppointments.length > 0" class="appointment-section">
@@ -180,14 +258,26 @@ onMounted(() => {
                                     <div class="appointment-content">
                                         <div class="appointment-patient">
                                             <div class="patient-avatar">
-                                                <i class="pi pi-user text-green-500"></i>
+                                                <Avatar
+                                                    v-if="appointment.seniorProfile"
+                                                    :image="appointment.seniorProfile"
+                                                    shape="circle"
+                                                    size="large"
+                                                />
+                                                <Avatar
+                                                    v-else
+                                                    :label="appointment.seniorName?.charAt(0) || 'P'"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="bg-green-500 text-white"
+                                                />
                                             </div>
                                             <div class="patient-info">
-                                                <h4 class="patient-name">{{ getSeniorInfo(appointment.sen_id).name || appointment.seniorEmail?.split('@')[0] }}</h4>
+                                                <h4 class="patient-name">{{ appointment.seniorName }}</h4>
                                                 <p class="patient-email">{{ appointment.seniorEmail }}</p>
-                                                <div class="patient-phone" v-if="getSeniorInfo(appointment.sen_id).phone">
+                                                <div class="patient-phone" v-if="appointment.seniorPhone">
                                                     <i class="pi pi-phone text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-700 dark:text-surface-300">{{ getSeniorInfo(appointment.sen_id).phone }}</span>
+                                                    <span class="text-surface-700 dark:text-surface-300">{{ appointment.seniorPhone }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -233,7 +323,7 @@ onMounted(() => {
                                                         size="small"
                                                         outlined
                                                         v-tooltip.top="'Call Patient'"
-                                                        :href="`tel:${getSeniorInfo(appointment.sen_id).phone || ''}`"
+                                                        :href="`tel:${appointment.seniorPhone || ''}`"
                                                     />
                                                     <Button
                                                         icon="pi pi-times"
@@ -269,14 +359,27 @@ onMounted(() => {
                                     <div class="appointment-content">
                                         <div class="appointment-patient">
                                             <div class="patient-avatar opacity-70">
-                                                <i class="pi pi-user text-surface-500"></i>
+                                                <Avatar
+                                                    v-if="appointment.seniorProfile"
+                                                    :image="appointment.seniorProfile"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="opacity-70"
+                                                />
+                                                <Avatar
+                                                    v-else
+                                                    :label="appointment.seniorName?.charAt(0) || 'P'"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="bg-surface-500 text-white"
+                                                />
                                             </div>
                                             <div class="patient-info">
-                                                <h4 class="patient-name text-surface-800 dark:text-surface-200">{{ getSeniorInfo(appointment.sen_id).name || appointment.seniorEmail?.split('@')[0] }}</h4>
+                                                <h4 class="patient-name text-surface-800 dark:text-surface-200">{{ appointment.seniorName }}</h4>
                                                 <p class="patient-email text-surface-600 dark:text-surface-400">{{ appointment.seniorEmail }}</p>
-                                                <div class="patient-phone" v-if="getSeniorInfo(appointment.sen_id).phone">
+                                                <div class="patient-phone" v-if="appointment.seniorPhone">
                                                     <i class="pi pi-phone text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-600 dark:text-surface-400">{{ getSeniorInfo(appointment.sen_id).phone }}</span>
+                                                    <span class="text-surface-600 dark:text-surface-400">{{ appointment.seniorPhone }}</span>
                                                 </div>
                                             </div>
                                         </div>

@@ -132,6 +132,8 @@ const checkCompleteInfoAvailable = (details) => {
                 return false
             }
             return true
+        case 2:
+            return true
         default:
             return false
     }
