@@ -101,32 +101,32 @@ const confirmAcceptRequest = (event) => {
 
                 const response = data?.updateAppointmentStatus;
                 if (response?.status === 200) {
-                    toast.add({ 
-                        severity: 'success', 
-                        summary: 'Accepted', 
-                        detail: response.message || 'Appointment request has been accepted', 
-                        life: 3000 
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Accepted',
+                        detail: response.message || 'Appointment request has been accepted',
+                        life: 3000
                     });
-                    
+
                     // Refetch appointments to update the list
                     await refetch();
                     visible.value = false;
                     selectedAppointment.value = null;
                 } else {
-                    toast.add({ 
-                        severity: 'error', 
-                        summary: 'Error', 
-                        detail: response?.message || 'Failed to accept appointment', 
-                        life: 3000 
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response?.message || 'Failed to accept appointment',
+                        life: 3000
                     });
                 }
             } catch (error) {
                 console.error('Error accepting appointment:', error);
-                toast.add({ 
-                    severity: 'error', 
-                    summary: 'Error', 
-                    detail: 'Failed to accept appointment. Please try again.', 
-                    life: 3000 
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to accept appointment. Please try again.',
+                    life: 3000
                 });
             }
         },
@@ -156,32 +156,32 @@ const confirmRejectRequest = (event) => {
 
                 const response = data?.updateAppointmentStatus;
                 if (response?.status === 200) {
-                    toast.add({ 
-                        severity: 'info', 
-                        summary: 'Rejected', 
-                        detail: response.message || 'Appointment request has been rejected', 
-                        life: 3000 
+                    toast.add({
+                        severity: 'info',
+                        summary: 'Rejected',
+                        detail: response.message || 'Appointment request has been rejected',
+                        life: 3000
                     });
-                    
+
                     // Refetch appointments to update the list
                     await refetch();
                     visible.value = false;
                     selectedAppointment.value = null;
                 } else {
-                    toast.add({ 
-                        severity: 'error', 
-                        summary: 'Error', 
-                        detail: response?.message || 'Failed to reject appointment', 
-                        life: 3000 
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response?.message || 'Failed to reject appointment',
+                        life: 3000
                     });
                 }
             } catch (error) {
                 console.error('Error rejecting appointment:', error);
-                toast.add({ 
-                    severity: 'error', 
-                    summary: 'Error', 
-                    detail: 'Failed to reject appointment. Please try again.', 
-                    life: 3000 
+                toast.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Failed to reject appointment. Please try again.',
+                    life: 3000
                 });
             }
         },
@@ -209,8 +209,8 @@ onMounted(() => {
                     <p class="text-surface-600 dark:text-surface-400">
                         Review and manage incoming appointment requests from patients.
                     </p>
-                    <Button 
-                        icon="pi pi-refresh" 
+                    <Button
+                        icon="pi pi-refresh"
                         outlined
                         @click="refetch"
                         v-tooltip.top="'Refresh requests'"
@@ -256,8 +256,8 @@ onMounted(() => {
                     </div>
 
                     <div class="request-list">
-                        <Card 
-                            v-for="appointment in appointmentRequests" 
+                        <Card
+                            v-for="appointment in appointmentRequests"
                             :key="appointment.appId"
                             class="request-item"
                         >
@@ -296,26 +296,26 @@ onMounted(() => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="request-actions">
                                         <div class="action-buttons">
-                                            <Button 
+                                            <Button
                                                 label="Details"
-                                                icon="pi pi-info-circle" 
+                                                icon="pi pi-info-circle"
                                                 size="small"
                                                 outlined
                                                 @click="displayAppointment(appointment)"
                                             />
-                                            <Button 
+                                            <Button
                                                 label="Accept"
-                                                icon="pi pi-check" 
+                                                icon="pi pi-check"
                                                 size="small"
                                                 severity="success"
                                                 @click="selectedAppointment = appointment; confirmAcceptRequest($event)"
                                             />
-                                            <Button 
+                                            <Button
                                                 label="Reject"
-                                                icon="pi pi-times" 
+                                                icon="pi pi-times"
                                                 size="small"
                                                 severity="danger"
                                                 outlined
@@ -332,10 +332,10 @@ onMounted(() => {
         </Card>
 
         <!-- Enhanced Appointment Details Dialog -->
-        <Dialog 
-            v-model:visible="visible" 
-            modal 
-            header="Appointment Request Details" 
+        <Dialog
+            v-model:visible="visible"
+            modal
+            header="Appointment Request Details"
             :style="{ width: '700px' }"
             class="appointment-details-dialog"
         >
@@ -397,7 +397,7 @@ onMounted(() => {
                     <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-4">
                         Appointment Information
                     </h4>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div class="detail-item">
                             <label class="detail-label">Date</label>
@@ -406,7 +406,7 @@ onMounted(() => {
                                 <span>{{ selectedAppointment.date }}</span>
                             </div>
                         </div>
-                        
+
                         <div class="detail-item">
                             <label class="detail-label">Time</label>
                             <div class="detail-value">
@@ -460,22 +460,22 @@ onMounted(() => {
 
             <template #footer>
                 <div class="flex justify-end gap-3 mt-6">
-                    <Button 
-                        label="View Profile" 
+                    <Button
+                        label="View Profile"
                         icon="pi pi-user"
                         outlined
                         as="router-link"
                         :to="`/senior/${selectedAppointment?.sen_id}`"
                     />
-                    <Button 
-                        label="Reject" 
+                    <Button
+                        label="Reject"
                         icon="pi pi-times"
                         severity="danger"
                         outlined
                         @click="confirmRejectRequest($event)"
                     />
-                    <Button 
-                        label="Accept" 
+                    <Button
+                        label="Accept"
                         icon="pi pi-check"
                         severity="success"
                         @click="confirmAcceptRequest($event)"
@@ -670,40 +670,40 @@ onMounted(() => {
     .section-header {
         padding: 1rem 1rem 0;
     }
-    
+
     .request-content {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .request-actions {
         width: 100%;
     }
-    
+
     .action-buttons {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .action-buttons button {
         flex: 1;
     }
-    
+
     .dialog-content {
         padding: 0.5rem 0;
     }
-    
+
     .patient-profile-section .flex {
         flex-direction: column;
         text-align: center;
         gap: 1rem;
     }
-    
+
     .contact-info {
         text-align: left;
     }
-    
+
     .grid.grid-cols-1.md\\:grid-cols-2 {
         grid-template-columns: 1fr;
     }
