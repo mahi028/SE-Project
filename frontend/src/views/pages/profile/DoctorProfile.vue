@@ -152,6 +152,7 @@ const userDetails = computed(() => {
     email: user.email,
     ezId: user.ezId,
     phone: user.phoneNum,
+    docId: docInfo.docId,
     alternatePhone: docInfo.alternatePhoneNum,
     address: docInfo.address,
     pincode: docInfo.pincode,
@@ -554,7 +555,7 @@ const cancelAppointment = (appointment) => {
 const handleReviewAdded = async () => {
   // Refetch doctor data to get updated reviews
   try {
-    await fetchDoctor({ ezId: route.params.ezId })
+    await fetchDoctor(GET_DOCTOR_DATA, { ezId: route.params.ezId })
   } catch (error) {
     console.error('Failed to refetch doctor data:', error)
   }
@@ -718,7 +719,7 @@ onMounted(async () => {
     <!-- Profile content -->
     <div v-else-if="userDetails">
       <!-- Status indicators for mod/owner -->
-      <div v-if="loginStore.role === 'mod' || loginStore.ezId === userDetails.ezId">
+      <div v-if="loginStore.role === 2 || loginStore.ezId === userDetails.ezId">
           <div v-show="loginStore.ezId === userDetails.ezId" style="text-align: center;"> <h3> Your Profile </h3></div>
 
         <div v-show="userDetails.status === 1"> <h5> Active Doctor Profile! </h5></div>
@@ -812,7 +813,7 @@ onMounted(async () => {
           </div>
 
           <!-- Mod Funtionalities -->
-          <div v-if="loginStore.role === 'mod'">
+          <div v-if="loginStore.role === 2">
               <h3 class="text-2xl font-semibold mb-4 flex items-center gap-2">
                   <i class="pi pi-shield text-blue-500"></i>
                   Moderator Controls
@@ -923,10 +924,10 @@ onMounted(async () => {
           </div>
 
           <!-- Document Verification Section -->
-          <div v-if="(loginStore.role === 'mod' || loginStore.ezId === userDetails.ezId) && userDetails.documents" class="mb-6">
+          <div v-if="(loginStore.role === 2 || loginStore.ezId === userDetails.ezId) && userDetails.documents" class="mb-6">
               <h4 class="text-lg font-semibold mb-3 flex items-center gap-2">
                   <i class="pi pi-file-check text-green-500"></i>
-                  {{ loginStore.role === 'mod' ? 'Document Verification' : 'Your Documents' }}
+                  {{ loginStore.role === 2 ? 'Document Verification' : 'Your Documents' }}
               </h4>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -961,7 +962,7 @@ onMounted(async () => {
                   <div class="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                       <i class="pi pi-info-circle"></i>
                       <span class="text-sm">
-                          {{ loginStore.role === 'mod'
+                          {{ loginStore.role === 2
                               ? 'Click on any document to view it. Verify all documents before approving the doctor.'
                               : 'Click on any document to view or download it.' }}
                       </span>
@@ -1077,7 +1078,8 @@ onMounted(async () => {
               <DoctorReviews
                 :reviews="reviews"
                 :doctorName="userDetails.name"
-                :docId="userDetails.ezId"
+                :ezId="userDetails.ezId"
+                :docId="userDetails.docId"
                 :hasAppointments="hasAppointments"
                 @reviewAdded="handleReviewAdded"
               />

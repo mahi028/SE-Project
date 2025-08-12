@@ -3,8 +3,8 @@
     import { RouterLink } from 'vue-router';
     import { useToast } from "primevue/usetoast";
     import { useRouter } from 'vue-router';
-    import { seniorService } from '@/service/SeniorService';
-    import { doctorService } from '@/service/DoctorService';
+    import { useLazyQuery } from '@vue/apollo-composable';
+    import gql from 'graphql-tag';
 
     const router = useRouter()
     const props = defineProps({
@@ -12,6 +12,49 @@
     })
 
     const toast = useToast();
+
+    // GraphQL query for user lookup
+    const GET_USER_BY_CRITERIA = gql`
+        query GetUser($ezId: String!) {
+            getUser(ezId: $ezId) {
+                ezId
+                role
+                name
+                email
+                senInfo {
+                    senId
+                    ezId
+                }
+                docInfo {
+                    docId
+                    ezId
+                }
+            }
+        }
+    `;
+
+    const GET_USER_BY_EMAIL = gql`
+        query GetUserByEmail($email: String!) {
+            getUserByEmail(email: $email) {
+                ezId
+                role
+                name
+                email
+                senInfo {
+                    senId
+                    ezId
+                }
+                docInfo {
+                    docId
+                    ezId
+                }
+            }
+        }
+    `;
+
+    // Fix the lazy query hooks
+    const { load: loadUserByEzId } = useLazyQuery(GET_USER_BY_CRITERIA);
+    const { load: loadUserByEmail } = useLazyQuery(GET_USER_BY_EMAIL);
 
     const overlay = ref({
         'patient-lookup': false,
@@ -37,34 +80,172 @@
         toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
     };
 
-    const getInfo = () => {
-        if (lookupValue.value === 'Email'){
-            seniorService.getSenior({ "email": lookupData.value.email }).then(data => {
-                if (data){
-                    router.push(`/senior/${data.ez_id}`)
-                }else{
-                    toast.add({ severity: 'danger', summary: 'No User Found', detail: 'Please Enter a valid Email.', life: 3000 });
-                }
-            })
+    const getInfo = async () => {
+        try {
+            let result = null;
 
-        }else if (lookupValue.value === 'EZID'){
-            router.push(`/senior/${lookupData.value.ezid}`)
-        }
-    }
-    const getUserInfo = () => {
-        if (userlookupValue.value === 'Email'){
-            doctorService.getDoctor({ "email": userlookupData.value.email }).then(data => {
-                if (data){
-                    router.push(`/doctor/${data.ez_id}`)
-                }else{
-                    toast.add({ severity: 'danger', summary: 'No User Found', detail: 'Please Enter a valid Email.', life: 3000 });
+            if (lookupValue.value === 'Email') {
+                if (!lookupData.value.email.trim()) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Missing Information',
+                        detail: 'Please enter an email address.',
+                        life: 3000
+                    });
+                    return;
                 }
-            })
 
-        }else if (userlookupValue.value === 'EZID'){
-            router.push(`/doctor/${userlookupData.value.ezid}`)
+                result = await loadUserByEmail(GET_USER_BY_EMAIL, { email: lookupData.value.email });
+            } else if (lookupValue.value === 'EZID') {
+                if (!lookupData.value.ezid.trim()) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Missing Information',
+                        detail: 'Please enter an EZ ID.',
+                        life: 3000
+                    });
+                    return;
+                }
+
+                result = await loadUserByEzId(GET_USER_BY_CRITERIA, { ezId: lookupData.value.ezid });
+            }
+
+            // Fix the data extraction - useLazyQuery returns result in different structure
+            let userData = null;
+            if (result) {
+                if (lookupValue.value === 'Email') {
+                    userData = result.getUserByEmail;
+                } else if (lookupValue.value === 'EZID') {
+                    userData = result.getUser;
+                }
+            }
+
+            if (userData) {
+                // Check if user is a senior (role 0) and has senior info
+                if (userData.role === 0 && userData.senInfo) {
+                    router.push(`/senior/${userData.ezId}`);
+                } else if (userData.role === 0) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Incomplete Profile',
+                        detail: 'This senior citizen has not completed their registration.',
+                        life: 3000
+                    });
+                } else {
+                    toast.add({
+                        severity: 'info',
+                        summary: 'Not a Senior',
+                        detail: 'This user is not a senior citizen. Use User Lookup for other user types.',
+                        life: 3000
+                    });
+                }
+            } else {
+                toast.add({
+                    severity: 'error',
+                    summary: 'No User Found',
+                    detail: 'Please check the information and try again.',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            console.error('Error looking up patient:', error);
+            toast.add({
+                severity: 'error',
+                summary: 'Lookup Failed',
+                detail: 'Failed to lookup patient information. Please try again.',
+                life: 3000
+            });
         }
-    }
+    };
+
+    const getUserInfo = async () => {
+        try {
+            let result = null;
+
+            if (userlookupValue.value === 'Email') {
+                if (!userlookupData.value.email.trim()) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Missing Information',
+                        detail: 'Please enter an email address.',
+                        life: 3000
+                    });
+                    return;
+                }
+
+                result = await loadUserByEmail(GET_USER_BY_EMAIL, { email: userlookupData.value.email });
+            } else if (userlookupValue.value === 'EZID') {
+                if (!userlookupData.value.ezid.trim()) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Missing Information',
+                        detail: 'Please enter an EZ ID.',
+                        life: 3000
+                    });
+                    return;
+                }
+
+                result = await loadUserByEzId(GET_USER_BY_CRITERIA, { ezId: userlookupData.value.ezid });
+            }
+
+            // Fix the data extraction - useLazyQuery returns result in different structure
+            let userData = null;
+            if (result) {
+                if (userlookupValue.value === 'Email') {
+                    userData = result.getUserByEmail;
+                } else if (userlookupValue.value === 'EZID') {
+                    userData = result.getUser;
+                }
+            }
+
+            if (userData) {
+                // Route based on user role
+                if (userData.role === 1 && userData.docInfo) {
+                    // Doctor with complete profile
+                    router.push(`/doctor/${userData.ezId}`);
+                } else if (userData.role === 0 && userData.senInfo) {
+                    // Senior with complete profile
+                    router.push(`/senior/${userData.ezId}`);
+                } else if (userData.role === 1) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Incomplete Profile',
+                        detail: 'This doctor has not completed their registration.',
+                        life: 3000
+                    });
+                } else if (userData.role === 0) {
+                    toast.add({
+                        severity: 'warn',
+                        summary: 'Incomplete Profile',
+                        detail: 'This senior citizen has not completed their registration.',
+                        life: 3000
+                    });
+                } else {
+                    toast.add({
+                        severity: 'info',
+                        summary: 'User Found',
+                        detail: `User found: ${userData.name} (Role: ${userData.role === 2 ? 'Moderator' : 'Unknown'})`,
+                        life: 3000
+                    });
+                }
+            } else {
+                toast.add({
+                    severity: 'error',
+                    summary: 'No User Found',
+                    detail: 'Please check the information and try again.',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            console.error('Error looking up user:', error);
+            toast.add({
+                severity: 'error',
+                summary: 'Lookup Failed',
+                detail: 'Failed to lookup user information. Please try again.',
+                life: 3000
+            });
+        }
+    };
 
     const doctorWidgets = ref([
         {
@@ -242,17 +423,17 @@
             <br>
         </Dialog>
 
-        <!-- Patient Lookup -->
-        <Dialog v-model:visible="overlay['user-lookup']" modal header="Get Patient's Medical Info" :style="{ width: '35rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <!-- User Lookup -->
+        <Dialog v-model:visible="overlay['user-lookup']" modal header="User Lookup" :style="{ width: '35rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
             <div>
                 <div class=" flex justify-center">
                     <SelectButton v-model="userlookupValue" :options="userlookupOptions" />
                 </div>
-                <label for="email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='Email'">Email</label>
-                <InputText id="email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.email" v-show="userlookupValue=='Email'"/>
+                <label for="user-email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='Email'">Email</label>
+                <InputText id="user-email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.email" v-show="userlookupValue=='Email'"/>
 
-                <label for="ezid" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='EZID'">EZ ID</label>
-                <InputText id="ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.ezid" v-show="userlookupValue=='EZID'"/>
+                <label for="user-ezid" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2" v-show="userlookupValue=='EZID'">EZ ID</label>
+                <InputText id="user-ezid" type="text" placeholder="Enter EZID" class="w-full md:w-[30rem] mb-8" v-model="userlookupData.ezid" v-show="userlookupValue=='EZID'"/>
 
                 <Button label="Get Info" @click="getUserInfo()" class="w-full"></Button>
             </div>

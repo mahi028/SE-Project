@@ -19,8 +19,12 @@ const props = defineProps({
         required: false,
         default: 'this doctor'
     },
-    docId: {
+    ezId: {
         type: String,
+        required: false,
+    },
+    docId: {
+        type: Number,
         required: true
     },
     // Add new prop to check if user has appointments with doctor
@@ -109,7 +113,7 @@ const submitReview = async () => {
     submitting.value = true
     try {
         const { data } = await addDocReview({
-            docId: parseInt(props.docId),
+            docId: props.docId,
             rating: newReview.value.rating,
             review: newReview.value.review.trim()
         })
