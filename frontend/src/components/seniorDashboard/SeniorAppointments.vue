@@ -84,12 +84,12 @@ const getAppointmentStatus = (appointment) => {
     const appointmentDateTime = new Date(appointment.remTime);
     const now = new Date();
 
-    // Handle different status values
+    // Handle different status values first
     switch (appointment.status) {
         case 0:
-            return { label: 'Pending', severity: 'warning' };
+            return { label: 'Pending Approval', severity: 'warning' };
         case 1:
-            // Check if confirmed appointment is past or future
+            // For confirmed appointments, check if past or future
             if (appointmentDateTime < now) {
                 return { label: 'Completed', severity: 'success' };
             } else {
@@ -98,7 +98,7 @@ const getAppointmentStatus = (appointment) => {
                 if (diffDays <= 1) {
                     return { label: 'Today/Tomorrow', severity: 'info' };
                 } else {
-                    return { label: 'Upcoming', severity: 'info' };
+                    return { label: 'Confirmed', severity: 'success' };
                 }
             }
         case -1:

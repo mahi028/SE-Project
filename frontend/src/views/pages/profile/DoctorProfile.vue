@@ -690,6 +690,34 @@ onMounted(async () => {
     })
   }
 })
+
+// Add a helper function for appointment status
+const getAppointmentStatusInfo = (appointment) => {
+    const appointmentDateTime = new Date(appointment.remTime);
+    const now = new Date();
+
+    // Handle different status values
+    switch (appointment.status) {
+        case 0:
+            return { label: 'Pending Approval', severity: 'warning', description: 'Waiting for doctor approval' };
+        case 1:
+            if (appointmentDateTime < now) {
+                return { label: 'Completed', severity: 'success', description: 'Appointment completed' };
+            } else {
+                const diffTime = appointmentDateTime - now;
+                const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+                if (diffHours <= 24) {
+                    return { label: 'Today/Tomorrow', severity: 'info', description: 'Upcoming appointment' };
+                } else {
+                    return { label: 'Confirmed', severity: 'success', description: 'Appointment confirmed' };
+                }
+            }
+        case -1:
+            return { label: 'Cancelled', severity: 'danger', description: 'Appointment cancelled' };
+        default:
+            return { label: 'Unknown', severity: 'secondary', description: 'Status unknown' };
+    }
+};
 </script>
 
 <template>
@@ -1042,7 +1070,7 @@ onMounted(async () => {
                     responsiveLayout="scroll"
                     class="p-datatable-lg text-base"
                   >
-                    <Column field="remTime" header="Date & Time" sortable style="width: 35%">
+                    <Column field="remTime" header="Date & Time" sortable style="width: 30%">
                       <template #body="{ data }">
                         <div>
                           <div class="font-semibold text-base">{{ new Date(data.remTime).toLocaleDateString() }}</div>
@@ -1050,15 +1078,29 @@ onMounted(async () => {
                         </div>
                       </template>
                     </Column>
-                    <Column field="reason" header="Reason" style="width: 50%">
+                    <Column field="reason" header="Reason" style="width: 35%">
                       <template #body="{ data }">
                         <span class="text-base">{{ data.reason || 'General consultation' }}</span>
+                      </template>
+                    </Column>
+                    <Column header="Status" style="width: 20%">
+                      <template #body="{ data }">
+                        <div class="flex flex-col gap-1">
+                          <Tag
+                            :value="getAppointmentStatusInfo(data).label"
+                            :severity="getAppointmentStatusInfo(data).severity"
+                            class="text-sm"
+                          />
+                          <small class="text-surface-500 dark:text-surface-400">
+                            {{ getAppointmentStatusInfo(data).description }}
+                          </small>
+                        </div>
                       </template>
                     </Column>
                     <Column header="Actions" style="width: 15%">
                       <template #body="{ data }">
                         <Button
-                          v-if="isUpcomingAppointment(data) && loginStore.role === 0"
+                          v-if="data.status === 1 && isUpcomingAppointment(data) && loginStore.role === 0"
                           icon="pi pi-times"
                           size="small"
                           severity="danger"
@@ -1066,8 +1108,19 @@ onMounted(async () => {
                           @click="cancelAppointment(data)"
                           v-tooltip.top="'Cancel Appointment'"
                         />
+                        <Button
+                          v-else-if="data.status === 0 && loginStore.role === 0"
+                          icon="pi pi-times"
+                          size="small"
+                          severity="warning"
+                          outlined
+                          @click="cancelAppointment(data)"
+                          v-tooltip.top="'Cancel Request'"
+                        />
                         <span v-else class="text-surface-500 text-sm">
-                          {{ isUpcomingAppointment(data) ? 'Upcoming' : 'Completed' }}
+                          {{ data.status === -1 ? 'Cancelled' :
+                             data.status === 1 && !isUpcomingAppointment(data) ? 'Completed' :
+                             'No actions' }}
                         </span>
                       </template>
                     </Column>

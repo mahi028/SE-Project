@@ -320,6 +320,27 @@ const closeRoleMismatchDialog = () => {
   showRoleMismatchDialog.value = false
   foundUser.value = null
 }
+
+// Add appointment status helper
+const getAppointmentStatusInfo = (appointment) => {
+    const appointmentDateTime = new Date(appointment.remTime);
+    const now = new Date();
+
+    switch (appointment.status) {
+        case 0:
+            return { label: 'Pending', severity: 'warning', canCancel: true };
+        case 1:
+            if (appointmentDateTime < now) {
+                return { label: 'Completed', severity: 'success', canCancel: false };
+            } else {
+                return { label: 'Confirmed', severity: 'success', canCancel: true };
+            }
+        case -1:
+            return { label: 'Cancelled', severity: 'danger', canCancel: false };
+        default:
+            return { label: 'Unknown', severity: 'secondary', canCancel: false };
+    }
+};
 </script>
 
 <template>
@@ -422,7 +443,7 @@ const closeRoleMismatchDialog = () => {
                 responsiveLayout="scroll"
                 class="p-datatable-lg text-base"
               >
-                <Column field="remTime" header="Date & Time" sortable style="width: 35%">
+                <Column field="remTime" header="Date & Time" sortable style="width: 30%">
                   <template #body="{ data }">
                     <div>
                       <div class="font-semibold text-base">{{ new Date(data.remTime).toLocaleDateString() }}</div>
@@ -430,15 +451,24 @@ const closeRoleMismatchDialog = () => {
                     </div>
                   </template>
                 </Column>
-                <Column field="reason" header="Reason" style="width: 50%">
+                <Column field="reason" header="Reason" style="width: 40%">
                   <template #body="{ data }">
                     <span class="text-base">{{ data.reason || 'General consultation' }}</span>
+                  </template>
+                </Column>
+                <Column header="Status" style="width: 15%">
+                  <template #body="{ data }">
+                    <Tag
+                      :value="getAppointmentStatusInfo(data).label"
+                      :severity="getAppointmentStatusInfo(data).severity"
+                      class="text-sm"
+                    />
                   </template>
                 </Column>
                 <Column header="Actions" style="width: 15%">
                   <template #body="{ data }">
                     <Button
-                      v-if="isUpcomingAppointment(data)"
+                      v-if="getAppointmentStatusInfo(data).canCancel && loginStore.role === 1"
                       icon="pi pi-times"
                       size="small"
                       severity="danger"
@@ -446,7 +476,11 @@ const closeRoleMismatchDialog = () => {
                       @click="cancelAppointment(data)"
                       v-tooltip.top="'Cancel Appointment'"
                     />
-                    <span v-else class="text-surface-500 text-sm">Completed</span>
+                    <span v-else class="text-surface-500 text-sm">
+                      {{ data.status === -1 ? 'Cancelled' :
+                         data.status === 1 && !isUpcomingAppointment(data) ? 'Completed' :
+                         data.status === 0 ? 'Pending' : 'No actions' }}
+                    </span>
                   </template>
                 </Column>
               </DataTable>

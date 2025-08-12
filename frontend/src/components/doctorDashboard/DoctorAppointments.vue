@@ -81,7 +81,16 @@ const getSeniorInfo = (senId) => {
     };
 };
 
-const getAppointmentStatus = (date, time) => {
+const getAppointmentStatus = (date, time, status) => {
+    // Handle different status values first
+    if (status === 0) {
+        return { label: 'Pending Approval', severity: 'warning' };
+    }
+    if (status === -1) {
+        return { label: 'Cancelled', severity: 'danger' };
+    }
+
+    // For confirmed appointments (status === 1), check timing
     const appointmentDateTime = new Date(`${date} ${time}`);
     const now = new Date();
 
@@ -92,9 +101,9 @@ const getAppointmentStatus = (date, time) => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (diffDays <= 1) {
-            return { label: 'Today/Tomorrow', severity: 'warning' };
+            return { label: 'Today/Tomorrow', severity: 'info' };
         } else {
-            return { label: 'Upcoming', severity: 'info' };
+            return { label: 'Confirmed', severity: 'success' };
         }
     }
 };
@@ -302,8 +311,8 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment.date, appointment.time, appointment.status).label"
+                                                :severity="getAppointmentStatus(appointment.date, appointment.time, appointment.status).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
@@ -404,8 +413,8 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment.date, appointment.time, appointment.status).label"
+                                                :severity="getAppointmentStatus(appointment.date, appointment.time, appointment.status).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
