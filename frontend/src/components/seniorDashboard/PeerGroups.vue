@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useQuery, useMutation } from '@vue/apollo-composable';
 import { useLoginStore } from '@/store/loginStore';
@@ -16,7 +16,7 @@ const showMyGroupsOnly = ref(false);
 const newGroup = ref({
     label: '',
     day: '',
-    time: null, // Changed from string to Date object for Calendar component
+    time: null,
     location: ''
 });
 
@@ -50,16 +50,6 @@ const GET_GROUPS = gql`
                     name
                 }
             }
-        }
-    }
-`;
-
-const GET_GROUP_MEMBERS = gql`
-    query GetGroupMembers($grpId: Int!) {
-        getGroupMembers(grpId: $grpId) {
-            grpId
-            senId
-            joinedAt
         }
     }
 `;
@@ -131,7 +121,7 @@ const openCreateGroup = () => {
     newGroup.value = {
         label: '',
         day: '',
-        time: null, // Reset to null for Calendar component
+        time: null,
         location: ''
     };
     visible.value = true;
@@ -142,7 +132,7 @@ const cancelGroup = () => {
     newGroup.value = {
         label: '',
         day: '',
-        time: '',
+        time: null,
         location: ''
     };
 };
@@ -285,7 +275,7 @@ const getDayIndex = (dayName) => {
 const isFormValid = () => {
     return newGroup.value.label.trim() &&
            newGroup.value.day &&
-           newGroup.value.time && // Now checking for Date object
+           newGroup.value.time &&
            newGroup.value.location.trim();
 };
 
@@ -325,22 +315,6 @@ const reFetchGroups = async () => {
 
 const toggleGroupFilter = () => {
     showMyGroupsOnly.value = !showMyGroupsOnly.value;
-};
-
-// Add debouncing for pincode input
-const pincodeDebounceTimer = ref(null);
-
-// Remove the direct watch on pincode and add debounced handling
-const handlePincodeInput = () => {
-    // Clear existing timer
-    if (pincodeDebounceTimer.value) {
-        clearTimeout(pincodeDebounceTimer.value);
-    }
-
-    // Set new timer to refetch after 500ms of no input
-    pincodeDebounceTimer.value = setTimeout(() => {
-        reFetchGroups();
-    }, 500);
 };
 
 onMounted(() => {
@@ -405,7 +379,6 @@ onMounted(() => {
                                         placeholder="Enter pincode"
                                         class="w-full"
                                         style="min-width: 120px;"
-                                        @input="handlePincodeInput"
                                     />
                                 </div>
                                 <Button
@@ -600,12 +573,12 @@ onMounted(() => {
                     <div class="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <i class="pi pi-info-circle text-green-500 mt-1"></i>
                         <div class="text-sm text-green-700 dark:text-green-300">
-                            <p class="font-medium mb-2">Peer Group Guidelines</p>
+                            <p class="font-medium mb-2">EZCare Peer Group Guidelines</p>
                             <ul class="space-y-1">
                                 <li>• Choose a convenient time and location for regular meetings</li>
                                 <li>• Select activities that interest your target group</li>
                                 <li>• Ensure the location is accessible for seniors</li>
-                                <li>• Groups are visible to others in your pincode area</li>
+                                <li>• Groups are visible to others in your pincode area through EZCare</li>
                             </ul>
                         </div>
                     </div>
@@ -728,7 +701,7 @@ onMounted(() => {
 }
 
 @media (max-width: 640px) {
-    .flex.flex-col.sm\\:flex-row {
+    .flex.flex-col.sm\:flex-row {
         align-items: stretch;
     }
 

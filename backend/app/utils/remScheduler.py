@@ -38,8 +38,7 @@ def should_trigger_now(reminder: Reminders, now: datetime) -> bool:
 
 def trigger_reminder(reminder: Reminders):
     """Trigger reminder and send email."""
-    subject = f"Reminder: {reminder.label}"
-    contact = reminder
+    subject = f"⏰ Reminder: {reminder.label}"
 
     # Access user email via relationship
     if not reminder.user or not reminder.user.email:
@@ -48,11 +47,26 @@ def trigger_reminder(reminder: Reminders):
 
     recipients = [reminder.user.email]
     reminder_display = {
-        **reminder.__dict__,
-        "category": CATEGORY_MAP.get(reminder.category, "Other")  # fallback to "Other"
+        'label': reminder.label,
+        'category': CATEGORY_MAP.get(reminder.category, "Other"),
+        'rem_time': reminder.rem_time,
+        'is_recurring': reminder.is_recurring,
+        'frequency': reminder.frequency,
+        'weekdays': reminder.weekdays,
+        'times_per_day': reminder.times_per_day,
+        'time_slots': reminder.time_slots,
+        'interval': reminder.interval,
+        'is_active': reminder.is_active
     }
+    
     try:
-        send_email(subject, contact, recipients, reminder_display)
+        send_email(
+            subject=subject,
+            recipients=recipients,
+            reminder_display=reminder_display,
+            template="reminders_template.html",
+            current_year=datetime.now().year
+        )
         print(f"Email sent for Reminder: {reminder.label} to {reminder.user.email}")
     except Exception as e:
         print(f"Error sending email for {reminder.label}: {e}")

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS Emergency Alert</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: "🚨";
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-banner {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 0;
+            text-align: center;
+            font-weight: bold;
+            color: #856404;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .info-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+            min-width: 120px;
+        }
+
+        .info-value {
+            color: #212529;
+            flex: 1;
+            text-align: right;
+        }
+
+        .phone-link {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .phone-link:hover {
+            text-decoration: underline;
+        }
+
+        .email-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .email-link:hover {
+            text-decoration: underline;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-emergency {
+            background-color: #e74c3c;
+            color: white;
+            border: 2px solid #e74c3c;
+        }
+
+        .btn-emergency:hover {
+            background-color: #c0392b;
+            border-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: 2px solid #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+            border-color: #545b62;
+        }
+
+        .time-stamp {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #ffc107;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .priority-notice {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #0c5460;
+            margin-top: 0;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+            color: #0c5460;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 5px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .info-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>EMERGENCY SOS ALERT</h1>
+            <p>Immediate attention required</p>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+            ⚠️ HIGH PRIORITY EMERGENCY ⚠️
+        </div>
+
+        <!-- Priority Notice -->
+        <div class="priority-notice">
+            A senior citizen in your emergency contact list needs immediate help!
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Time Stamp -->
+            <div class="time-stamp">
+                <strong>Emergency Alert Triggered:</strong><br>
+                {{ reminder_display.time.strftime('%A, %B %d, %Y at %I:%M %p UTC') }}
+            </div>
+
+            <!-- Senior Information -->
+            <div class="info-section">
+                <h2 style="color: #e74c3c; margin-top: 0;">Senior Citizen Information</h2>
+
+                <div class="info-row">
+                    <span class="info-label">👤 Identity:</span>
+                    <span class="info-value">{{ reminder_display.ezId }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">👤 Name:</span>
+                    <span class="info-value">{{ reminder_display.name }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">📞 Phone:</span>
+                    <span class="info-value">
+                        <a href="tel:{{ reminder_display.phone_num }}" class="phone-link">
+                            {{ reminder_display.phone_num }}
+                        </a>
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">📧 Email:</span>
+                    <span class="info-value">
+                        <a href="mailto:{{ reminder_display.email }}" class="email-link">
+                            {{ reminder_display.email }}
+                        </a>
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">🏠 Address:</span>
+                    <span class="info-value">{{ reminder_display.address or 'Not provided' }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">📮 Pincode:</span>
+                    <span class="info-value">{{ reminder_display.pincode or 'Not provided' }}</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="tel:{{ reminder_display.phone_num }}" class="btn btn-emergency">
+                    📞 CALL NOW
+                </a>
+                <a href="tel:108" class="btn btn-secondary">
+                    🚑 CALL AMBULANCE (108)
+                </a>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h3>🚨 Emergency Response Instructions</h3>
+                <ul>
+                    <li><strong>Immediate Action:</strong> Call the senior citizen directly at the provided phone number</li>
+                    <li><strong>No Response:</strong> If they don't answer, try calling again after 2-3 minutes</li>
+                    <li><strong>Still No Response:</strong> Contact emergency services (108 for ambulance, 100 for police)</li>
+                    <li><strong>Local Help:</strong> If you're nearby, consider going to their location to check on them</li>
+                    <li><strong>Medical Emergency:</strong> If they mention medical issues, call ambulance (108) immediately</li>
+                    <li><strong>Follow Up:</strong> Stay in contact until help arrives or situation is resolved</li>
+                </ul>
+            </div>
+
+            <!-- Emergency Numbers -->
+            <div class="info-section">
+                <h3 style="color: #e74c3c; margin-top: 0;">🆘 Emergency Contact Numbers</h3>
+                <div class="info-row">
+                    <span class="info-label">🚑 Ambulance:</span>
+                    <span class="info-value"><a href="tel:108" class="phone-link">108</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🚔 Police:</span>
+                    <span class="info-value"><a href="tel:100" class="phone-link">100</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🔥 Fire:</span>
+                    <span class="info-value"><a href="tel:101" class="phone-link">101</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🆘 Women Helpline:</span>
+                    <span class="info-value"><a href="tel:1091" class="phone-link">1091</a></span>
+                </div>
+            </div>
+
+            <!-- Important Notice -->
+            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404; font-weight: bold;">
+                    ⚠️ <strong>Important:</strong> This is an automated emergency alert. The senior citizen has manually triggered an SOS request through our EZCare platform. Please take immediate action to ensure their safety and well-being.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>This emergency alert was generated by <strong>EZCare</strong></p>
+            <p>© {{ current_year }} EZCare. All rights reserved.</p>
+            <p>
+                <strong>Emergency Services:</strong>
+                <a href="tel:108">108 (Ambulance)</a> |
+                <a href="tel:100">100 (Police)</a> |
+                <a href="tel:101">101 (Fire)</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

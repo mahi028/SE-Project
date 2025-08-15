@@ -319,7 +319,7 @@ onMounted(() => {
 <template>
     <div class="flex flex-col">
         <div class="card">
-            <div class="font-semibold text-xl mb-4">Doctor Directory</div>
+            <div class="font-semibold text-xl mb-4">EZCare Doctor Directory</div>
 
             <!-- Loading state -->
             <div v-if="loading" class="text-center py-8">

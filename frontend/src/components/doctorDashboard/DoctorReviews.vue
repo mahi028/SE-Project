@@ -179,7 +179,7 @@ const isFormValid = () => {
       <div class="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
         <i class="pi pi-info-circle"></i>
         <span class="text-sm">
-          You can only write a review after having an appointment with {{ doctorName }}.
+          You can only write a review after having an appointment with {{ doctorName }} through EZCare.
         </span>
       </div>
     </div>
