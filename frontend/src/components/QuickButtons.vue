@@ -61,6 +61,7 @@
         'example-images': false,
         'user-lookup': false,
         'SOS-overlay': false,
+        'add-embeddings-overlay': false,
     })
 
     const lookupOptions = ref(['Email', 'EZID', 'Face']);
@@ -277,6 +278,14 @@
         },
         {
             id: 3,
+            label: 'Register Face ID',
+            desc: 'Add your facial video for easy profile lookups during emergencies',
+            iconClass: 'pi pi-video text-green-500 !text-xl',
+            action: 'overlay',
+            type: 'add-embeddings-overlay',
+        },
+        {
+            id: 4,
             label: 'SOS',
             desc: 'Only click this in case of serious Emergencies',
             iconClass: 'pi pi-phone',
@@ -492,6 +501,103 @@
                 return 'danger';
             default:
                 return 'secondary';
+        }
+    };
+
+    // Add facial embeddings registration variables
+    const embeddingsVideo = ref(null);
+    const embeddingsUploading = ref(false);
+
+    const onEmbeddingsVideoSelect = (event) => {
+        const files = event.files || event.target.files;
+        if (files && files.length > 0) {
+            embeddingsVideo.value = files[0];
+        }
+    };
+
+    const clearEmbeddingsVideo = () => {
+        embeddingsVideo.value = null;
+    };
+
+    const registerFaceEmbeddings = async () => {
+        if (!embeddingsVideo.value) {
+            toast.add({
+                severity: 'warn',
+                summary: 'No Video Selected',
+                detail: 'Please select a video file first.',
+                life: 3000
+            });
+            return;
+        }
+
+        // Validate video file
+        if (!embeddingsVideo.value.type.startsWith('video/')) {
+            toast.add({
+                severity: 'error',
+                summary: 'Invalid File Type',
+                detail: 'Please select a valid video file.',
+                life: 3000
+            });
+            return;
+        }
+
+        // Check file size (limit to 50MB)
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        if (embeddingsVideo.value.size > maxSize) {
+            toast.add({
+                severity: 'error',
+                summary: 'File Too Large',
+                detail: 'Video file must be less than 50MB.',
+                life: 3000
+            });
+            return;
+        }
+
+        embeddingsUploading.value = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('video', embeddingsVideo.value);
+
+            const response = await fetch('http://localhost:5000/user-lookup/register', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('EZCARE-LOGIN-TOKEN')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Registration Successful',
+                    detail: data.message || `Face ID registered successfully with ${data.total_embeddings} face embeddings!`,
+                    life: 5000
+                });
+
+                // Clear form and close overlay
+                clearEmbeddingsVideo();
+                closeAllOverlays();
+            } else {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Registration Failed',
+                    detail: data.error || 'Failed to register face ID',
+                    life: 4000
+                });
+            }
+        } catch (error) {
+            console.error('Face ID registration error:', error);
+            toast.add({
+                severity: 'error',
+                summary: 'Network Error',
+                detail: 'Failed to connect to the registration service. Please try again.',
+                life: 4000
+            });
+        } finally {
+            embeddingsUploading.value = false;
         }
     };
 
@@ -763,6 +869,134 @@
                 <Button @click="sendSOS()" label="Continue"></Button>
             </div>
         </Dialog>
+
+        <!-- Add Embeddings Overlay -->
+        <Dialog
+            v-model:visible="overlay['add-embeddings-overlay']"
+            modal
+            header="Register Face ID"
+            :style="{ width: '500px' }"
+            :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+            :closable="!embeddingsUploading"
+            :dismissableMask="!embeddingsUploading"
+        >
+            <template #header>
+                <div class="flex items-center gap-2">
+                    <i class="pi pi-video text-green-500"></i>
+                    <span class="text-xl font-semibold">Register Your Face ID</span>
+                </div>
+            </template>
+
+            <div class="space-y-6">
+                <!-- Information Panel -->
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-info-circle text-blue-500 mt-1"></i>
+                        <div class="text-sm text-blue-700 dark:text-blue-300">
+                            <p class="font-medium mb-2">Face ID Registration</p>
+                            <ul class="space-y-1">
+                                <li>• Record a short video (15-30 seconds) showing your face clearly</li>
+                                <li>• Look directly at the camera and move your head slightly</li>
+                                <li>• Ensure good lighting and avoid shadows</li>
+                                <li>• This helps doctors identify you during emergencies</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Upload Section -->
+                <div>
+                    <label class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-3">
+                        Upload Your Video
+                    </label>
+
+                    <div class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                        <input
+                            type="file"
+                            ref="videoInput"
+                            accept="video/*"
+                            @change="onEmbeddingsVideoSelect"
+                            class="hidden"
+                            id="embeddingsVideoInput"
+                        />
+                        <label for="embeddingsVideoInput" class="cursor-pointer">
+                            <div class="flex flex-col items-center gap-3">
+                                <i class="pi pi-video text-4xl text-surface-400 hover:text-primary-500 transition-colors"></i>
+                                <div>
+                                    <p class="text-surface-700 dark:text-surface-300 font-medium">
+                                        {{ embeddingsVideo ? 'Video Selected' : 'Click to select your video' }}
+                                    </p>
+                                    <small class="text-surface-500 dark:text-surface-400">
+                                        Supported formats: MP4, AVI, MOV (Max: 50MB)
+                                    </small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Selected Video Preview -->
+                <div v-if="embeddingsVideo" class="p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <i class="pi pi-video text-primary-500"></i>
+                            <div>
+                                <p class="font-medium text-surface-900 dark:text-surface-0">{{ embeddingsVideo.name }}</p>
+                                <small class="text-surface-500 dark:text-surface-400">
+                                    {{ (embeddingsVideo.size / 1024 / 1024).toFixed(2) }} MB
+                                </small>
+                            </div>
+                        </div>
+                        <Button
+                            icon="pi pi-times"
+                            size="small"
+                            outlined
+                            severity="secondary"
+                            @click="clearEmbeddingsVideo"
+                            v-tooltip.top="'Remove video'"
+                            :disabled="embeddingsUploading"
+                        />
+                    </div>
+                </div>
+
+                <!-- Guidelines -->
+                <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="pi pi-exclamation-triangle text-yellow-600 dark:text-yellow-400 mt-1"></i>
+                        <div class="text-sm text-yellow-700 dark:text-yellow-300">
+                            <p class="font-medium mb-2">Recording Guidelines</p>
+                            <ul class="space-y-1">
+                                <li>• Face should be clearly visible throughout the video</li>
+                                <li>• Avoid wearing masks, sunglasses, or head coverings</li>
+                                <li>• Record in well-lit environment</li>
+                                <li>• Keep the camera steady</li>
+                                <li>• Look directly at the camera</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex justify-end gap-3 mt-6">
+                    <Button
+                        label="Cancel"
+                        icon="pi pi-times"
+                        outlined
+                        @click="closeAllOverlays"
+                        :disabled="embeddingsUploading"
+                    />
+                    <Button
+                        label="Register Face ID"
+                        icon="pi pi-check"
+                        severity="success"
+                        @click="registerFaceEmbeddings"
+                        :loading="embeddingsUploading"
+                        :disabled="!embeddingsVideo"
+                    />
+                </div>
+            </template>
+        </Dialog>
 </template>
 
 <style scoped>
@@ -811,5 +1045,24 @@
 :global(.p-dark) .photo-preview {
     background: var(--surface-800);
     border-color: var(--surface-700);
+}
+
+/* Custom video input styling */
+#embeddingsVideoInput {
+    display: none;
+}
+
+/* Video upload zone styling */
+.video-upload-zone {
+    transition: all 0.3s ease;
+}
+
+.video-upload-zone:hover {
+    border-color: var(--primary-500);
+    background-color: var(--primary-50);
+}
+
+:global(.p-dark) .video-upload-zone:hover {
+    background-color: var(--primary-900);
 }
 </style>
