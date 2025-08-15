@@ -1,9 +1,8 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 import graphene
-from ..utils.dbUtils import commitdb, adddb, rollbackdb
-from ..models import Group, Joinee, db, Reminders, SenInfo
+from ..models import Group, Joinee, SenInfo, db
 from .return_types import ReturnType
-from datetime import timedelta
+from ..utils.dbUtils import adddb, commitdb, rollbackdb
 from ..utils.authControl import get_senior
 
 class GroupType(SQLAlchemyObjectType):
@@ -14,57 +13,66 @@ class JoineeType(SQLAlchemyObjectType):
     class Meta:
         model = Joinee
 
-# Queries: fetch all groups, groups by admin, and members of a group
-class GroupQuery(graphene.ObjectType):
+class GroupsQuery(graphene.ObjectType):
     get_groups = graphene.List(
-        GroupType,
-        admin_id=graphene.Int(),
-        pincode=graphene.String()
+        GroupType, 
+        pincode=graphene.String(required=False),
+        admin_id=graphene.Int(required=False)
     )
     get_group_members = graphene.List(JoineeType, grp_id=graphene.Int(required=True))
 
-    def resolve_get_groups(self, info, admin_id=None, pincode=None):
+    def resolve_get_groups(self, info, pincode=None, admin_id=None):
         query = Group.query
-        if admin_id is not None:
-            if SenInfo.query.get(admin_id):
-                query = query.filter_by(admin=admin_id)
-            else:
-                pass
-        if pincode is not None:
-            query = query.filter_by(pincode=pincode)
+        
+        if admin_id:
+            # Get groups created by specific admin
+            query = query.filter(Group.admin == admin_id)
+        elif pincode:
+            # Get groups in specific pincode
+            query = query.filter(Group.pincode == pincode)
+        else:
+            # Default: get all groups
+            pass
+            
         return query.all()
 
     def resolve_get_group_members(self, info, grp_id):
         return Joinee.query.filter_by(grp_id=grp_id).all()
 
-# Mutation: create group (by senior), join group (by senior)
 class CreateGroup(graphene.Mutation):
     class Arguments:
         label = graphene.String(required=True)
         timing = graphene.DateTime(required=True)
-        pincode = graphene.String()
-        location = graphene.String()
+        pincode = graphene.String(required=False)
+        location = graphene.String(required=False)
 
     Output = ReturnType
 
     def mutate(self, info, label, timing, pincode=None, location=None):
-        admin = get_senior(info)
+        senior = get_senior(info)
+        if not senior:
+            return ReturnType(message="Senior citizen not found", status=404)
+
+        # Use senior's pincode if not provided
+        if not pincode:
+            pincode = senior.pincode
 
         group = Group(
             label=label,
             timing=timing,
-            admin=admin.sen_id,
+            admin=senior.sen_id,
             pincode=pincode,
             location=location
         )
+        
+        adddb(group)
         try:
-            adddb(group)
             commitdb()
             return ReturnType(message="Group created successfully", status=1)
         except Exception as e:
             rollbackdb()
-            print(f"Error adding emergency contact: {str(e)}")
-            return ReturnType(message=f"Something went wrong", status=500)
+            print(f"Error creating group: {e}")
+            return ReturnType(message="Failed to create group", status=0)
 
 class JoinGroup(graphene.Mutation):
     class Arguments:
@@ -74,48 +82,40 @@ class JoinGroup(graphene.Mutation):
 
     def mutate(self, info, grp_id):
         senior = get_senior(info)
+        if not senior:
+            return ReturnType(message="Senior citizen not found", status=404)
 
+        # Check if group exists
         group = Group.query.get(grp_id)
         if not group:
             return ReturnType(message="Group not found", status=404)
-            
-        existing = Joinee.query.filter_by(grp_id=grp_id, sen_id=senior.sen_id).first()
-        if existing:
-            return ReturnType(message="Already joined", status=0)
 
-        # Get senior's ez_id for reminder
-        senior = SenInfo.query.get(senior.sen_id)
-        if not senior:
-            return ReturnType(message="Senior not found", status=404)
+        # Check if already joined
+        existing_member = Joinee.query.filter_by(
+            grp_id=grp_id, 
+            sen_id=senior.sen_id
+        ).first()
+        
+        if existing_member:
+            return ReturnType(message="You are already a member of this group", status=0)
 
-        joinee = Joinee(grp_id=grp_id, sen_id=senior.sen_id)
-        adddb(joinee)
-
-        # Create reminder 1 hour before group timing
-        hour_before = group.timing - timedelta(hours=1)
-        reminder = Reminders(
-            ez_id=senior.ez_id,
-            label=f"Group Meeting: {group.label}",
-            category=3,  # group meeting category
-            rem_time=hour_before,
-            is_active=True,
-            is_recurring=False,
-            frequency=None,
-            interval=1,
-            weekdays=None,
-            times_per_day=1,
-            time_slots=None
+        # Add member
+        member = Joinee(
+            grp_id=grp_id,
+            sen_id=senior.sen_id
         )
-        adddb(reminder)
-
+        
+        adddb(member)
         try:
             commitdb()
-            return ReturnType(message="Joined group successfully and reminder set", status=1)
+            return ReturnType(message="Successfully joined the group", status=1)
         except Exception as e:
             rollbackdb()
-            print(f"Error adding emergency contact: {str(e)}")
-            return ReturnType(message=f"Something went wrong", status=500)
+            print(f"Error joining group: {e}")
+            return ReturnType(message="Failed to join group", status=0)
 
-class GroupMutation(graphene.ObjectType):
+class GroupsMutation(graphene.ObjectType):
+    create_group = CreateGroup.Field()
+    join_group = JoinGroup.Field()
     create_group = CreateGroup.Field()
     join_group = JoinGroup.Field()

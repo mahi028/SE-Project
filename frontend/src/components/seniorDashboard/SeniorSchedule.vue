@@ -515,52 +515,43 @@ onMounted(() => {
             <div class="dialog-content">
                 <div class="grid formgrid p-fluid">
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <InputText
-                                id="medicineLabel"
-                                v-model="newSchedule.label"
-                                class="w-full"
-                            />
-                            <label for="medicineLabel">Medicine Name *</label>
-                        </FloatLabel>
+                        <label for="groupLabel" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Medicine Name *</label>
+                        <InputText
+                            id="medicineLabel"
+                            v-model="newSchedule.label"
+                            placeholder="Enter medicine name"
+                            class="w-full"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <Select
-                                id="frequency"
-                                v-model="newSchedule.frequency"
-                                :options="frequencyOptions"
-                                optionLabel="label"
-                                optionValue="value"
-                                class="w-full"
-                            />
-                            <label for="frequency">Frequency *</label>
-                        </FloatLabel>
+                        <label for="frequency" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Frequency *</label>
+                        <Select
+                            id="frequency"
+                            v-model="newSchedule.frequency"
+                            :options="frequencyOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select frequency"
+                            class="w-full"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">
                         <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-3">
-                            Medicine Times *
+                            Schedule Times *
                         </label>
 
                         <div class="space-y-3">
-                            <div
-                                v-for="(time, index) in newSchedule.times"
-                                :key="index"
-                                class="flex items-center gap-3"
-                            >
-                                <div class="flex-1">
-                                    <Calendar
-                                        v-model="newSchedule.times[index]"
-                                        timeOnly
-                                        hourFormat="24"
-                                        showIcon
-                                        :placeholder="`Time ${index + 1}`"
-                                        class="w-full"
-                                        inputClass="text-center"
-                                    />
-                                </div>
+                            <div v-for="(timeDate, index) in newSchedule.times" :key="index" class="flex items-center gap-2">
+                                <Calendar
+                                    v-model="newSchedule.times[index]"
+                                    timeOnly
+                                    hourFormat="12"
+                                    showIcon
+                                    placeholder="Select time"
+                                    class="flex-1"
+                                />
                                 <Button
                                     v-if="newSchedule.times.length > 1"
                                     icon="pi pi-trash"
@@ -568,24 +559,23 @@ onMounted(() => {
                                     severity="danger"
                                     outlined
                                     @click="removeTimeSlot(index)"
-                                    v-tooltip.top="'Remove Time'"
+                                    v-tooltip.top="'Remove time'"
                                 />
                             </div>
                         </div>
 
                         <div class="mt-3">
                             <Button
-                                label="Add Another Time"
+                                label="Add Time Slot"
                                 icon="pi pi-plus"
                                 size="small"
                                 outlined
                                 @click="addTimeSlot"
-                                class="w-full"
                             />
                         </div>
 
                         <small class="text-surface-500 dark:text-surface-400 mt-2 block">
-                            Use 24-hour format (e.g., 08:30 for 8:30 AM, 20:30 for 8:30 PM)
+                            Add multiple times if medication needs to be taken several times a day
                         </small>
                     </div>
                 </div>
@@ -664,52 +654,43 @@ onMounted(() => {
             <div class="dialog-content">
                 <div class="grid formgrid p-fluid">
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <InputText
-                                id="editMedicineLabel"
-                                v-model="editSchedule.label"
-                                class="w-full"
-                            />
-                            <label for="editMedicineLabel">Medicine Name *</label>
-                        </FloatLabel>
+                        <label for="editMedicineLabel" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Medicine Name *</label>
+                        <InputText
+                            id="editMedicineLabel"
+                            v-model="editSchedule.label"
+                            placeholder="Enter medicine name"
+                            class="w-full"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <Select
-                                id="editFrequency"
-                                v-model="editSchedule.frequency"
-                                :options="frequencyOptions"
-                                optionLabel="label"
-                                optionValue="value"
-                                class="w-full"
-                            />
-                            <label for="editFrequency">Frequency *</label>
-                        </FloatLabel>
+                        <label for="editFrequency" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Frequency *</label>
+                        <Select
+                            id="editFrequency"
+                            v-model="editSchedule.frequency"
+                            :options="frequencyOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select frequency"
+                            class="w-full"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">
                         <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-3">
-                            Medicine Times *
+                            Schedule Times *
                         </label>
 
                         <div class="space-y-3">
-                            <div
-                                v-for="(time, index) in editSchedule.times"
-                                :key="index"
-                                class="flex items-center gap-3"
-                            >
-                                <div class="flex-1">
-                                    <Calendar
-                                        v-model="editSchedule.times[index]"
-                                        timeOnly
-                                        hourFormat="24"
-                                        showIcon
-                                        :placeholder="`Time ${index + 1}`"
-                                        class="w-full"
-                                        inputClass="text-center"
-                                    />
-                                </div>
+                            <div v-for="(timeDate, index) in editSchedule.times" :key="index" class="flex items-center gap-2">
+                                <Calendar
+                                    v-model="editSchedule.times[index]"
+                                    timeOnly
+                                    hourFormat="12"
+                                    showIcon
+                                    placeholder="Select time"
+                                    class="flex-1"
+                                />
                                 <Button
                                     v-if="editSchedule.times.length > 1"
                                     icon="pi pi-trash"
@@ -717,24 +698,23 @@ onMounted(() => {
                                     severity="danger"
                                     outlined
                                     @click="removeEditTimeSlot(index)"
-                                    v-tooltip.top="'Remove Time'"
+                                    v-tooltip.top="'Remove time'"
                                 />
                             </div>
                         </div>
 
                         <div class="mt-3">
                             <Button
-                                label="Add Another Time"
+                                label="Add Time Slot"
                                 icon="pi pi-plus"
                                 size="small"
                                 outlined
                                 @click="addEditTimeSlot"
-                                class="w-full"
                             />
                         </div>
 
                         <small class="text-surface-500 dark:text-surface-400 mt-2 block">
-                            Use 24-hour format (e.g., 08:30 for 8:30 AM, 20:30 for 8:30 PM)
+                            Add multiple times if medication needs to be taken several times a day
                         </small>
                     </div>
                 </div>

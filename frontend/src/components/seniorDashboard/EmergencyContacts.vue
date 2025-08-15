@@ -381,54 +381,50 @@ const getRelationshipSeverity = (relationship) => {
             <div class="dialog-content">
                 <div class="grid formgrid p-fluid">
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <InputText
-                                id="contactName"
-                                v-model="newContact.name"
-                                class="w-full"
-                                :class="{'p-invalid': !newContact.name && submitted}"
-                            />
-                            <label for="contactName">Full Name *</label>
-                        </FloatLabel>
+                        <label for="contactName" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Full Name *</label>
+                        <InputText
+                            id="contactName"
+                            v-model="newContact.name"
+                            placeholder="Enter full name"
+                            class="w-full"
+                            :class="{'p-invalid': !newContact.name && submitted}"
+                        />
                     </div>
 
                     <div class="field col-12 md:col-6 mb-4 pr-md-2">
-                        <FloatLabel>
-                            <InputText
-                                id="contactPhone"
-                                v-model="newContact.phoneNum"
-                                class="w-full"
-                                :class="{'p-invalid': !newContact.phoneNum && submitted}"
-                            />
-                            <label for="contactPhone">Phone Number *</label>
-                        </FloatLabel>
+                        <label for="contactPhone" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Phone Number *</label>
+                        <InputText
+                            id="contactPhone"
+                            v-model="newContact.phoneNum"
+                            placeholder="Enter phone number"
+                            class="w-full"
+                            :class="{'p-invalid': !newContact.phoneNum && submitted}"
+                        />
                     </div>
 
                     <div class="field col-12 md:col-6 mb-4 pl-md-2">
-                        <FloatLabel>
-                            <InputText
-                                id="contactEmail"
-                                v-model="newContact.email"
-                                type="email"
-                                class="w-full"
-                            />
-                            <label for="contactEmail">Email Address</label>
-                        </FloatLabel>
+                        <label for="contactEmail" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Email Address</label>
+                        <InputText
+                            id="contactEmail"
+                            v-model="newContact.email"
+                            type="email"
+                            placeholder="Enter email address"
+                            class="w-full"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">
-                        <FloatLabel>
-                            <Select
-                                id="contactRelationship"
-                                v-model="newContact.relationship"
-                                :options="relationshipOptions"
-                                optionLabel="label"
-                                optionValue="value"
-                                class="w-full"
-                                :class="{'p-invalid': !newContact.relationship && submitted}"
-                            />
-                            <label for="contactRelationship">Relationship *</label>
-                        </FloatLabel>
+                        <label for="contactRelationship" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Relationship *</label>
+                        <Select
+                            id="contactRelationship"
+                            v-model="newContact.relationship"
+                            :options="relationshipOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Select relationship"
+                            class="w-full"
+                            :class="{'p-invalid': !newContact.relationship && submitted}"
+                        />
                     </div>
 
                     <div class="field col-12 mb-4">

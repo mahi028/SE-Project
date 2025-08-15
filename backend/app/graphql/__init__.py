@@ -7,7 +7,7 @@ from .appointments import AppointmentsQuery, AppointmentsMutation
 from .emergency_contacts import EmergencyContactsQuery, EmergencyContactMutation
 from .vital_types import VitalTypesQuery, VitalTypesMutation
 from .vital_logs import VitalLogsQuery, VitalLogsMutation
-from .groups import GroupQuery, GroupMutation
+from .groups import GroupsQuery, GroupsMutation
 from .auth import GetToken, AuthMutation
 from .hospitals import HospitalsQuery, HospitalsMutation
 from .prescriptions import PrescriptionsQuery, PrescriptionsMutation
@@ -19,7 +19,7 @@ class Query(UsersQuery,
             EmergencyContactsQuery,
             VitalTypesQuery,
             VitalLogsQuery,
-            GroupQuery,
+            GroupsQuery,
             GetToken, 
             HospitalsQuery,
             PrescriptionsQuery,
@@ -35,7 +35,7 @@ class Mutation(UsersMutation,
                EmergencyContactMutation, 
                VitalTypesMutation,  
                VitalLogsMutation,
-               GroupMutation,            
+               GroupsMutation,            
                AuthMutation, 
                HospitalsMutation,
                PrescriptionsMutation,
