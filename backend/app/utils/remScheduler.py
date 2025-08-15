@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, time
 from dateutil.rrule import rrule, WEEKLY
 from flask_apscheduler import APScheduler
-from ..models import Reminders 
-from .dbUtils import commitdb, rollbackdb
+from ..models import Reminders, Notification
+from .dbUtils import commitdb, rollbackdb, adddb
 from .mailService import send_email
 
 scheduler = APScheduler()
@@ -49,7 +49,7 @@ def trigger_reminder(reminder: Reminders):
     reminder_display = {
         'label': reminder.label,
         'category': CATEGORY_MAP.get(reminder.category, "Other"),
-        'rem_time': reminder.rem_time,
+        'rem_time': reminder.rem_time.strftime('%Y-%m-%d %H:%M:%S') if reminder.rem_time else None,
         'is_recurring': reminder.is_recurring,
         'frequency': reminder.frequency,
         'weekdays': reminder.weekdays,
@@ -58,7 +58,6 @@ def trigger_reminder(reminder: Reminders):
         'interval': reminder.interval,
         'is_active': reminder.is_active
     }
-    
     try:
         send_email(
             subject=subject,
@@ -67,8 +66,18 @@ def trigger_reminder(reminder: Reminders):
             template="reminders_template.html",
             current_year=datetime.now().year
         )
+        # Create notification using the actual reminder object attributes, not the dictionary
+        notification = Notification(
+            ez_id=reminder.user.ez_id,
+            label=reminder.label,
+            time=reminder.rem_time,
+            category=reminder.category
+        )
+        adddb(notification)
+        commitdb()
         print(f"Email sent for Reminder: {reminder.label} to {reminder.user.email}")
     except Exception as e:
+        rollbackdb()
         print(f"Error sending email for {reminder.label}: {e}")
 
 def check_reminders(app):
@@ -88,7 +97,7 @@ def check_reminders(app):
                 rem.is_active = False
                 commitdb()
             except Exception as e:
-                app.logger.error(f"Error triggering one-time reminder ID {rem.id}: {e}")
+                app.logger.error(f"Error triggering one-time reminder ID {rem.rem_id}: {e}")
                 rollbackdb()
 
         # --- Recurring reminders ---
@@ -104,5 +113,5 @@ def check_reminders(app):
                     # Optional: update rem.last_triggered = now
                     commitdb()
             except Exception as e:
-                app.logger.error(f"Error triggering recurring reminder ID {rem.id}: {e}")
+                app.logger.error(f"Error triggering recurring reminder ID {rem.rem_id}: {e}")
                 rollbackdb()

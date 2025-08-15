@@ -29,6 +29,7 @@ class User(db.Model):
     sen_info = db.relationship('SenInfo', backref='user', uselist=False)
     doc_info = db.relationship('DocInfo', backref='user', uselist=False)
     reminders = db.relationship('Reminders', backref='user', lazy=True)
+    notification = db.relationship('Notification', backref='user', lazy=True)
 
 
 
@@ -131,7 +132,13 @@ class Reminders(db.Model):
     times_per_day = db.Column(db.Integer, default=1)  # for multiple reminders/day
     time_slots = db.Column(db.JSON)  # optional: store ['08:00', '20:00']
 
-
+class Notification(db.Model):
+    __tablename__ = 'notifications'  # Add missing table name
+    not_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ez_id = db.Column(db.String(32), db.ForeignKey('users.ez_id'), nullable=False)
+    label = db.Column(db.String(128))
+    time = db.Column(db.DateTime)  # Remove extra comma
+    category = db.Column(db.Integer)  # [appointments:0, medic:1, hydration:2, group:3, ...]
 
 class Appointments(db.Model):
     __tablename__ = 'appointments'

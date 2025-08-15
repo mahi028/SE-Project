@@ -7,7 +7,7 @@ import Divider from 'primevue/divider';
 import { ref } from 'vue';
 
 const value = ref('Appointments | Requests');
-const options = ref(['Appointments | Requests', 'Notifications']);
+const options = ref(['Appointments | Requests']);
 </script>
 
 <template>

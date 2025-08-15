@@ -6,7 +6,7 @@ import gql from 'graphql-tag';
 
 const toast = useToast();
 const props = defineProps({
-    ez_id: String,
+    ezId: String,
 });
 
 const visible = ref(false);
@@ -341,7 +341,7 @@ const getStatusSeverity = (status) => {
 // Move onMounted to the end and make sure it's properly defined
 onMounted(() => {
     // Data is automatically fetched by useQuery
-    console.log('VitalLogs component mounted with ez_id:', props.ez_id);
+    console.log('VitalLogs component mounted with ezId:', props.ezId);
 });
 </script>
 

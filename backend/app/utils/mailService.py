@@ -13,7 +13,7 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
     Args:
         subject: Email subject line
         recipients: List of recipient email addresses
-        reminder_display: Dictionary containing reminder/SOS data for template rendering
+        reminder_display: Dictionary containing reminder/SOS/vital alert data for template rendering
         template: Template file name to use
         contact: Contact object for backward compatibility with reminder emails
         current_year: Current year for template rendering
@@ -44,6 +44,25 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
             
             msg.body = f"EMERGENCY SOS ALERT: {senior_name} needs urgent help! Please check the email for full details and contact information."
             
+        elif template == "vital_alert_template.html":
+            # Vital threshold alert email rendering
+            msg.html = render_template(
+                template,
+                reminder_display=reminder_display,
+                current_year=current_year
+            )
+            
+            # Vital alert plain text fallback
+            if reminder_display:
+                senior_name = reminder_display.get('senior_name', 'Senior Citizen')
+                vital_type = reminder_display.get('vital_type', 'Vital Sign')
+                reading = reminder_display.get('reading', 'N/A')
+                unit = reminder_display.get('unit', '')
+                
+                msg.body = f"VITAL ALERT: {senior_name}'s {vital_type} reading of {reading} {unit} is outside the normal range. Please check on them immediately. If this is an emergency, call 108."
+            else:
+                msg.body = "A vital sign reading is outside the normal range. Please check the full email for details."
+                
         else:
             # Regular reminder email rendering
             template_vars = {
