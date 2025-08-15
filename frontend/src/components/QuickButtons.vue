@@ -627,23 +627,23 @@
                             <i class="pi pi-check-circle text-green-500"></i>
                             Recognition Results ({{ recognitionResults.length }})
                         </h4>
-                        
+
                         <div class="space-y-3">
                             <Card v-for="(result, index) in recognitionResults" :key="index" class="p-3">
                                 <template #content>
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-3 mb-2">
-                                                <Avatar 
-                                                    :label="result.ezId ? result.ezId.slice(-2) : 'U'" 
-                                                    class="bg-primary-500 text-white" 
+                                                <Avatar
+                                                    :label="result.ezId ? result.ezId.slice(-2) : 'U'"
+                                                    class="bg-primary-500 text-white"
                                                     size="normal"
                                                 />
                                                 <div>
                                                     <p class="font-semibold text-lg">{{ result.ezId || 'Unknown ID' }}</p>
                                                     <div class="flex items-center gap-2">
-                                                        <Tag 
-                                                            :value="result.confidence || 'Unknown'" 
+                                                        <Tag
+                                                            :value="result.confidence || 'Unknown'"
                                                             :severity="getConfidenceColor(result.confidence)"
                                                             class="text-sm"
                                                         />
@@ -652,8 +652,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <Button 
-                                            label="View Profile" 
+                                        <Button
+                                            label="View Profile"
                                             icon="pi pi-user"
                                             size="small"
                                             @click="viewProfile(result.ezId)"
