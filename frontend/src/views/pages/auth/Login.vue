@@ -17,7 +17,11 @@ const formData = ref({
     ez_id: '',
     password: '',
 })
-const ezLoginEmail = ref('');
+const ezLoginForm = ref({
+    email: '',
+    ezId: '',
+    loginType: 'email' // 'email' or 'ezid'
+});
 const showEzLoginDialog = ref(false);
 
 const checked = ref(false);
@@ -59,8 +63,8 @@ const GET_USER_DATA = gql`
   }
 `;
 const EZ_LOGIN_MUTATION = gql`
-    mutation EzLogin($email: String!) {
-        ezLogin(email: $email) {
+    mutation EzLogin($email: String, $ezId: String) {
+        ezLogin(email: $email, ezId: $ezId) {
             message
             status
         }
@@ -167,17 +171,26 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
 }
 
 const openEzLoginDialog = () => {
-    ezLoginEmail.value = '';
+    ezLoginForm.value = {
+        email: '',
+        ezId: '',
+        loginType: 'email'
+    };
     showEzLoginDialog.value = true;
 };
 
 const closeEzLoginDialog = () => {
     showEzLoginDialog.value = false;
-    ezLoginEmail.value = '';
+    ezLoginForm.value = {
+        email: '',
+        ezId: '',
+        loginType: 'email'
+    };
 };
 
 const sendEzLoginLink = async () => {
-    if (!ezLoginEmail.value.trim()) {
+    // Validate based on selected login type
+    if (ezLoginForm.value.loginType === 'email' && !ezLoginForm.value.email.trim()) {
         toast.add({
             severity: 'warn',
             summary: 'Missing Information',
@@ -187,18 +200,33 @@ const sendEzLoginLink = async () => {
         return;
     }
 
-    try {
-        const { data } = await ezLogin({
-            email: ezLoginEmail.value.trim()
+    if (ezLoginForm.value.loginType === 'ezid' && !ezLoginForm.value.ezId.trim()) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Missing Information',
+            detail: 'Please enter your EZ ID.',
+            life: 3000
         });
+        return;
+    }
 
+    try {
+        // Prepare mutation variables based on login type
+        const variables = {};
+        if (ezLoginForm.value.loginType === 'email') {
+            variables.email = ezLoginForm.value.email.trim();
+        } else {
+            variables.ezId = ezLoginForm.value.ezId.trim();
+        }
+
+        const { data } = await ezLogin(variables);
         const response = data?.ezLogin;
 
         if (response?.status === 200) {
             toast.add({
                 severity: 'success',
                 summary: 'Login Link Sent',
-                detail: response.message || 'Login link has been sent to your email address.',
+                detail: response.message || 'Login link has been sent to your registered email address.',
                 life: 5000
             });
             closeEzLoginDialog();
@@ -222,7 +250,11 @@ const sendEzLoginLink = async () => {
 };
 
 const isEzLoginFormValid = () => {
-    return ezLoginEmail.value.trim().length > 0;
+    if (ezLoginForm.value.loginType === 'email') {
+        return ezLoginForm.value.email.trim().length > 0;
+    } else {
+        return ezLoginForm.value.ezId.trim().length > 0;
+    }
 };
 </script>
 
@@ -301,7 +333,7 @@ const isEzLoginFormValid = () => {
         v-model:visible="showEzLoginDialog"
         modal
         header="EZ-Sign In"
-        :style="{ width: '450px' }"
+        :style="{ width: '500px' }"
         :closable="!ezLoginLoading"
         :dismissableMask="!ezLoginLoading"
         class="ez-login-dialog"
@@ -321,8 +353,8 @@ const isEzLoginFormValid = () => {
                     <div class="text-sm text-blue-700 dark:text-blue-300">
                         <p class="font-medium mb-2">Passwordless Login</p>
                         <ul class="space-y-1">
-                            <li>• Enter your registered email address</li>
-                            <li>• We'll send you a secure login link</li>
+                            <li>• Choose to login with Email or EZ ID</li>
+                            <li>• We'll send you a secure login link via email</li>
                             <li>• Click the link in your email to sign in instantly</li>
                             <li>• No need to remember passwords!</li>
                         </ul>
@@ -330,20 +362,55 @@ const isEzLoginFormValid = () => {
                 </div>
             </div>
 
-            <!-- Email Input with FloatLabel -->
+            <!-- Login Type Selection -->
             <div class="field">
+                <label class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-3">
+                    Select Login Method
+                </label>
+                <div class="flex justify-center">
+                    <SelectButton
+                        v-model="ezLoginForm.loginType"
+                        :options="[{label: 'Email', value: 'email'}, {label: 'EZ ID', value: 'ezid'}]"
+                        optionLabel="label"
+                        optionValue="value"
+                        :allowEmpty="false"
+                    />
+                </div>
+            </div>
+
+            <!-- Email Input -->
+            <div v-if="ezLoginForm.loginType === 'email'" class="field">
                 <FloatLabel>
                     <InputText
                         id="ezLoginEmail"
-                        v-model="ezLoginEmail"
+                        v-model="ezLoginForm.email"
                         class="w-full"
-                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginEmail }"
+                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.email }"
                         @keyup.enter="sendEzLoginLink"
+                        placeholder="Enter your email address"
                     />
                     <label for="ezLoginEmail">Email Address</label>
                 </FloatLabel>
                 <small class="text-surface-500 dark:text-surface-400 mt-2 block">
                     Use the same email you registered with
+                </small>
+            </div>
+
+            <!-- EZ ID Input -->
+            <div v-if="ezLoginForm.loginType === 'ezid'" class="field">
+                <FloatLabel>
+                    <InputText
+                        id="ezLoginEzId"
+                        v-model="ezLoginForm.ezId"
+                        class="w-full"
+                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.ezId }"
+                        @keyup.enter="sendEzLoginLink"
+                        placeholder="Enter your EZ ID"
+                    />
+                    <label for="ezLoginEzId">EZ ID</label>
+                </FloatLabel>
+                <small class="text-surface-500 dark:text-surface-400 mt-2 block">
+                    Login link will be sent to your registered email address
                 </small>
             </div>
 
@@ -354,6 +421,10 @@ const isEzLoginFormValid = () => {
                     <div class="text-sm text-green-700 dark:text-green-300">
                         <p class="font-medium mb-1">🔒 Secure & Safe</p>
                         <p>The login link expires in 1 hour and can only be used once for your security.</p>
+                        <p class="mt-1">
+                            <strong>Note:</strong> The login link will always be sent to your registered email address,
+                            regardless of whether you use Email or EZ ID to request it.
+                        </p>
                     </div>
                 </div>
             </div>
