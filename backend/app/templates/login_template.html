@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZCare - Login Link</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c5f2d;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #2c5f2d;
+            margin-bottom: 20px;
+        }
+        .login-section {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+        }
+        .login-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            margin: 15px 0;
+            transition: background-color 0.3s;
+        }
+        .login-button:hover {
+            background-color: #218838;
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .security-notice h4 {
+            color: #856404;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .security-notice p {
+            color: #856404;
+            margin: 0;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-box p {
+            margin: 0;
+            color: #004085;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer a {
+            color: #28a745;
+            text-decoration: none;
+        }
+        .expiry-warning {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .login-button {
+                display: block;
+                text-align: center;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🩺 EZCare</div>
+            <div class="subtitle">Your Health Companion</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hello {{ user_name or 'Dear User' }},
+            </div>
+
+            <p>You requested a login link for your EZCare account. Click the button below to securely access your dashboard:</p>
+
+            <div class="login-section">
+                <h3 style="margin-top: 0; color: #28a745;">🔐 Secure Login Access</h3>
+                <p>Click the button below to log in to your EZCare account:</p>
+                
+                <a href="{{ login_url }}" class="login-button">
+                    🚀 Login to EZCare
+                </a>
+                
+                <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                    If the button doesn't work, copy and paste this link into your browser:
+                </p>
+                <p style="word-break: break-all; background-color: #f1f1f1; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                    {{ login_url }}
+                </p>
+            </div>
+
+            <div class="security-notice">
+                <h4>🛡️ Security Notice</h4>
+                <p><strong class="expiry-warning">This login link expires in 1 hour</strong> for your security.</p>
+                <p>If you didn't request this login link, please ignore this email or contact our support team.</p>
+            </div>
+
+            <div class="info-box">
+                <p><strong>💡 What happens next?</strong></p>
+                <p>After clicking the login link, you'll be automatically signed in to your EZCare dashboard where you can:</p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    {% if user_role == 0 %}
+                    <li>View your health dashboard and vital logs</li>
+                    <li>Manage appointments with healthcare providers</li>
+                    <li>Set up medication reminders</li>
+                    <li>Connect with local senior groups</li>
+                    {% elif user_role == 1 %}
+                    <li>Manage your medical practice profile</li>
+                    <li>View and manage patient appointments</li>
+                    <li>Access patient information and prescriptions</li>
+                    <li>Update your availability and services</li>
+                    {% elif user_role == 2 %}
+                    <li>Review and moderate doctor registrations</li>
+                    <li>Monitor platform activities</li>
+                    <li>Manage user accounts and reports</li>
+                    <li>Access administrative tools</li>
+                    {% else %}
+                    <li>Access your personalized dashboard</li>
+                    <li>Manage your account settings</li>
+                    <li>View available services</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© {{ current_year }} EZCare - Your Health Companion. All rights reserved.</p>
+            <p>
+                Need help? Contact us at 
+                <a href="mailto:support@ezcare.com">support@ezcare.com</a> | 
+                <a href="tel:+911234567890">+91 123 456 7890</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 11px;">
+                This email was sent to {{ user_email }}. 
+                If you believe this was sent in error, please contact our support team.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

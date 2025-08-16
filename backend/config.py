@@ -24,7 +24,7 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    FRONTEND_BASE_URL = "http://localhost:3000"
+    FRONTEND_BASE_URL = "http://localhost:5173"
     DEBUG = True
     ENV = 'development'
 

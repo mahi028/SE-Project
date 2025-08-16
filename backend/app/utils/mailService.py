@@ -9,7 +9,7 @@ mail = Mail()
 
 def send_email(subject: str, recipients: List[str], reminder_display=None, template="reminders_template.html", contact=None, current_year=None) -> None:
     """Send an email using Flask-Mail.
-    
+
     Args:
         subject: Email subject line
         recipients: List of recipient email addresses
@@ -36,14 +36,14 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
                 reminder_display=reminder_display,
                 current_year=current_year
             )
-            
+
             # SOS plain text fallback
             senior_name = "Senior Citizen"
             if reminder_display and 'ezId' in reminder_display:
                 senior_name = f"Senior Citizen (ID: {reminder_display['ezId']})"
-            
+
             msg.body = f"EMERGENCY SOS ALERT: {senior_name} needs urgent help! Please check the email for full details and contact information."
-            
+
         elif template == "vital_alert_template.html":
             # Vital threshold alert email rendering
             msg.html = render_template(
@@ -51,35 +51,67 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
                 reminder_display=reminder_display,
                 current_year=current_year
             )
-            
+
             # Vital alert plain text fallback
             if reminder_display:
                 senior_name = reminder_display.get('senior_name', 'Senior Citizen')
                 vital_type = reminder_display.get('vital_type', 'Vital Sign')
                 reading = reminder_display.get('reading', 'N/A')
                 unit = reminder_display.get('unit', '')
-                
+
                 msg.body = f"VITAL ALERT: {senior_name}'s {vital_type} reading of {reading} {unit} is outside the normal range. Please check on them immediately. If this is an emergency, call 108."
             else:
                 msg.body = "A vital sign reading is outside the normal range. Please check the full email for details."
-                
+
+        elif template == "login_template.html":
+            # Login email rendering
+            msg.html = render_template(
+                template,
+                user_name=reminder_display.get('user_name'),
+                user_email=reminder_display.get('user_email'),
+                user_role=reminder_display.get('user_role'),
+                login_url=reminder_display.get('login_url'),
+                current_year=reminder_display.get('current_year', datetime.now().year)
+            )
+
+            # Login plain text fallback
+            user_name = reminder_display.get('user_name', 'User') if reminder_display else 'User'
+            login_url = reminder_display.get('login_url', '#') if reminder_display else '#'
+
+            msg.body = f"""
+                Hello {user_name},
+
+                You requested a login link for your EZCare account.
+
+                Please click the link below to login securely:
+                {login_url}
+
+                This link expires in 1 hour for your security.
+
+                If you didn't request this login, please ignore this email.
+
+                Best regards,
+                EZCare Team
+                © {datetime.now().year} EZCare. All rights reserved.
+            """.strip()
+
         else:
             # Regular reminder email rendering
             template_vars = {
                 'current_year': current_year
             }
-            
+
             # Handle reminder data safely
             if reminder_display:
                 template_vars['reminder'] = reminder_display
-            
+
             # Handle contact object for backward compatibility
             if contact:
                 template_vars['contact'] = contact
-                
+
             try:
                 msg.html = render_template(template, **template_vars)
-                
+
                 # Create plain text fallback
                 if contact and hasattr(contact, 'label'):
                     msg.body = f"This is a reminder for: {contact.label}. Check your dashboard for more details."
@@ -87,7 +119,7 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
                     msg.body = f"This is a reminder for: {reminder_display['label']}. Check your dashboard for more details."
                 else:
                     msg.body = "You have a new reminder. Please check your email for details."
-                    
+
             except Exception as template_error:
                 logger.error(f"Template rendering failed: {template_error}")
                 # Fallback to simple HTML
@@ -111,7 +143,7 @@ def send_email(subject: str, recipients: List[str], reminder_display=None, templ
 
         mail.send(msg)
         logger.info(f"Email sent to {recipients} - Subject: {subject}")
-        
+
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
         raise RuntimeError("Failed to send email") from e

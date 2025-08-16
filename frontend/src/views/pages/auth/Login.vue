@@ -5,8 +5,7 @@ import { useLoginStore } from '@/store/loginStore';
 import { userService } from '@/service/UserService';
 import { useToast } from 'primevue';
 import { useRouter } from 'vue-router';
-import { useLazyQuery } from '@vue/apollo-composable';
-// import { gql } from '@apollo/client/core';
+import { useLazyQuery, useMutation } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 
 const loginStore = useLoginStore()
@@ -18,6 +17,8 @@ const formData = ref({
     ez_id: '',
     password: '',
 })
+const ezLoginEmail = ref('');
+const showEzLoginDialog = ref(false);
 
 const checked = ref(false);
 
@@ -57,9 +58,18 @@ const GET_USER_DATA = gql`
     }
   }
 `;
+const EZ_LOGIN_MUTATION = gql`
+    mutation EzLogin($email: String!) {
+        ezLogin(email: $email) {
+            message
+            status
+        }
+    }
+`;
 
 const { load: fetchToken , result, loading, error } = useLazyQuery(GET_TOKEN)
 const { load: fetchUser , result: resultUser, loading: loadingUser, error: errorUser } = useLazyQuery(GET_USER_DATA)
+const { mutate: ezLogin, loading: ezLoginLoading } = useMutation(EZ_LOGIN_MUTATION);
 
 const login = async ()=> {
     try {
@@ -155,6 +165,65 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
             // pass
     }
 }
+
+const openEzLoginDialog = () => {
+    ezLoginEmail.value = '';
+    showEzLoginDialog.value = true;
+};
+
+const closeEzLoginDialog = () => {
+    showEzLoginDialog.value = false;
+    ezLoginEmail.value = '';
+};
+
+const sendEzLoginLink = async () => {
+    if (!ezLoginEmail.value.trim()) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Missing Information',
+            detail: 'Please enter your email address.',
+            life: 3000
+        });
+        return;
+    }
+
+    try {
+        const { data } = await ezLogin({
+            email: ezLoginEmail.value.trim()
+        });
+
+        const response = data?.ezLogin;
+
+        if (response?.status === 200) {
+            toast.add({
+                severity: 'success',
+                summary: 'Login Link Sent',
+                detail: response.message || 'Login link has been sent to your email address.',
+                life: 5000
+            });
+            closeEzLoginDialog();
+        } else {
+            toast.add({
+                severity: 'error',
+                summary: 'Failed to Send Link',
+                detail: response?.message || 'Failed to send login link. Please try again.',
+                life: 4000
+            });
+        }
+    } catch (error) {
+        console.error('EZ Login error:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while sending the login link. Please try again.',
+            life: 4000
+        });
+    }
+};
+
+const isEzLoginFormValid = () => {
+    return ezLoginEmail.value.trim().length > 0;
+};
 </script>
 
 <template>
@@ -199,13 +268,13 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
                         <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
                         <Password id="password1" v-model="formData.password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
 
-                        <div class="flex items-center justify-between mt-2 mb-8 gap-8">
+                        <!-- <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                             <div class="flex items-center">
                                 <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
                                 <label for="rememberme1">Remember me</label>
                             </div>
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
-                        </div>
+                        </div> -->
                         <div class="flex items-center justify-end mt-2 mb-8 gap-8">
                             <router-link :to="{ name: 'register'}" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">
                                 New User? Register!
@@ -213,12 +282,103 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
                         </div>
                         <Button label="Sign In" class="w-full" @click="login"></Button>
                         <Divider layout="horizontal" class="!flex" align="center"><b>OR</b></Divider>
-                        <Button label="EZ-Sign In" class="w-full" as="router-link" to="/dashboard"></Button>
+                        <Button
+                            label="EZ-Sign In"
+                            icon="pi pi-envelope"
+                            class="w-full"
+                            severity="success"
+                            outlined
+                            @click="openEzLoginDialog"
+                        />
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- EZ Login Dialog -->
+    <Dialog
+        v-model:visible="showEzLoginDialog"
+        modal
+        header="EZ-Sign In"
+        :style="{ width: '450px' }"
+        :closable="!ezLoginLoading"
+        :dismissableMask="!ezLoginLoading"
+        class="ez-login-dialog"
+    >
+        <template #header>
+            <div class="flex items-center gap-2">
+                <i class="pi pi-envelope text-green-500"></i>
+                <span class="text-xl font-semibold">EZ-Sign In</span>
+            </div>
+        </template>
+
+        <div class="space-y-6">
+            <!-- Information Panel -->
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div class="flex items-start gap-3">
+                    <i class="pi pi-info-circle text-blue-500 mt-1"></i>
+                    <div class="text-sm text-blue-700 dark:text-blue-300">
+                        <p class="font-medium mb-2">Passwordless Login</p>
+                        <ul class="space-y-1">
+                            <li>• Enter your registered email address</li>
+                            <li>• We'll send you a secure login link</li>
+                            <li>• Click the link in your email to sign in instantly</li>
+                            <li>• No need to remember passwords!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Input with FloatLabel -->
+            <div class="field">
+                <FloatLabel>
+                    <InputText
+                        id="ezLoginEmail"
+                        v-model="ezLoginEmail"
+                        class="w-full"
+                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginEmail }"
+                        @keyup.enter="sendEzLoginLink"
+                    />
+                    <label for="ezLoginEmail">Email Address</label>
+                </FloatLabel>
+                <small class="text-surface-500 dark:text-surface-400 mt-2 block">
+                    Use the same email you registered with
+                </small>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div class="flex items-start gap-3">
+                    <i class="pi pi-shield text-green-500 mt-1"></i>
+                    <div class="text-sm text-green-700 dark:text-green-300">
+                        <p class="font-medium mb-1">🔒 Secure & Safe</p>
+                        <p>The login link expires in 1 hour and can only be used once for your security.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <template #footer>
+            <div class="flex justify-end gap-3 mt-6">
+                <Button
+                    label="Cancel"
+                    icon="pi pi-times"
+                    outlined
+                    @click="closeEzLoginDialog"
+                    :disabled="ezLoginLoading"
+                />
+                <Button
+                    label="Send Login Link"
+                    icon="pi pi-send"
+                    severity="success"
+                    @click="sendEzLoginLink"
+                    :loading="ezLoginLoading"
+                    :disabled="!isEzLoginFormValid()"
+                />
+            </div>
+        </template>
+    </Dialog>
 </template>
 
 <style scoped>
@@ -230,5 +390,125 @@ const setuserDetailsAndRedirectByRole = ( details ) => {
 .pi-eye-slash {
     transform: scale(1.6);
     margin-right: 1rem;
+}
+
+/* EZ Login Dialog Styles */
+.ez-login-dialog :deep(.p-dialog-content) {
+    padding: 2rem;
+}
+
+.ez-login-dialog .space-y-6 > * + * {
+    margin-top: 1.5rem;
+}
+
+/* Enhanced input styling */
+.ez-login-dialog .p-inputtext {
+    border-radius: 8px;
+    border: 2px solid var(--surface-300);
+    transition: all 0.3s ease;
+}
+
+.ez-login-dialog .p-inputtext:hover {
+    border-color: var(--primary-400);
+}
+
+.ez-login-dialog .p-inputtext:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 4px rgba(var(--primary-500-rgb), 0.1);
+}
+
+/* Dark mode enhancements */
+:global(.p-dark) .ez-login-dialog .p-inputtext {
+    background: var(--surface-900);
+    border-color: var(--surface-600);
+}
+
+:global(.p-dark) .ez-login-dialog .p-inputtext:hover {
+    border-color: var(--primary-400);
+    background: var(--surface-800);
+}
+
+:global(.p-dark) .ez-login-dialog .p-inputtext:focus {
+    border-color: var(--primary-500);
+    background: var(--surface-900);
+}
+
+/* Button styling */
+.ez-login-dialog .p-button {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.ez-login-dialog .p-button:hover {
+    transform: translateY(-1px);
+}
+
+/* Enhanced FloatLabel styling for EZ Login dialog */
+.ez-login-dialog .field {
+    margin-bottom: 1.5rem;
+}
+
+.ez-login-dialog :deep(.p-float-label) {
+    margin-top: 1rem;
+}
+
+.ez-login-dialog :deep(.p-float-label label) {
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.ez-login-dialog :deep(.p-float-label .p-inputtext) {
+    padding: 1rem 0.75rem;
+    border-radius: 8px;
+    border: 2px solid var(--surface-300);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.ez-login-dialog :deep(.p-float-label .p-inputtext:focus) {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 4px rgba(var(--primary-500-rgb), 0.1);
+}
+
+.ez-login-dialog :deep(.p-float-label .p-inputtext:focus ~ label),
+.ez-login-dialog :deep(.p-float-label .p-inputtext.p-filled ~ label) {
+    color: var(--primary-500);
+    font-weight: 600;
+}
+
+/* Dark mode enhancements for FloatLabel */
+:global(.p-dark) .ez-login-dialog :deep(.p-float-label .p-inputtext) {
+    background: var(--surface-900);
+    border-color: var(--surface-600);
+    color: var(--text-color);
+}
+
+:global(.p-dark) .ez-login-dialog :deep(.p-float-label .p-inputtext:hover) {
+    border-color: var(--primary-400);
+    background: var(--surface-800);
+}
+
+:global(.p-dark) .ez-login-dialog :deep(.p-float-label .p-inputtext:focus) {
+    border-color: var(--primary-500);
+    background: var(--surface-900);
+}
+
+:global(.p-dark) .ez-login-dialog :deep(.p-float-label label) {
+    color: var(--text-color-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ez-login-dialog :deep(.p-dialog) {
+        width: 95vw !important;
+        margin: 1rem;
+    }
+
+    .ez-login-dialog :deep(.p-dialog-content) {
+        padding: 1.5rem;
+    }
 }
 </style>
