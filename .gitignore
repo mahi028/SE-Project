@@ -50,7 +50,7 @@ htmlcov/
 
 # Environment vars
 .env
-.env.*
+# .env.*
 
 # MyPy, Pyright, etc.
 .mypy_cache/
