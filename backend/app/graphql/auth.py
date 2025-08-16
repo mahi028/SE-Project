@@ -1,11 +1,19 @@
 from flask_jwt_extended import create_access_token, get_jwt_identity, JWTManager, verify_jwt_in_request
-from flask import request
+from flask import request, current_app
 from ..utils.hash import checkpw, hashpw
 from ..utils.dbUtils import adddb, commitdb, generate_ez_id
+from ..utils.mailService import send_email
 from ..models import User
 import graphene
 from flask_graphql import GraphQLView
 from .return_types import ReturnType
+import os
+from datetime import datetime
+import logging
+
+# Add logger instance
+logger = logging.getLogger(__name__)
+
 jwt = JWTManager()
 
 @jwt.user_identity_loader
@@ -52,7 +60,55 @@ class GetToken(graphene.ObjectType):
                 return AuthTokenType(token = access_token, message="Success", status=200)
             return AuthTokenType(token=None, message="Wrong Credentials", status=402)
         return AuthTokenType(token=None, message="No User Found", status=404)
+    
+class EZLogin(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+    
+    Output = ReturnType
 
+    def mutate(self, info, email):
+        user = User.query.filter(User.email == email).first()
+        if not user:
+            return ReturnType(message="No User Found", status=404)
+        
+        try:
+            # Create access token with 1 hour expiration for security
+            access_token = create_access_token(identity=user, expires_delta=False)
+            
+            # Build the login URL
+            frontend_base_url = current_app.config.get('FRONTEND_BASE_URL', 'http://localhost:5173')
+            login_url = f"{frontend_base_url}/auth/token-login?token={access_token}"
+            
+            # Prepare template data
+            template_data = {
+                'user_name': user.name,
+                'user_email': user.email,
+                'user_role': user.role,
+                'login_url': login_url,
+                'current_year': datetime.now().year
+            }
+            
+            # Send email using the login template
+            send_email(
+                subject='🔐 EZCare Login Link - Secure Access to Your Account',
+                recipients=[email],
+                reminder_display=template_data,
+                template="login_template.html"
+            )
+            
+            logger.info(f"Login email sent successfully to {email}")
+            return ReturnType(
+                message=f"Login link sent to {email}. Please check your email and click the link to login securely.",
+                status=200
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to send login email to {email}: {str(e)}")
+            return ReturnType(
+                message="Failed to send login email. Please try again or contact support.",
+                status=500
+            )
 
 class Register(graphene.Mutation):
     class Arguments:
@@ -148,3 +204,4 @@ class ModRegister(graphene.Mutation):
 class AuthMutation(graphene.ObjectType):
     register = Register.Field()
     mod_register = ModRegister.Field()
+    ez_login = EZLogin.Field()

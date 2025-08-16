@@ -71,6 +71,15 @@ const router = createRouter({
             component: () => import('@/views/pages/auth/Login.vue')
         },
         {
+            path: '/auth/token-login',
+            name: 'tokenLogin',
+            component: () => import('@/views/pages/auth/EzLogin.vue'),
+            meta: {
+                requiresAuth: false,
+                title: 'EZCare - Secure Login'
+            }
+        },
+        {
             path: '/auth/access',
             name: 'access',
             component: () => import('@/views/pages/auth/Access.vue')
