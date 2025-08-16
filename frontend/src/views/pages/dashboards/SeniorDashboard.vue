@@ -74,10 +74,10 @@ const options = ref([
             <SeniorAppointments />
         </div>
         <div class="col-span-12 xl:col-span-6" v-show="value === '2'">
-            <VitalLogs :ez_id="loginStore.ez_id"/>
+            <VitalLogs :ezId="loginStore.ezId"/>
         </div>
         <div class="col-span-12 xl:col-span-6" v-show="value === '2'">
-            <VitalTrend :ez_id="loginStore.ez_id"/>
+            <VitalTrend :ezId="loginStore.ezId"/>
         </div>
         <div class="col-span-12 xl:col-span-6" v-show="value === '3'">
             <Contacts/>

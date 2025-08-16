@@ -198,6 +198,15 @@ const specializationString = () => {
   return core.join(', ');
 };
 
+// helper function to format time for display and backend
+const formatTimeForBackend = (timeValue) => {
+  if (!timeValue) return null;
+  // timeValue is a Date object from PrimeVue Calendar
+  const hours = timeValue.getHours().toString().padStart(2, '0');
+  const minutes = timeValue.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 function submitDoctor() {
   submitted.value = true;
   // validate all steps (reuse step validator)
@@ -207,6 +216,11 @@ function submitDoctor() {
       return;
     }
   }
+
+  // Format working hours properly
+  const fromTime = formatTimeForBackend(formData.affiliation.hoursFrom);
+  const toTime = formatTimeForBackend(formData.affiliation.hoursTo);
+  const workingHours = (fromTime && toTime) ? `${fromTime} - ${toTime}` : null;
 
   const vars = {
     licenseNumber: formData.licenseNumber,
@@ -219,16 +233,15 @@ function submitDoctor() {
     affiliation: JSON.stringify({
       name: formData.affiliation.name,
       email: formData.affiliation.email,
-      hoursFrom: formData.affiliation.hoursFrom,
-      hoursTo: formData.affiliation.hoursTo
+      hoursFrom: fromTime,
+      hoursTo: toTime
     }),
     qualification: JSON.stringify(formData.qualifications.map(q => ({
       name: q.name, year: q.year, institute: q.institute
     }))),
     experience: formData.experience ? Number(formData.experience) : null,
     consultationFee: formData.consultationFee ? Number(formData.consultationFee) : null,
-    workingHours: (formData.affiliation.hoursFrom && formData.affiliation.hoursTo)
-      ? `${formData.affiliation.hoursFrom}-${formData.affiliation.hoursTo}` : null,
+    workingHours: workingHours,
     availability: JSON.stringify(formData.affiliation.days.map(d => d.name || d)),
     documents: JSON.stringify(
       Object.fromEntries(
@@ -243,7 +256,7 @@ function submitDoctor() {
     if (res?.status === 201) {
       toast.add({ severity: 'success', summary: 'Success', detail: res.message, life: 3000 });
       resetForm();
-      route.push({ name: 'login' })
+      route.push({ name: 'Doctordashboard' })
     } else {
       toast.add({ severity: 'error', summary: 'Error', detail: res?.message || 'Failed', life: 4000 });
     }
@@ -354,7 +367,6 @@ function submitDoctor() {
       <p class="section-title">Affiliation & Practice</p>
       <div class="grid formgrid">
         <!-- existing affiliation fields -->
-        <!-- ...existing code... -->
         <div class="field col-12 md:col-6">
           <label for="affName">Hospital / Clinic Name</label>
           <InputText id="affName" v-model="formData.affiliation.name" class="w-full" />
@@ -488,6 +500,18 @@ function submitDoctor() {
         <li><strong>Consultation Fee:</strong> {{ formData.consultationFee || '—' }}</li>
         <li><strong>Appt Window:</strong> {{ formData.appointmentWindow || '—' }}</li>
         <li><strong>Pincode:</strong> {{ formData.pincode || '—' }}</li>
+        <li>
+          <strong>Working Hours:</strong>
+          {{
+            (formatTimeForBackend(formData.affiliation.hoursFrom) && formatTimeForBackend(formData.affiliation.hoursTo))
+              ? `${formatTimeForBackend(formData.affiliation.hoursFrom)} - ${formatTimeForBackend(formData.affiliation.hoursTo)}`
+              : '—'
+          }}
+        </li>
+        <li>
+          <strong>Available Days:</strong>
+          {{ formData.affiliation.days.map(d => d.name || d).join(', ') || '—' }}
+        </li>
       </ul>
       <div class="actions">
         <Button label="Back" severity="secondary" @click="prevStep" />

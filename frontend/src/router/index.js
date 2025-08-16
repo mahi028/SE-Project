@@ -42,12 +42,12 @@ const router = createRouter({
                     component: () => import('@/views/pages/doctor/DoctorList.vue')
                 },
                 {
-                    path: '/doctor/:ez_id',
+                    path: '/doctor/:ezId',
                     name: 'DoctorProfile',
                     component: () => import('@/views/pages/profile/DoctorProfile.vue')
                 },
                 {
-                    path: '/senior/:ez_id',
+                    path: '/senior/:ezId',
                     name: 'SeniorProfile',
                     component: () => import('@/views/pages/profile/SeniorProfile.vue')
                 },

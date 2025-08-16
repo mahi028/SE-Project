@@ -7,15 +7,15 @@ import PricingWidget from '@/components/landing/PricingWidget.vue';
 import TopbarWidget from '@/components/landing/TopbarWidget.vue';
 import { useLoginStore } from '@/store/loginStore';
 import { useRouter } from 'vue-router';
-if(useLoginStore().role){
-    if(useLoginStore().role === 'doctor'){
-        useRouter().push('/dashboard2')
+if(localStorage.getItem('EZCARE-LOGIN-TOKEN')){
+    if(useLoginStore().role === 1){
+        useRouter().push({name:'Doctordashboard'})
     }
-    else if(useLoginStore().role === 'senior'){
-        useRouter().push('/dashboard')
+    else if(useLoginStore().role === 0){
+        useRouter().push({name:'Seniordashboard'})
     }
-    else if(useLoginStore().role === 'mod'){
-        useRouter().push('/mod-dashboard')
+    else if(useLoginStore().role === 2){
+        useRouter().push({name: 'ModDashboard'})
     }
 }
 </script>

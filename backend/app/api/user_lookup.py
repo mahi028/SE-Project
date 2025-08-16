@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, abort
+from flask_jwt_extended import verify_jwt_in_request, get_current_user
 from ..utils.embedding_func import *
 from ..models import SenInfo
 
@@ -8,12 +9,21 @@ lookup = Blueprint('lookup', __name__)
 def register():
     """Register user using video only"""
     try:
-        video = request.files.get('video')
-        ez_id = request.form.get('ez_id')
+        # Authenticate user using JWT token
+        verify_jwt_in_request()
+        current_user = get_current_user()
         
-        senior = SenInfo.query.filter_by(ez_id = ez_id).one_or_none()
+        if not current_user:
+            return jsonify({"error": "Authentication required"}), 401
+            
+        if current_user.role != 0:
+            return jsonify({"error": "Only senior citizens can register face embeddings"}), 403
+        
+        video = request.files.get('video')
+        
+        senior = SenInfo.query.filter_by(ez_id=current_user.ez_id).one_or_none()
         if not senior:
-            abort(404, description="User not Found!")
+            return jsonify({"error": "Senior citizen profile not found"}), 404
 
         if not video or video.filename == '':
             return jsonify({"error": "No video uploaded"}), 400
@@ -80,7 +90,8 @@ def recognize():
                 "message": "The face in the photo doesn't match any registered users"
             }), 404
 
-        THRESHOLD = 0.7  # ChromaDB uses distance, lower is better
+        # Adjust threshold for better matching - was 0.7, now 0.85
+        THRESHOLD = 0.85  # Increased threshold to allow more matches
         user_scores = {}  # ez_id -> best similarity (1 - distance)
 
         for metadata, distance in zip(search_results['metadatas'][0], search_results['distances'][0]):
@@ -94,26 +105,51 @@ def recognize():
                 user_scores[ez_id] = similarity
 
         # Sort users by similarity
-        top_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)[:5]  # Increased to top 5
 
         if not top_users:
+            # Provide more detailed feedback about why no matches were found
+            min_distance = float(min(search_results['distances'][0])) if search_results['distances'][0] else 1.0
+            best_similarity = 1 - min_distance
+            
             return jsonify({
                 "error": "No matching user found",
                 "message": "The face in the photo doesn't match any registered users with sufficient confidence",
-                "min_distance": float(min(search_results['distances'][0])) if search_results['distances'][0] else 1.0
+                "debug_info": {
+                    "min_distance": min_distance,
+                    "best_similarity_score": best_similarity,
+                    "threshold_used": THRESHOLD,
+                    "required_similarity": 1 - THRESHOLD,
+                    "total_faces_compared": len(search_results['distances'][0]),
+                    "suggestion": f"Best match had {best_similarity:.2%} similarity, but {(1-THRESHOLD):.2%} required"
+                }
             }), 404
 
         results = []
         for ez_id, similarity in top_users:
+            confidence_level = (
+                "Very High" if similarity > 0.90 else
+                "High" if similarity > 0.80 else
+                "Medium" if similarity > 0.65 else
+                "Low"
+            )
+            
             results.append({
-                "ez_id": ez_id,
+                "ezId": ez_id,
                 "similarity": float(similarity),
-                "confidence": "High" if similarity > 0.8 else "Medium" if similarity > 0.6 else "Low"
+                "confidence": confidence_level,
+                "match_percentage": f"{similarity:.1%}"
             })
 
         return jsonify({
-            "matches": results
+            "matches": results,
+            "debug_info": {
+                "threshold_used": THRESHOLD,
+                "total_candidates_found": len(user_scores),
+                "total_faces_in_db": len(search_results['distances'][0]) if search_results['distances'][0] else 0
+            }
         })
         
     except Exception as e:
+        print(f"Recognition error: {e}")
         return jsonify({"error": f"Recognition failed! Try Again."}), 500
