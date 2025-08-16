@@ -15,7 +15,7 @@ from app.graphql.doctors import DoctorsQuery, DoctorMutation
 from app.graphql.appointments import AppointmentsQuery, AppointmentsMutation
 from app.graphql.doc_reviews import DocReviewsQuery, DocReviewMutation
 from app.graphql.emergency_contacts import EmergencyContactsQuery, EmergencyContactMutation
-from app.graphql.groups import GroupQuery, GroupMutation  
+from app.graphql.groups import GroupsQuery, GroupsMutation  
 from app.graphql.prescriptions import PrescriptionsQuery, PrescriptionsMutation
 from app.graphql.vital_types import VitalTypesQuery, VitalTypesMutation
 from app.graphql.vital_logs import VitalLogsQuery, VitalLogsMutation
@@ -45,11 +45,11 @@ def app():
         return User.query.get(identity)
 
     # Include SeniorsMutation in the Mutation class
-    class Mutation(AuthMutation, UsersMutation, SeniorsMutation, DoctorMutation,AppointmentsMutation,DocReviewMutation,EmergencyContactMutation,GroupMutation,PrescriptionsMutation,VitalLogsMutation,VitalTypesMutation,HospitalsMutation, graphene.ObjectType):
+    class Mutation(AuthMutation, UsersMutation, SeniorsMutation, DoctorMutation,AppointmentsMutation,DocReviewMutation,EmergencyContactMutation,GroupsMutation,PrescriptionsMutation,VitalLogsMutation,VitalTypesMutation,HospitalsMutation, graphene.ObjectType):
         pass
 
     # Include SeniorsQuery in the Query class
-    class Query(UsersQuery, GetToken, SeniorsQuery,DoctorsQuery,AppointmentsQuery,DocReviewsQuery,EmergencyContactsQuery,GroupQuery,PrescriptionsQuery,VitalLogsQuery,VitalTypesQuery,HospitalsQuery, graphene.ObjectType):
+    class Query(UsersQuery, GetToken, SeniorsQuery,DoctorsQuery,AppointmentsQuery,DocReviewsQuery,EmergencyContactsQuery,GroupsQuery,PrescriptionsQuery,VitalLogsQuery,VitalTypesQuery,HospitalsQuery, graphene.ObjectType):
         pass
 
     schema = graphene.Schema(query=Query, mutation=Mutation)
