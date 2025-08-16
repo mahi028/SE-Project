@@ -489,26 +489,48 @@ const bookAppointment = async () => {
 
     submittingBooking.value = true
     try {
-        // Convert date and time to proper DateTime format
-        let appointmentDateTime
+        // Create appointment date in local timezone (don't convert to UTC)
+        let appointmentDate
         if (bookingForm.value.date instanceof Date) {
-            appointmentDateTime = new Date(bookingForm.value.date)
+            appointmentDate = new Date(bookingForm.value.date)
         } else {
-            appointmentDateTime = new Date(bookingForm.value.date)
+            appointmentDate = new Date(bookingForm.value.date)
         }
 
-        // Parse time and set on the date
+        // Parse the selected time (format: "09:00 AM" or "02:30 PM")
         const [time, period] = bookingForm.value.time.split(' ')
         const [hours, minutes] = time.split(':')
         let hour24 = parseInt(hours)
 
+        // Convert to 24-hour format
         if (period === 'PM' && hour24 !== 12) {
             hour24 += 12
         } else if (period === 'AM' && hour24 === 12) {
             hour24 = 0
         }
 
-        appointmentDateTime.setHours(hour24, parseInt(minutes), 0, 0)
+        // Set the time on the date (keeping local timezone)
+        appointmentDate.setHours(hour24, parseInt(minutes), 0, 0)
+
+        // Create a datetime string that represents the local time without timezone conversion
+        // Format: YYYY-MM-DDTHH:mm:ss (without 'Z' to avoid UTC conversion)
+        const year = appointmentDate.getFullYear()
+        const month = String(appointmentDate.getMonth() + 1).padStart(2, '0')
+        const day = String(appointmentDate.getDate()).padStart(2, '0')
+        const hour = String(appointmentDate.getHours()).padStart(2, '0')
+        const minute = String(appointmentDate.getMinutes()).padStart(2, '0')
+        const second = String(appointmentDate.getSeconds()).padStart(2, '0')
+
+        // Create ISO-like string without timezone info to preserve local time
+        const appointmentDateTime = `${year}-${month}-${day}T${hour}:${minute}:${second}`
+
+        console.log('Booking appointment with local time:', {
+            selectedDate: bookingForm.value.date,
+            selectedTime: bookingForm.value.time,
+            localDateTime: appointmentDate.toLocaleString(),
+            sentDateTime: appointmentDateTime,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
 
         // Use the actual docId from the doctor's info
         const docId = result.value?.getUser?.docInfo?.docId
@@ -526,7 +548,7 @@ const bookAppointment = async () => {
         const { data } = await bookAppointmentMutation({
             docId: docId,
             reason: bookingForm.value.reason.trim(),
-            remTime: appointmentDateTime.toISOString()
+            remTime: appointmentDateTime // Send as local time string
         })
 
         const response = data?.bookAppointment

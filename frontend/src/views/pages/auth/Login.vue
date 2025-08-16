@@ -380,17 +380,17 @@ const isEzLoginFormValid = () => {
 
             <!-- Email Input -->
             <div v-if="ezLoginForm.loginType === 'email'" class="field">
-                <FloatLabel>
-                    <InputText
-                        id="ezLoginEmail"
-                        v-model="ezLoginForm.email"
-                        class="w-full"
-                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.email }"
-                        @keyup.enter="sendEzLoginLink"
-                        placeholder="Enter your email address"
-                    />
-                    <label for="ezLoginEmail">Email Address</label>
-                </FloatLabel>
+                <label for="ezLoginEmail" class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-2">
+                    Email Address *
+                </label>
+                <InputText
+                    id="ezLoginEmail"
+                    v-model="ezLoginForm.email"
+                    class="w-full"
+                    :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.email }"
+                    @keyup.enter="sendEzLoginLink"
+                    placeholder="Enter your email address"
+                />
                 <small class="text-surface-500 dark:text-surface-400 mt-2 block">
                     Use the same email you registered with
                 </small>
@@ -398,17 +398,17 @@ const isEzLoginFormValid = () => {
 
             <!-- EZ ID Input -->
             <div v-if="ezLoginForm.loginType === 'ezid'" class="field">
-                <FloatLabel>
-                    <InputText
-                        id="ezLoginEzId"
-                        v-model="ezLoginForm.ezId"
-                        class="w-full"
-                        :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.ezId }"
-                        @keyup.enter="sendEzLoginLink"
-                        placeholder="Enter your EZ ID"
-                    />
-                    <label for="ezLoginEzId">EZ ID</label>
-                </FloatLabel>
+                <label for="ezLoginEzId" class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-2">
+                    EZ ID *
+                </label>
+                <InputText
+                    id="ezLoginEzId"
+                    v-model="ezLoginForm.ezId"
+                    class="w-full"
+                    :class="{ 'p-invalid': !isEzLoginFormValid() && ezLoginForm.ezId }"
+                    @keyup.enter="sendEzLoginLink"
+                    placeholder="Enter your EZ ID"
+                />
                 <small class="text-surface-500 dark:text-surface-400 mt-2 block">
                     Login link will be sent to your registered email address
                 </small>
@@ -473,10 +473,23 @@ const isEzLoginFormValid = () => {
 }
 
 /* Enhanced input styling */
+.ez-login-dialog .field {
+    margin-bottom: 1.5rem;
+}
+
+.ez-login-dialog .field label {
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
 .ez-login-dialog .p-inputtext {
+    padding: 1rem 0.75rem;
     border-radius: 8px;
     border: 2px solid var(--surface-300);
     transition: all 0.3s ease;
+    width: 100%;
+    background: var(--surface-0);
 }
 
 .ez-login-dialog .p-inputtext:hover {
@@ -486,12 +499,23 @@ const isEzLoginFormValid = () => {
 .ez-login-dialog .p-inputtext:focus {
     border-color: var(--primary-500);
     box-shadow: 0 0 0 4px rgba(var(--primary-500-rgb), 0.1);
+    outline: none;
+}
+
+.ez-login-dialog .p-inputtext::placeholder {
+    color: var(--text-color-secondary);
+    opacity: 0.7;
 }
 
 /* Dark mode enhancements */
+:global(.p-dark) .ez-login-dialog .field label {
+    color: var(--text-color);
+}
+
 :global(.p-dark) .ez-login-dialog .p-inputtext {
     background: var(--surface-900);
     border-color: var(--surface-600);
+    color: var(--text-color);
 }
 
 :global(.p-dark) .ez-login-dialog .p-inputtext:hover {
@@ -502,6 +526,11 @@ const isEzLoginFormValid = () => {
 :global(.p-dark) .ez-login-dialog .p-inputtext:focus {
     border-color: var(--primary-500);
     background: var(--surface-900);
+}
+
+:global(.p-dark) .ez-login-dialog .p-inputtext::placeholder {
+    color: var(--text-color-secondary);
+    opacity: 0.6;
 }
 
 /* Button styling */
