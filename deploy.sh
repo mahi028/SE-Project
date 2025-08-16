@@ -64,6 +64,10 @@ echo "📁 Creating necessary directories..."
 mkdir -p backend/static/uploads
 mkdir -p backend/chroma_db
 
+# Clean up any existing containers and volumes for fresh start
+echo "🧹 Cleaning up existing deployment..."
+$COMPOSE_CMD down --volumes --remove-orphans > /dev/null 2>&1 || true
+
 # Build and start services
 echo "🏗️  Building Docker images..."
 $COMPOSE_CMD build --no-cache
@@ -71,34 +75,67 @@ $COMPOSE_CMD build --no-cache
 echo "🚀 Starting services..."
 $COMPOSE_CMD up -d
 
-# Wait for services to be healthy
-echo "⏳ Waiting for services to start..."
-sleep 30
+# Wait for database to be ready first
+echo "⏳ Waiting for database to be ready..."
+MAX_RETRIES=30
+RETRY_COUNT=0
 
-# Check service health
-echo "🔍 Checking service health..."
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if $COMPOSE_CMD exec db pg_isready -U ezcare_user -d ezcare -h localhost > /dev/null 2>&1; then
+        echo "✅ Database is ready"
+        break
+    fi
+    echo "⏳ Database not ready yet, waiting... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
 
-# Check if database is running
-if $COMPOSE_CMD ps db | grep -q "Up"; then
-    echo "✅ Database is running"
-else
-    echo "❌ Database failed to start"
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    echo "❌ Database failed to become ready after $MAX_RETRIES attempts"
     $COMPOSE_CMD logs db
     exit 1
 fi
 
-# Check if backend is running
-if $COMPOSE_CMD ps backend | grep -q "Up"; then
-    echo "✅ Backend is running"
+# Wait a bit more for backend to initialize
+echo "⏳ Waiting for backend to initialize..."
+sleep 10
+
+# Check service health with proper health endpoints
+echo "🔍 Checking service health..."
+
+# Check database connection
+if $COMPOSE_CMD ps db | grep -q "Up"; then
+    echo "✅ Database container is running"
 else
-    echo "❌ Backend failed to start"
+    echo "❌ Database container failed to start"
+    $COMPOSE_CMD logs db
+    exit 1
+fi
+
+# Check backend health endpoint
+MAX_RETRIES=15
+RETRY_COUNT=0
+echo "⏳ Waiting for backend to be healthy..."
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if curl -s http://localhost:5000/health | grep -q "healthy" > /dev/null 2>&1; then
+        echo "✅ Backend is healthy"
+        break
+    fi
+    echo "⏳ Backend not healthy yet, waiting... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    echo "❌ Backend failed to become healthy"
     $COMPOSE_CMD logs backend
     exit 1
 fi
 
-# Check if frontend is running
+# Check frontend
 if $COMPOSE_CMD ps frontend | grep -q "Up"; then
-    echo "✅ Frontend is running"
+    echo "✅ Frontend container is running"
 else
     echo "❌ Frontend failed to start"
     $COMPOSE_CMD logs frontend
@@ -114,20 +151,62 @@ else
     exit 1
 fi
 
-# Initialize database tables
+# Initialize database tables with better error handling
 echo "🗄️  Initializing database tables..."
 if $COMPOSE_CMD exec backend python -c "
 from app import create_app
 from app.models import db
-print('Creating database tables...')
+import sys
+
+try:
+    print('Creating database tables...')
+    app = create_app()
+    with app.app_context():
+        db.create_all()
+        print('✅ Database tables initialized successfully!')
+        sys.exit(0)
+except Exception as e:
+    print(f'❌ Error initializing database: {e}')
+    sys.exit(1)
+"; then
+    echo "✅ Database tables initialized successfully"
+else
+    echo "❌ Database initialization failed, restarting backend..."
+    $COMPOSE_CMD restart backend
+    sleep 5
+    
+    # Retry database initialization after restart
+    if $COMPOSE_CMD exec backend python -c "
+from app import create_app
+from app.models import db
+print('Retrying database table creation...')
 app = create_app()
 with app.app_context():
     db.create_all()
     print('✅ Database tables initialized successfully!')
-" > /dev/null 2>&1; then
-    echo "✅ Database tables initialized"
+"; then
+        echo "✅ Database tables initialized successfully after restart"
+    else
+        echo "❌ Database initialization failed even after restart"
+        $COMPOSE_CMD logs backend
+        exit 1
+    fi
+fi
+
+# Final health check to ensure everything is working
+echo "🔍 Final health verification..."
+if curl -s http://localhost:5000/health | grep -q "healthy"; then
+    echo "✅ Final backend health check passed"
 else
-    echo "⚠️  Database initialization completed (tables may already exist)"
+    echo "⚠️  Backend health check failed, restarting backend once more..."
+    $COMPOSE_CMD restart backend
+    sleep 10
+    if curl -s http://localhost:5000/health | grep -q "healthy"; then
+        echo "✅ Backend healthy after final restart"
+    else
+        echo "❌ Backend still not healthy"
+        exit 1
+    fi
 fi
 
 echo ""
