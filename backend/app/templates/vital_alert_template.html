@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZCare Vital Alert</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .alert-icon {
+            font-size: 48px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        .alert-title {
+            color: #e74c3c;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .alert-subtitle {
+            color: #666;
+            font-size: 16px;
+            margin: 5px 0 0 0;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .vital-info {
+            background-color: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .vital-reading {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .threshold-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .action-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .action-title {
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .action-list {
+            color: #856404;
+            margin: 0;
+            padding-left: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+        .emergency-note {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="alert-icon">⚠️</div>
+            <h1 class="alert-title">Vital Signs Alert</h1>
+            <p class="alert-subtitle">Threshold Exceeded</p>
+        </div>
+        
+        <div class="content">
+            <div class="vital-info">
+                <h2 style="margin-top: 0; color: #e74c3c; text-align: center;">
+                    {{ reminder_display.vital_type }}
+                </h2>
+                <div class="vital-reading">
+                    {{ reminder_display.reading }} {{ reminder_display.unit }}
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Patient:</span>
+                    <span class="info-value">{{ reminder_display.senior_name }} ({{ reminder_display.senior_ezid }})</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Recorded At:</span>
+                    <span class="info-value">{{ reminder_display.logged_at }}</span>
+                </div>
+            </div>
+
+            {% if reminder_display.threshold %}
+            <div class="threshold-info">
+                <h3 style="margin-top: 0; color: #666;">Normal Range:</h3>
+                {% if reminder_display.vital_type == 'Blood Pressure' %}
+                    <p><strong>Systolic:</strong> 
+                        {% if reminder_display.threshold.systolic.low %}{{ reminder_display.threshold.systolic.low }}{% endif %}
+                        {% if reminder_display.threshold.systolic.low and reminder_display.threshold.systolic.high %} - {% endif %}
+                        {% if reminder_display.threshold.systolic.high %}{{ reminder_display.threshold.systolic.high }}{% endif %}
+                        {{ reminder_display.unit }}
+                    </p>
+                    <p><strong>Diastolic:</strong> 
+                        {% if reminder_display.threshold.diastolic.low %}{{ reminder_display.threshold.diastolic.low }}{% endif %}
+                        {% if reminder_display.threshold.diastolic.low and reminder_display.threshold.diastolic.high %} - {% endif %}
+                        {% if reminder_display.threshold.diastolic.high %}{{ reminder_display.threshold.diastolic.high }}{% endif %}
+                        {{ reminder_display.unit }}
+                    </p>
+                {% else %}
+                    <p>
+                        {% if reminder_display.threshold.low %}{{ reminder_display.threshold.low }}{% endif %}
+                        {% if reminder_display.threshold.low and reminder_display.threshold.high %} - {% endif %}
+                        {% if reminder_display.threshold.high %}{{ reminder_display.threshold.high }}{% endif %}
+                        {{ reminder_display.unit }}
+                    </p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="emergency-note">
+                🚨 If this is a medical emergency, call 108 immediately!
+            </div>
+
+            <div class="action-section">
+                <div class="action-title">Recommended Actions:</div>
+                <ul class="action-list">
+                    <li>Contact {{ reminder_display.senior_name }} immediately to check their condition</li>
+                    <li>Encourage them to take the reading again to confirm accuracy</li>
+                    <li>Advise consulting with their healthcare provider if reading is consistently outside normal range</li>
+                    <li>Monitor for any symptoms or changes in their condition</li>
+                    <li>Ensure they are taking prescribed medications as directed</li>
+                </ul>
+            </div>
+
+            <p style="color: #666; font-style: italic; text-align: center;">
+                This alert was automatically generated because the recorded vital sign reading is outside the normal threshold range.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated alert from EZCare Health Monitoring System</p>
+            <p>© {{ current_year }} EZCare. All rights reserved.</p>
+            <p style="margin-top: 15px;">
+                <strong>Important:</strong> This email contains sensitive health information. 
+                Please handle with appropriate confidentiality.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

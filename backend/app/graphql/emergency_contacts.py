@@ -4,6 +4,8 @@ from ..models import EmergencyContacts, db, SenInfo
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
 from ..utils.authControl import get_senior
+from ..utils.mailService import send_email
+from datetime import datetime
 
 class EmergencyContactType(SQLAlchemyObjectType):
     class Meta:
@@ -87,7 +89,60 @@ class UpdateEmergencyContact(graphene.Mutation):
             print(f"Error updating emergency contact: {str(e)}")
             return ReturnType(message=f"Something went wrong", status=403)
         
+class SOS(graphene.Mutation):
+    Output = ReturnType
+
+    def mutate(self, info):
+        senior = get_senior(info)
+        if not senior:
+            return ReturnType(message="Senior citizen not found", status=404)
+        
+        # Fix the filter syntax - use .filter() instead of .filter_by() with conditions
+        contacts = EmergencyContacts.query.filter(
+            EmergencyContacts.sen_id == senior.sen_id,
+            EmergencyContacts.send_alert == True
+        ).all()
+        
+        if not contacts:
+            return ReturnType(message="No emergency contacts with alert enabled found", status=404)
+        
+        recipients = []
+        for contact in contacts:
+            if contact.email:  # Make sure email exists before adding
+                recipients.append(contact.email)
+        
+        if not recipients:
+            return ReturnType(message="No valid email addresses found in emergency contacts", status=404)
+
+        reminder_display = {
+            'time': datetime.utcnow(),
+            'email': senior.user.email,
+            'name': senior.user.name,
+            'phone_num': senior.user.phone_num,
+            'address': senior.address,
+            'pincode': senior.pincode,
+            'ezId': senior.ez_id,
+        }
+        
+        current_year = datetime.now().year
+        
+        try:
+            send_email(
+                subject=f"🚨 SOS: {senior.user.name} needs urgent help!",
+                recipients=recipients,
+                reminder_display=reminder_display,
+                template="SOS_template.html"
+            )
+            
+            return ReturnType(
+                message=f"SOS alert sent to {len(recipients)} emergency contact(s)", 
+                status=200
+            )
+        except Exception as e:
+            print(f"Error sending SOS email: {e}")
+            return ReturnType(message="Failed to send SOS alert", status=500)
 
 class EmergencyContactMutation(graphene.ObjectType):
     add_emergency_contact = AddEmergencyContact.Field()
     update_emergency_contact = UpdateEmergencyContact.Field()
+    sos = SOS.Field()

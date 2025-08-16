@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZCare Reminder</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: "🔔";
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+            animation: gentle-pulse 2s infinite;
+        }
+        
+        @keyframes gentle-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .alert-banner {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 0;
+            text-align: center;
+            font-weight: 600;
+            color: #8b5a00; /* Darker yellow text for better contrast */
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .reminder-card {
+            background: #ffffff; /* Ensure solid white background */
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 6px solid #4CAF50;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef; /* Add border for definition */
+        }
+        
+        .reminder-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529; /* Very dark text for maximum contrast */
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Fix category badge contrast */
+        .category-badge {
+            display: inline-block;
+            padding: 8px 16px; /* Increased padding */
+            border-radius: 20px;
+            font-size: 13px; /* Slightly larger font */
+            font-weight: 700; /* Bolder weight */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid; /* Add border for better definition */
+        }
+        
+        /* Enhanced category colors with better contrast */
+        .category-appointments { 
+            background: #e3f2fd; 
+            color: #0d47a1; 
+            border-color: #1976d2;
+        }
+        .category-medic { 
+            background: #f3e5f5; 
+            color: #4a148c; 
+            border-color: #7b1fa2;
+        }
+        .category-hydration { 
+            background: #e8f5e8; 
+            color: #1b5e20; 
+            border-color: #388e3c;
+        }
+        .category-group { 
+            background: #fff8e1; 
+            color: #e65100; 
+            border-color: #f57c00;
+        }
+        .category-exercise { 
+            background: #fce4ec; 
+            color: #880e4f; 
+            border-color: #c2185b;
+        }
+        .category-diet { 
+            background: #f1f8e9; 
+            color: #33691e; 
+            border-color: #689f38;
+        }
+        .category-sleep { 
+            background: #e0f2f1; 
+            color: #004d40; 
+            border-color: #00695c;
+        }
+        .category-other { 
+            background: #f5f5f5; 
+            color: #424242; 
+            border-color: #757575;
+        }
+        
+        /* Fix info section contrast */
+        .info-section {
+            background-color: #ffffff; /* Solid white background */
+            border: 1px solid #dee2e6; /* Add border */
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-section h3 {
+            color: #212529; /* Very dark text */
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #212529; /* Very dark text */
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-value {
+            color: #212529; /* Very dark text */
+            flex: 1;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        /* Fix datetime display contrast */
+        .datetime-display {
+            background: linear-gradient(135deg, #1565c0, #0d47a1); /* Darker gradient */
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .datetime-main {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Add text shadow */
+        }
+        
+        .datetime-sub {
+            font-size: 14px;
+            color: #ffffff;
+            opacity: 1; /* Remove transparency */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Fix recurring info section */
+        .recurring-info {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20); /* Darker green gradient */
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .recurring-info h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recurring-info p {
+            color: #ffffff;
+            margin: 0;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Fix tips section */
+        .tips-section {
+            background: linear-gradient(135deg, #1976d2, #1565c0); /* Darker blue gradient */
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .tips-section h4 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tips-section li {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Fix time slots */
+        .time-slot {
+            background: rgba(255, 255, 255, 0.9); /* More opaque background */
+            color: #2e7d32; /* Dark green text */
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700; /* Bolder font */
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            text-shadow: none; /* Remove text shadow for dark text */
+        }
+        
+        /* Dark mode improvements */
+        @media (prefers-color-scheme: dark) {
+            .reminder-card {
+                background: #2d3748;
+                border-color: #4a5568;
+                color: #ffffff;
+            }
+            
+            .reminder-title {
+                color: #ffffff;
+            }
+            
+            .info-section {
+                background-color: #374151;
+                border-color: #4b5563;
+                color: #ffffff;
+            }
+            
+            .info-section h3 {
+                color: #ffffff;
+            }
+            
+            .info-label {
+                color: #e5e7eb;
+            }
+            
+            .info-value {
+                color: #ffffff;
+            }
+            
+            .time-slot {
+                background: rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+        }
+        
+        /* Ensure proper contrast for category badges */
+        
+        /* Improve important notice visibility */
+        .important-notice {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .important-notice p {
+            margin: 0;
+            color: #8b5a00; /* Dark text for better contrast */
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .important-notice strong {
+            color: #6f4e00; /* Even darker for emphasis */
+        }
+        
+        /* Dark mode for important notice */
+        @media (prefers-color-scheme: dark) {
+            .important-notice {
+                background-color: #664d03;
+                border-color: #b08800;
+                color: #fff3cd;
+            }
+            
+            .important-notice p {
+                color: #fff3cd;
+            }
+            
+            .important-notice strong {
+                color: #ffffff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>EZCare Reminder</h1>
+            <p class="subtitle">Your health companion</p>
+        </div>
+        
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+            ⏰ You have a scheduled reminder
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Reminder Card -->
+            <div class="reminder-card">
+                <div class="reminder-title">
+                    <span>📋</span>
+                    {{ reminder.label or 'Reminder' }}
+                </div>
+                
+                <div class="category-badge 
+                    {% if reminder.category == 0 %}category-appointments
+                    {% elif reminder.category == 1 %}category-medic
+                    {% elif reminder.category == 2 %}category-hydration
+                    {% elif reminder.category == 3 %}category-group
+                    {% elif reminder.category == 4 %}category-exercise
+                    {% elif reminder.category == 5 %}category-diet
+                    {% elif reminder.category == 6 %}category-sleep
+                    {% else %}category-other
+                    {% endif %}">
+                    {% if reminder.category == 0 %}Appointments
+                    {% elif reminder.category == 1 %}Medication
+                    {% elif reminder.category == 2 %}Hydration
+                    {% elif reminder.category == 3 %}Group Meeting
+                    {% elif reminder.category == 4 %}Exercise
+                    {% elif reminder.category == 5 %}Diet
+                    {% elif reminder.category == 6 %}Sleep
+                    {% else %}General
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- DateTime Display -->
+            <div class="datetime-display">
+                <div class="datetime-main">
+                    {{ reminder.rem_time.strftime('%A, %B %d, %Y') if reminder.rem_time else 'Date not specified' }}
+                </div>
+                <div class="datetime-sub">
+                    {{ reminder.rem_time.strftime('%I:%M %p') if reminder.rem_time else 'Time not specified' }}
+                </div>
+            </div>
+            
+            <!-- Reminder Details -->
+            <div class="info-section">
+                <h3 style="margin-top: 0; color: #2c3e50; display: flex; align-items: center; gap: 8px;">
+                    <span>📅</span> Reminder Details
+                </h3>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <span>🏷️</span> Category
+                    </span>
+                    <span class="info-value">{{ reminder.category or 'General' }}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <span>⏰</span> Scheduled Time
+                    </span>
+                    <span class="info-value">
+                        {{ reminder.rem_time.strftime('%I:%M %p on %A') if reminder.rem_time else 'Not specified' }}
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">
+                        <span>🔄</span> Type
+                    </span>
+                    <span class="info-value">
+                        {{ 'Recurring' if reminder.is_recurring else 'One-time' }}
+                    </span>
+                </div>
+                
+                {% if reminder.is_recurring %}
+                <div class="info-row">
+                    <span class="info-label">
+                        <span>📆</span> Frequency
+                    </span>
+                    <span class="info-value">
+                        {{ (reminder.frequency or 'Not specified').title() }}
+                        {% if reminder.interval and reminder.interval > 1 %}
+                            (Every {{ reminder.interval }} {{ reminder.frequency or 'times' }})
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                
+                {% if reminder.weekdays %}
+                <div class="info-row">
+                    <span class="info-label">
+                        <span>📅</span> Days
+                    </span>
+                    <span class="info-value">{{ reminder.weekdays|title }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Recurring Information -->
+            {% if reminder.is_recurring %}
+            <div class="recurring-info">
+                <h4>
+                    <span>🔄</span> Recurring Reminder Information
+                </h4>
+                <p style="margin: 0; font-size: 14px;">
+                    This reminder will repeat {{ (reminder.frequency or 'regularly')|lower }}
+                    {% if reminder.weekdays %} on {{ reminder.weekdays|title }}{% endif %}
+                    {% if reminder.times_per_day and reminder.times_per_day > 1 %} 
+                        ({{ reminder.times_per_day }} times per day)
+                    {% endif %}
+                </p>
+                
+                {% if reminder.time_slots %}
+                <div class="time-slots">
+                    {% for slot in reminder.time_slots %}
+                    <span class="time-slot">{{ slot }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Category-specific Tips -->
+            {% if reminder.category is not none %}
+            <div class="tips-section">
+                <h4>
+                    <span>💡</span> Helpful Tips
+                </h4>
+                <ul>
+                    {% if reminder.category == 0 %}
+                    <!-- Appointments -->
+                    <li>Arrive 15 minutes early for your appointment</li>
+                    <li>Bring your ID, insurance card, and list of current medications</li>
+                    <li>Write down any questions you want to ask your doctor</li>
+                    {% elif reminder.category == 1 %}
+                    <!-- Medications -->
+                    <li>Take your medication with food if recommended</li>
+                    <li>Set up a pill organizer to avoid missing doses</li>
+                    <li>Contact your doctor if you experience side effects</li>
+                    {% elif reminder.category == 2 %}
+                    <!-- Hydration -->
+                    <li>Keep a water bottle nearby throughout the day</li>
+                    <li>Try adding lemon or cucumber for flavor</li>
+                    <li>Monitor your urine color - pale yellow is ideal</li>
+                    {% elif reminder.category == 3 %}
+                    <!-- Group meetings -->
+                    <li>Arrive on time to not miss any activities</li>
+                    <li>Bring comfortable clothing and any required items</li>
+                    <li>Don't hesitate to participate and make new friends</li>
+                    {% elif reminder.category == 4 %}
+                    <!-- Exercise -->
+                    <li>Start with light warm-up exercises</li>
+                    <li>Stay hydrated before, during, and after exercise</li>
+                    <li>Listen to your body and rest if you feel tired</li>
+                    {% elif reminder.category == 5 %}
+                    <!-- Diet -->
+                    <li>Plan your meals in advance</li>
+                    <li>Include a variety of colorful fruits and vegetables</li>
+                    <li>Stay consistent with meal timings</li>
+                    {% elif reminder.category == 6 %}
+                    <!-- Sleep -->
+                    <li>Create a relaxing bedtime routine</li>
+                    <li>Avoid screens 1 hour before sleep</li>
+                    <li>Keep your bedroom cool and dark</li>
+                    {% else %}
+                    <!-- General/Other -->
+                    <li>Set up additional reminders if needed</li>
+                    <li>Mark completed tasks to track your progress</li>
+                    <li>Stay consistent with your routine</li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Action Section -->
+            <div class="action-section">
+                <h4 style="margin-top: 0; color: #495057;">Quick Actions</h4>
+                <p style="margin-bottom: 20px; color: #6c757d;">
+                    Access your EZCare dashboard for more options
+                </p>
+                <a href="#" class="btn btn-primary">Open EZCare Dashboard</a>
+                <a href="#" class="btn btn-secondary">View All Reminders</a>
+            </div>
+            
+            <!-- Important Notice -->
+            <div class="important-notice">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <div>
+                        <p><strong>Important Reminder</strong></p>
+                        <p style="margin: 5px 0 0 0;">
+                            This is an automated reminder from EZCare. Please take the necessary action as scheduled.
+                            {% if not reminder.is_recurring %}
+                            This is a one-time reminder and will not repeat.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© {{ current_year }} EZCare. All rights reserved.</p>
+            <p>Making healthcare accessible and manageable for seniors</p>
+            <h4>EZCare - Your Health Companion</h4>
+        </div>
+    </div>
+</body>
+</html>
+        </div>
+    </div>
+</body>
+</html>
+                {% endif %}
+            </div>
+            
+            <!-- Recurring Information -->
+            {% if reminder.is_recurring %}
+            <div class="recurring-info">
+                <h4>
+                    <span>🔄</span> Recurring Reminder Information
+                </h4>
+                <p style="margin: 0; font-size: 14px;">
+                    This reminder will repeat {{ (reminder.frequency or 'regularly')|lower }}
+                    {% if reminder.weekdays %} on {{ reminder.weekdays|title }}{% endif %}
+                    {% if reminder.times_per_day and reminder.times_per_day > 1 %} 
+                        ({{ reminder.times_per_day }} times per day)
+                    {% endif %}
+                </p>
+                
+                {% if reminder.time_slots %}
+                <div class="time-slots">
+                    {% for slot in reminder.time_slots %}
+                    <span class="time-slot">{{ slot }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Category-specific Tips -->
+            {% if reminder.category is not none %}
+            <div class="tips-section">
+                <h4>
+                    <span>💡</span> Helpful Tips
+                </h4>
+                <ul>
+                    {% if reminder.category == 0 %}
+                    <!-- Appointments -->
+                    <li>Arrive 15 minutes early for your appointment</li>
+                    <li>Bring your ID, insurance card, and list of current medications</li>
+                    <li>Write down any questions you want to ask your doctor</li>
+                    {% elif reminder.category == 1 %}
+                    <!-- Medications -->
+                    <li>Take your medication with food if recommended</li>
+                    <li>Set up a pill organizer to avoid missing doses</li>
+                    <li>Contact your doctor if you experience side effects</li>
+                    {% elif reminder.category == 2 %}
+                    <!-- Hydration -->
+                    <li>Keep a water bottle nearby throughout the day</li>
+                    <li>Try adding lemon or cucumber for flavor</li>
+                    <li>Monitor your urine color - pale yellow is ideal</li>
+                    {% elif reminder.category == 3 %}
+                    <!-- Group meetings -->
+                    <li>Arrive on time to not miss any activities</li>
+                    <li>Bring comfortable clothing and any required items</li>
+                    <li>Don't hesitate to participate and make new friends</li>
+                    {% elif reminder.category == 4 %}
+                    <!-- Exercise -->
+                    <li>Start with light warm-up exercises</li>
+                    <li>Stay hydrated before, during, and after exercise</li>
+                    <li>Listen to your body and rest if you feel tired</li>
+                    {% elif reminder.category == 5 %}
+                    <!-- Diet -->
+                    <li>Plan your meals in advance</li>
+                    <li>Include a variety of colorful fruits and vegetables</li>
+                    <li>Stay consistent with meal timings</li>
+                    {% elif reminder.category == 6 %}
+                    <!-- Sleep -->
+                    <li>Create a relaxing bedtime routine</li>
+                    <li>Avoid screens 1 hour before sleep</li>
+                    <li>Keep your bedroom cool and dark</li>
+                    {% else %}
+                    <!-- General/Other -->
+                    <li>Set up additional reminders if needed</li>
+                    <li>Mark completed tasks to track your progress</li>
+                    <li>Stay consistent with your routine</li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Action Section -->
+            <div class="action-section">
+                <h4 style="margin-top: 0; color: #495057;">Quick Actions</h4>
+                <p style="margin-bottom: 20px; color: #6c757d;">
+                    Access your EZCare dashboard for more options
+                </p>
+                <a href="#" class="btn btn-primary">Open EZCare Dashboard</a>
+                <a href="#" class="btn btn-secondary">View All Reminders</a>
+            </div>
+            
+            <!-- Important Notice with better contrast -->
+            <div class="important-notice">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <div>
+                        <p><strong>Important Reminder</strong></p>
+                        <p style="margin: 5px 0 0 0;">
+                            This is an automated reminder from EZCare. Please take the necessary action as scheduled.
+                            {% if not reminder.is_recurring %}
+                            This is a one-time reminder and will not repeat.
+                            {% endif %}
+                        </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>    </div>        </div>            </p>                If you have questions, please contact our support team.                This email was sent automatically based on your reminder settings.<br>            <p style="margin-top: 15px; font-size: 12px; opacity: 0.8;">            <p>© {{ current_year }} EZCare. All rights reserved.</p>            <p>Making healthcare accessible and manageable for seniors</p>            <h4>EZCare - Your Health Companion</h4>        <div class="footer">        <!-- Footer -->                </div>            </div>                </div>                    </div></html>

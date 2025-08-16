@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, time
 from dateutil.rrule import rrule, WEEKLY
 from flask_apscheduler import APScheduler
-from ..models import Reminders 
-from .dbUtils import commitdb, rollbackdb
+from ..models import Reminders, Notification
+from .dbUtils import commitdb, rollbackdb, adddb
 from .mailService import send_email
 
 scheduler = APScheduler()
@@ -38,8 +38,7 @@ def should_trigger_now(reminder: Reminders, now: datetime) -> bool:
 
 def trigger_reminder(reminder: Reminders):
     """Trigger reminder and send email."""
-    subject = f"Reminder: {reminder.label}"
-    contact = reminder
+    subject = f"⏰ Reminder: {reminder.label}"
 
     # Access user email via relationship
     if not reminder.user or not reminder.user.email:
@@ -48,13 +47,37 @@ def trigger_reminder(reminder: Reminders):
 
     recipients = [reminder.user.email]
     reminder_display = {
-        **reminder.__dict__,
-        "category": CATEGORY_MAP.get(reminder.category, "Other")  # fallback to "Other"
+        'label': reminder.label,
+        'category': CATEGORY_MAP.get(reminder.category, "Other"),
+        'rem_time': reminder.rem_time.strftime('%Y-%m-%d %H:%M:%S') if reminder.rem_time else None,
+        'is_recurring': reminder.is_recurring,
+        'frequency': reminder.frequency,
+        'weekdays': reminder.weekdays,
+        'times_per_day': reminder.times_per_day,
+        'time_slots': reminder.time_slots,
+        'interval': reminder.interval,
+        'is_active': reminder.is_active
     }
     try:
-        send_email(subject, contact, recipients, reminder_display)
+        send_email(
+            subject=subject,
+            recipients=recipients,
+            reminder_display=reminder_display,
+            template="reminders_template.html",
+            current_year=datetime.now().year
+        )
+        # Create notification using the actual reminder object attributes, not the dictionary
+        notification = Notification(
+            ez_id=reminder.user.ez_id,
+            label=reminder.label,
+            time=reminder.rem_time,
+            category=reminder.category
+        )
+        adddb(notification)
+        commitdb()
         print(f"Email sent for Reminder: {reminder.label} to {reminder.user.email}")
     except Exception as e:
+        rollbackdb()
         print(f"Error sending email for {reminder.label}: {e}")
 
 def check_reminders(app):
@@ -74,7 +97,7 @@ def check_reminders(app):
                 rem.is_active = False
                 commitdb()
             except Exception as e:
-                app.logger.error(f"Error triggering one-time reminder ID {rem.id}: {e}")
+                app.logger.error(f"Error triggering one-time reminder ID {rem.rem_id}: {e}")
                 rollbackdb()
 
         # --- Recurring reminders ---
@@ -90,5 +113,5 @@ def check_reminders(app):
                     # Optional: update rem.last_triggered = now
                     commitdb()
             except Exception as e:
-                app.logger.error(f"Error triggering recurring reminder ID {rem.id}: {e}")
+                app.logger.error(f"Error triggering recurring reminder ID {rem.rem_id}: {e}")
                 rollbackdb()

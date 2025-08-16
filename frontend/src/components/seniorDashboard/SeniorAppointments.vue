@@ -1,98 +1,137 @@
 <script setup>
-import { appointmentService } from '@/service/AppointmentService';
-import { doctorService } from '@/service/DoctorService';
-import { useLoginStore } from '@/store/loginStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
+import { useQuery, useMutation } from '@vue/apollo-composable';
+import gql from 'graphql-tag';
 
 const toast = useToast();
 const confirm = useConfirm();
-const appointments = ref([]);
-const doctors = ref([]);
-const loginStore = useLoginStore();
-const loading = ref(false);
 
-const fetchAppointments = async () => {
-    loading.value = true;
-    try {
-        const data = await appointmentService.getAppointmentsBySenior(loginStore.ez_id);
-        appointments.value = data;
-
-        // Fetch doctor details for each appointment
-        const doctorIds = [...new Set(data.map(apt => apt.doc_id))];
-        const doctorPromises = doctorIds.map(id => doctorService.getDoctor({ ez_id: id }));
-        const doctorData = await Promise.all(doctorPromises);
-        doctors.value = doctorData.filter(doc => doc);
-    } catch (error) {
-        toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to fetch appointments',
-            life: 3000
-        });
-    } finally {
-        loading.value = false;
-    }
-};
-
-const getDoctorInfo = (docId) => {
-    return doctors.value.find(doc => doc.ez_id === docId) || {};
-};
-
-const getAppointmentStatus = (date, time) => {
-    const appointmentDateTime = new Date(`${date} ${time}`);
-    const now = new Date();
-
-    if (appointmentDateTime < now) {
-        return { label: 'Completed', severity: 'success' };
-    } else {
-        const diffTime = appointmentDateTime - now;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays <= 1) {
-            return { label: 'Today/Tomorrow', severity: 'warning' };
-        } else {
-            return { label: 'Upcoming', severity: 'info' };
+// GraphQL queries and mutations
+const GET_APPOINTMENTS_FOR_SENIOR = gql`
+    query GetAppointmentsForSenior {
+        getAppointmentsForSenior {
+            appId
+            senId
+            docId
+            remTime
+            reason
+            status
+            createdAt
+            docInfo {
+                docId
+                ezId
+                specialization
+                affiliation
+                consultationFee
+                user {
+                    name
+                    email
+                    phoneNum
+                    profileImageUrl
+                }
+            }
         }
     }
-};
+`;
 
-const getSpecializationColor = (specialization) => {
-    switch (specialization) {
-        case 'Cardiologist':
-            return 'danger';
-        case 'Neurologist':
-            return 'success';
-        case 'Pediatrician':
-            return 'info';
-        case 'Gynecologist':
-            return 'warning';
-        case 'Orthopedist':
-            return 'secondary';
+const CANCEL_APPOINTMENT = gql`
+    mutation CancelAppointment($appId: Int!) {
+        cancelAppointment(appId: $appId) {
+            message
+            status
+        }
+    }
+`;
+
+// Apollo composables
+const { result, loading, error, refetch } = useQuery(GET_APPOINTMENTS_FOR_SENIOR);
+const { mutate: cancelAppointmentMutation } = useMutation(CANCEL_APPOINTMENT);
+
+// Transform appointments to include doctor information
+const appointments = computed(() => {
+    const allAppointments = result.value?.getAppointmentsForSenior || [];
+    return allAppointments.map(appointment => {
+        const docInfo = appointment?.docInfo || {};
+        let affiliation = {};
+
+        try {
+            affiliation = typeof docInfo.affiliation === 'string'
+                ? JSON.parse(docInfo.affiliation)
+                : (docInfo.affiliation || {});
+        } catch (e) {
+            console.error('Error parsing affiliation:', e);
+            affiliation = {};
+        }
+
+        return {
+            ...appointment,
+            doctorName: docInfo.user?.name || `Doctor #${appointment.docId}`,
+            doctorEmail: docInfo.user?.email || 'No email provided',
+            doctorPhone: docInfo.user?.phoneNum,
+            doctorProfile: docInfo.user?.profileImageUrl,
+            specialization: docInfo.specialization || 'General Medicine',
+            hospital: affiliation.name || 'Medical Center',
+            consultationFee: docInfo.consultationFee || 'Not specified',
+            date: new Date(appointment.remTime).toLocaleDateString(),
+            time: new Date(appointment.remTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+    });
+});
+
+const getAppointmentStatus = (appointment) => {
+    const appointmentDateTime = new Date(appointment.remTime);
+    const now = new Date();
+
+    // Handle different status values first
+    switch (appointment.status) {
+        case 0:
+            return { label: 'Pending Approval', severity: 'warning' };
+        case 1:
+            // For confirmed appointments, check if past or future
+            if (appointmentDateTime < now) {
+                return { label: 'Completed', severity: 'success' };
+            } else {
+                const diffTime = appointmentDateTime - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 1) {
+                    return { label: 'Today/Tomorrow', severity: 'info' };
+                } else {
+                    return { label: 'Confirmed', severity: 'success' };
+                }
+            }
+        case -1:
+            return { label: 'Cancelled', severity: 'danger' };
         default:
-            return 'primary';
+            return { label: 'Unknown', severity: 'secondary' };
     }
 };
 
+// Separate appointments by status and time
+const pendingAppointments = computed(() => {
+    return appointments.value
+        .filter(apt => apt.status === 0)
+        .sort((a, b) => new Date(a.remTime) - new Date(b.remTime));
+});
+
 const upcomingAppointments = computed(() => {
-    return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
-        return appointmentDateTime >= new Date();
-    }).sort((a, b) => new Date(`${a.date} ${a.time}`) - new Date(`${b.date} ${b.time}`));
+    const now = new Date();
+    return appointments.value
+        .filter(apt => apt.status === 1 && new Date(apt.remTime) >= now)
+        .sort((a, b) => new Date(a.remTime) - new Date(b.remTime));
 });
 
 const pastAppointments = computed(() => {
-    return appointments.value.filter(apt => {
-        const appointmentDateTime = new Date(`${apt.date} ${apt.time}`);
-        return appointmentDateTime < new Date();
-    }).sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
+    const now = new Date();
+    return appointments.value
+        .filter(apt => (apt.status === 1 && new Date(apt.remTime) < now) || apt.status === -1)
+        .sort((a, b) => new Date(b.remTime) - new Date(a.remTime));
 });
 
 const cancelAppointment = (appointment) => {
-    const doctorInfo = getDoctorInfo(appointment.doc_id);
     confirm.require({
-        message: `Are you sure you want to cancel your appointment with ${doctorInfo.name || appointment.doctorEmail?.split('@')[0]} on ${appointment.date} at ${appointment.time}?`,
+        message: `Are you sure you want to cancel your appointment with Dr. ${appointment.doctorName} on ${appointment.date} at ${appointment.time}?`,
         header: 'Cancel Appointment',
         icon: 'pi pi-exclamation-triangle',
         rejectProps: {
@@ -106,21 +145,32 @@ const cancelAppointment = (appointment) => {
         },
         accept: async () => {
             try {
-                // Simulate API call to cancel appointment
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // Remove appointment from list
-                appointments.value = appointments.value.filter(apt =>
-                    !(apt.doc_id === appointment.doc_id && apt.date === appointment.date && apt.time === appointment.time)
-                );
-
-                toast.add({
-                    severity: 'success',
-                    summary: 'Appointment Cancelled',
-                    detail: 'Your appointment has been cancelled successfully.',
-                    life: 3000
+                const { data } = await cancelAppointmentMutation({
+                    appId: appointment.appId
                 });
+
+                const response = data?.cancelAppointment;
+
+                if (response?.status === 1) {
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Appointment Cancelled',
+                        detail: response.message || 'Your appointment has been cancelled successfully.',
+                        life: 3000
+                    });
+
+                    // Refetch appointments to update the list
+                    await refetch();
+                } else {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: response?.message || 'Failed to cancel appointment. Please try again.',
+                        life: 3000
+                    });
+                }
             } catch (error) {
+                console.error('Error cancelling appointment:', error);
                 toast.add({
                     severity: 'error',
                     summary: 'Error',
@@ -132,8 +182,30 @@ const cancelAppointment = (appointment) => {
     });
 };
 
+const fetchAppointments = async () => {
+    try {
+        await refetch();
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to fetch appointments',
+            life: 3000
+        });
+    }
+};
+
 onMounted(() => {
-    fetchAppointments();
+    // Initial data loading handled by useQuery
+    if (error.value) {
+        toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load appointments',
+            life: 3000
+        });
+    }
 });
 </script>
 
@@ -151,7 +223,7 @@ onMounted(() => {
             <template #content>
                 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
                     <p class="text-surface-600 dark:text-surface-400">
-                        Keep track of your medical appointments and consultations.
+                        Keep track of your medical appointments and consultations with healthcare professionals.
                     </p>
                     <Button
                         icon="pi pi-refresh"
@@ -162,10 +234,20 @@ onMounted(() => {
                     />
                 </div>
 
+                <!-- Loading state -->
                 <div v-if="loading" class="text-center py-8">
                     <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="8" />
+                    <p class="mt-4">Loading appointments...</p>
                 </div>
 
+                <!-- Error state -->
+                <div v-else-if="error" class="text-center py-8">
+                    <i class="pi pi-exclamation-triangle text-4xl text-red-500 mb-3"></i>
+                    <p class="text-red-600">Failed to load appointments</p>
+                    <Button label="Retry" @click="fetchAppointments" class="mt-3" />
+                </div>
+
+                <!-- Empty state -->
                 <div v-else-if="appointments.length === 0" class="empty-state">
                     <div class="text-center py-12">
                         <div class="text-surface-400 dark:text-surface-500 mb-4">
@@ -175,37 +257,65 @@ onMounted(() => {
                             No Appointments Found
                         </h4>
                         <p class="text-surface-500 dark:text-surface-400 mb-4">
-                            You haven't booked any appointments yet.
+                            You haven't booked any appointments yet. Start by finding a doctor and booking your first consultation.
                         </p>
+                        <Button
+                            label="Find Doctors"
+                            icon="pi pi-search"
+                            severity="success"
+                            as="router-link"
+                            to="/doctors"
+                        />
                     </div>
                 </div>
 
+                <!-- Appointments content -->
                 <div v-else class="appointments-content">
-                    <!-- Upcoming Appointments -->
-                    <div v-if="upcomingAppointments.length > 0" class="appointment-section">
+                    <!-- Pending Appointments -->
+                    <div v-if="pendingAppointments.length > 0" class="appointment-section">
                         <div class="section-divider">
-                            <span class="section-label">Upcoming Appointments</span>
-                            <Badge :value="upcomingAppointments.length" severity="info" />
+                            <span class="section-label">Pending Requests</span>
+                            <Badge :value="pendingAppointments.length" severity="warning" />
+                        </div>
+                        <div class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                            <div class="flex items-center gap-2 text-yellow-700 dark:text-yellow-300">
+                                <i class="pi pi-clock"></i>
+                                <span class="text-sm">
+                                    These appointments are pending approval from the doctors. You will be notified once they respond.
+                                </span>
+                            </div>
                         </div>
 
                         <div class="appointment-list">
                             <Card
-                                v-for="appointment in upcomingAppointments"
-                                :key="appointment.appointment_id"
-                                class="appointment-item upcoming"
+                                v-for="appointment in pendingAppointments"
+                                :key="`pending-${appointment.appId}`"
+                                class="appointment-item pending"
                             >
                                 <template #content>
                                     <div class="appointment-content">
                                         <div class="appointment-doctor">
                                             <div class="doctor-avatar">
-                                                <i class="pi pi-user-md text-blue-500"></i>
+                                                <Avatar
+                                                    v-if="appointment.doctorProfile"
+                                                    :image="appointment.doctorProfile"
+                                                    shape="circle"
+                                                    size="large"
+                                                />
+                                                <Avatar
+                                                    v-else
+                                                    :label="appointment.doctorName?.charAt(0) || 'D'"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="bg-yellow-500 text-white"
+                                                />
                                             </div>
                                             <div class="doctor-info">
-                                                <h4 class="doctor-name">{{ getDoctorInfo(appointment.doc_id).name || 'Dr. ' + appointment.doctorEmail?.split('@')[0] }}</h4>
-                                                <p class="doctor-specialization">{{ getDoctorInfo(appointment.doc_id).specialization || 'General Medicine' }}</p>
+                                                <h4 class="doctor-name">Dr. {{ appointment.doctorName }}</h4>
+                                                <p class="doctor-specialization">{{ appointment.specialization }}</p>
                                                 <div class="doctor-hospital">
                                                     <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-700 dark:text-surface-300">{{ getDoctorInfo(appointment.doc_id).hospital || 'Medical Center' }}</span>
+                                                    <span class="text-surface-700 dark:text-surface-300">{{ appointment.hospital }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -230,8 +340,8 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment).label"
+                                                :severity="getAppointmentStatus(appointment).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
@@ -242,7 +352,106 @@ onMounted(() => {
                                                     outlined
                                                     v-tooltip.top="'View Doctor Profile'"
                                                     as="router-link"
-                                                    :to="`/doctor/${appointment.doc_id}`"
+                                                    :to="`/doctor/${appointment.docInfo?.ezId}`"
+                                                    class="w-full mb-2"
+                                                />
+                                                <Button
+                                                    icon="pi pi-times"
+                                                    label="Cancel"
+                                                    size="small"
+                                                    severity="danger"
+                                                    outlined
+                                                    v-tooltip.top="'Cancel Request'"
+                                                    @click="cancelAppointment(appointment)"
+                                                    class="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </Card>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Appointments -->
+                    <div v-if="upcomingAppointments.length > 0" class="appointment-section">
+                        <div class="section-divider">
+                            <span class="section-label">Confirmed Appointments</span>
+                            <Badge :value="upcomingAppointments.length" severity="info" />
+                        </div>
+
+                        <div class="appointment-list">
+                            <Card
+                                v-for="appointment in upcomingAppointments"
+                                :key="`upcoming-${appointment.appId}`"
+                                class="appointment-item upcoming"
+                            >
+                                <template #content>
+                                    <div class="appointment-content">
+                                        <div class="appointment-doctor">
+                                            <div class="doctor-avatar">
+                                                <Avatar
+                                                    v-if="appointment.doctorProfile"
+                                                    :image="appointment.doctorProfile"
+                                                    shape="circle"
+                                                    size="large"
+                                                />
+                                                <Avatar
+                                                    v-else
+                                                    :label="appointment.doctorName?.charAt(0) || 'D'"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="bg-blue-500 text-white"
+                                                />
+                                            </div>
+                                            <div class="doctor-info">
+                                                <h4 class="doctor-name">Dr. {{ appointment.doctorName }}</h4>
+                                                <p class="doctor-specialization">{{ appointment.specialization }}</p>
+                                                <div class="doctor-hospital">
+                                                    <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
+                                                    <span class="text-surface-700 dark:text-surface-300">{{ appointment.hospital }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="appointment-details">
+                                            <div class="appointment-datetime">
+                                                <div class="date-info">
+                                                    <i class="pi pi-calendar text-green-500"></i>
+                                                    <span class="font-medium">{{ appointment.date }}</span>
+                                                </div>
+                                                <div class="time-info">
+                                                    <i class="pi pi-clock text-orange-500"></i>
+                                                    <span class="font-medium">{{ appointment.time }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="appointment-reason" v-if="appointment.reason">
+                                                <i class="pi pi-file-text text-surface-500 dark:text-surface-400"></i>
+                                                <span class="text-surface-700 dark:text-surface-300">{{ appointment.reason }}</span>
+                                            </div>
+
+                                            <div class="consultation-fee" v-if="appointment.consultationFee !== 'Not specified'">
+                                                <i class="pi pi-money-bill text-green-600"></i>
+                                                <span class="text-surface-700 dark:text-surface-300">Fee: ₹{{ appointment.consultationFee }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="appointment-actions">
+                                            <Tag
+                                                :value="getAppointmentStatus(appointment).label"
+                                                :severity="getAppointmentStatus(appointment).severity"
+                                                class="mb-2"
+                                            />
+                                            <div class="action-buttons">
+                                                <Button
+                                                    icon="pi pi-eye"
+                                                    label="View Doctor"
+                                                    size="small"
+                                                    outlined
+                                                    v-tooltip.top="'View Doctor Profile'"
+                                                    as="router-link"
+                                                    :to="`/doctor/${appointment.docInfo?.ezId}`"
                                                     class="w-full mb-2"
                                                 />
                                                 <div class="flex gap-2">
@@ -251,7 +460,8 @@ onMounted(() => {
                                                         size="small"
                                                         outlined
                                                         v-tooltip.top="'Call Doctor'"
-                                                        :href="`tel:${getDoctorInfo(appointment.doc_id).phone || ''}`"
+                                                        :href="`tel:${appointment.doctorPhone || ''}`"
+                                                        :disabled="!appointment.doctorPhone"
                                                     />
                                                     <Button
                                                         icon="pi pi-times"
@@ -270,7 +480,7 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Past Appointments - no cancel button needed -->
+                    <!-- Past Appointments -->
                     <div v-if="pastAppointments.length > 0" class="appointment-section">
                         <div class="section-divider">
                             <span class="section-label">Past Appointments</span>
@@ -280,21 +490,34 @@ onMounted(() => {
                         <div class="appointment-list">
                             <Card
                                 v-for="appointment in pastAppointments.slice(0, 5)"
-                                :key="appointment.appointment_id"
+                                :key="`past-${appointment.appId}`"
                                 class="appointment-item past"
                             >
                                 <template #content>
                                     <div class="appointment-content">
                                         <div class="appointment-doctor">
                                             <div class="doctor-avatar opacity-70">
-                                                <i class="pi pi-user-md text-surface-500"></i>
+                                                <Avatar
+                                                    v-if="appointment.doctorProfile"
+                                                    :image="appointment.doctorProfile"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="opacity-70"
+                                                />
+                                                <Avatar
+                                                    v-else
+                                                    :label="appointment.doctorName?.charAt(0) || 'D'"
+                                                    shape="circle"
+                                                    size="large"
+                                                    class="bg-surface-500 text-white"
+                                                />
                                             </div>
                                             <div class="doctor-info">
-                                                <h4 class="doctor-name text-surface-800 dark:text-surface-200">{{ getDoctorInfo(appointment.doc_id).name || 'Dr. ' + appointment.doctorEmail?.split('@')[0] }}</h4>
-                                                <p class="doctor-specialization text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment.doc_id).specialization || 'General Medicine' }}</p>
+                                                <h4 class="doctor-name text-surface-800 dark:text-surface-200">Dr. {{ appointment.doctorName }}</h4>
+                                                <p class="doctor-specialization text-surface-600 dark:text-surface-400">{{ appointment.specialization }}</p>
                                                 <div class="doctor-hospital">
                                                     <i class="pi pi-building text-surface-500 dark:text-surface-400"></i>
-                                                    <span class="text-surface-600 dark:text-surface-400">{{ getDoctorInfo(appointment.doc_id).hospital || 'Medical Center' }}</span>
+                                                    <span class="text-surface-600 dark:text-surface-400">{{ appointment.hospital }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -319,19 +542,19 @@ onMounted(() => {
 
                                         <div class="appointment-actions">
                                             <Tag
-                                                :value="getAppointmentStatus(appointment.date, appointment.time).label"
-                                                :severity="getAppointmentStatus(appointment.date, appointment.time).severity"
+                                                :value="getAppointmentStatus(appointment).label"
+                                                :severity="getAppointmentStatus(appointment).severity"
                                                 class="mb-2"
                                             />
                                             <div class="action-buttons">
                                                 <Button
                                                     icon="pi pi-eye"
-                                                    label="View"
+                                                    label="View Doctor"
                                                     size="small"
                                                     outlined
                                                     v-tooltip.top="'View Doctor Profile'"
                                                     as="router-link"
-                                                    :to="`/doctor/${appointment.doc_id}`"
+                                                    :to="`/doctor/${appointment.docInfo?.ezId}`"
                                                     class="w-full"
                                                 />
                                             </div>
@@ -431,6 +654,10 @@ onMounted(() => {
     border-left: 4px solid var(--surface-300);
 }
 
+.appointment-item.pending {
+    border-left: 4px solid var(--yellow-500);
+}
+
 .appointment-content {
     display: grid;
     grid-template-columns: 2fr 2fr 1fr;
@@ -528,6 +755,15 @@ onMounted(() => {
     gap: 0.5rem;
 }
 
+.consultation-fee {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
 /* Dark mode enhancements */
 :global(.p-dark) .appointments-card :deep(.p-card) {
     background: var(--surface-card);
@@ -571,7 +807,13 @@ onMounted(() => {
 .appointment-item {
     animation: slideIn 0.3s ease;
 }
-.appointment-item {
-    animation: slideIn 0.3s ease;
+
+/* Enhanced status colors for pending appointments */
+.pending .doctor-avatar {
+    background: var(--yellow-100);
+}
+
+:global(.p-dark) .pending .doctor-avatar {
+    background: var(--yellow-900);
 }
 </style>

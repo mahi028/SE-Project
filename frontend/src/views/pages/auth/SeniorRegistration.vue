@@ -143,7 +143,7 @@ function submitSenior() {
     if (res?.status === 201) {
       toast.add({ severity: 'success', summary: 'Success', detail: res.message, life: 3000 });
       resetForm();
-      router.push({ name: 'login' });
+      router.push({ name: 'Seniordashboard' });
     } else {
       toast.add({ severity: 'error', summary: 'Error', detail: res?.message || 'Submission failed', life: 4000 });
     }
@@ -168,6 +168,13 @@ function onFileUpload(event, type) {
   const file = event.files?.[0];
   if (file) formData.documents[type] = file;
 }
+
+// Add missing specialityOptions for healthcare provider dropdown
+const specialityOptions = Object.freeze([
+  'General Medicine','Cardiology','Neurology','Pediatrics','Orthopedics',
+  'Dermatology','Psychiatry','Oncology','Radiology','Emergency Medicine',
+  'Endocrinology','Gastroenterology','Other'
+]);
 </script>
 
 <template>
