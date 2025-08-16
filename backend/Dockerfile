@@ -9,23 +9,25 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=run.py
 ENV FLASK_ENV=production
+ENV OPENCV_VIDEOIO_PRIORITY_MSMF=0
+ENV QT_QPA_PLATFORM=offscreen
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libpq-dev \
+    cmake \
+    build-essential \
     libgl1-mesa-dri \
+    libglx-mesa0 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    libglu1-mesa \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
+RUN python3 -m pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code

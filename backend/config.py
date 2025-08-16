@@ -14,8 +14,12 @@ class Config:
     UPLOAD_FOLDER = 'application/static/upload'
     AI_MODEL_TO_USE = 'gpt-4o-mini'
     AI_API_KEY = os.getenv("AI_API_KEY", 'abc')
-    MAIL_SERVER = "localhost"
+    MAIL_SERVER = "mailhog"
     MAIL_PORT = 1025
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
     MAIL_DEFAULT_SENDER = 'no-reply@ezcare.com'
 
 
@@ -28,3 +32,10 @@ class ProductionConfig(Config):
     FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL")
     DEBUG = False
     ENV = 'production'
+    # Hardcoded MailHog settings for production
+    MAIL_SERVER = "mailhog"
+    MAIL_PORT = 1025
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
