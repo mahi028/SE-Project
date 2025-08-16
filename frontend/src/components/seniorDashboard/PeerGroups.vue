@@ -150,12 +150,31 @@ const submitGroup = async () => {
 
     submitting.value = true;
     try {
-        // Create a proper datetime from day and time
+        // Create a proper datetime from day and time - preserve local timezone
         const groupDateTime = createDateTimeFromDayAndTime(newGroup.value.day, newGroup.value.time);
+
+        // Create ISO-like string without timezone info to preserve local time
+        const year = groupDateTime.getFullYear();
+        const month = String(groupDateTime.getMonth() + 1).padStart(2, '0');
+        const day = String(groupDateTime.getDate()).padStart(2, '0');
+        const hour = String(groupDateTime.getHours()).padStart(2, '0');
+        const minute = String(groupDateTime.getMinutes()).padStart(2, '0');
+        const second = String(groupDateTime.getSeconds()).padStart(2, '0');
+        
+        // Format as YYYY-MM-DDTHH:mm:ss (without 'Z' to avoid UTC conversion)
+        const dateTimeString = `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+
+        console.log('Creating group with local time:', {
+            selectedDay: newGroup.value.day,
+            selectedTime: newGroup.value.time,
+            localDateTime: groupDateTime.toLocaleString(),
+            sentDateTime: dateTimeString,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        });
 
         const { data } = await createGroup({
             label: newGroup.value.label,
-            timing: groupDateTime.toISOString(),
+            timing: dateTimeString, // Send as local time string instead of ISO
             pincode: pincode.value || null,
             location: newGroup.value.location
         });

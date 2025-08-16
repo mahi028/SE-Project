@@ -63,12 +63,23 @@ class GetToken(graphene.ObjectType):
     
 class EZLogin(graphene.Mutation):
     class Arguments:
-        email = graphene.String(required=True)
+        email = graphene.String()
+        ez_id = graphene.String()
     
     Output = ReturnType
 
-    def mutate(self, info, email):
-        user = User.query.filter(User.email == email).first()
+    def mutate(self, info, email=None, ez_id=None):
+        # Validate that at least one identifier is provided
+        if not email and not ez_id:
+            return ReturnType(message="Please provide either email or EZ ID", status=400)
+        
+        # Find user by email or ez_id
+        user = None
+        if ez_id:
+            user = User.query.get(ez_id)
+        elif email:
+            user = User.query.filter(User.email == email).first()
+        
         if not user:
             return ReturnType(message="No User Found", status=404)
         
@@ -92,19 +103,21 @@ class EZLogin(graphene.Mutation):
             # Send email using the login template
             send_email(
                 subject='🔐 EZCare Login Link - Secure Access to Your Account',
-                recipients=[email],
+                recipients=[user.email],  # Always send to user's email regardless of how they were found
                 reminder_display=template_data,
                 template="login_template.html"
             )
             
-            logger.info(f"Login email sent successfully to {email}")
+            identifier = ez_id if ez_id else email
+            logger.info(f"Login email sent successfully to {user.email} for identifier: {identifier}")
             return ReturnType(
-                message=f"Login link sent to {email}. Please check your email and click the link to login securely.",
+                message=f"Login link sent to {user.email}. Please check your email and click the link to login securely.",
                 status=200
             )
             
         except Exception as e:
-            logger.error(f"Failed to send login email to {email}: {str(e)}")
+            identifier = ez_id if ez_id else email
+            logger.error(f"Failed to send login email for identifier {identifier}: {str(e)}")
             return ReturnType(
                 message="Failed to send login email. Please try again or contact support.",
                 status=500
