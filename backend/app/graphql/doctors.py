@@ -3,7 +3,7 @@ import graphene
 from ..models import User, DocInfo, DocReviews, db
 from .return_types import ReturnType
 from ..utils.dbUtils import adddb, commitdb, rollbackdb
-from ..utils.authControl import get_user, get_doctor
+from ..utils.authControl import get_user, get_doctor, get_mod
 
 class DoctorType(SQLAlchemyObjectType):
     class Meta:
@@ -24,17 +24,20 @@ class DoctorsQuery(graphene.ObjectType):
     def resolve_get_doctors(self, info, pincode=None, specialization=None, status=None, include_all_status=False):
         query = DocInfo.query.join(User)
 
-        # For non-moderators, only show approved doctors unless specifically requested
-        if not include_all_status:
+        # Handle status filtering
+        if status is not None:
+            # If specific status is requested, filter by that status
+            query = query.filter(DocInfo.availability_status == status)
+        elif not include_all_status:
+            # If no specific status and not including all, default to approved only
             query = query.filter(DocInfo.availability_status == 1)
+        # If include_all_status is True and status is None, don't filter by status
 
-        # Apply filters
+        # Apply other filters
         if pincode:
             query = query.filter(DocInfo.pincode == pincode)
         if specialization:
-            query = query.filter(DocInfo.specialization.contains(specialization))
-        if status is not None:
-            query = query.filter(DocInfo.availability_status == status)
+            query = query.filter(DocInfo.specialization.ilike(f'%{specialization}%'))
 
         return query.all()
 
@@ -141,6 +144,56 @@ class UpdateDoctor(graphene.Mutation):
             rollbackdb()
             return ReturnType(message=f"Error updating doctor: {str(e)}", status=403)
 
+class UpdateDoctorStatus(graphene.Mutation):
+    class Arguments:
+        ez_id = graphene.String(required=True)
+        availability_status = graphene.Int(required=True)
+
+    Output = ReturnType
+
+    def mutate(self, info, ez_id, availability_status):
+        # Authenticate moderator
+        mod = get_mod(info)
+        if not mod:
+            return ReturnType(message="Unauthorized access. Moderators only.", status=403)
+
+        # Validate status value
+        if availability_status not in [1, 0, -1, -2]:
+            return ReturnType(message="Invalid status. Must be 1 (approved), 0 (pending), -1 (rejected), or -2 (flagged)", status=400)
+
+        # Find the doctor by ez_id
+        doctor = DocInfo.query.filter_by(ez_id=ez_id).first()
+        if not doctor:
+            return ReturnType(message="Doctor not found", status=404)
+
+        # Update the status
+        old_status = doctor.availability_status
+        doctor.availability_status = availability_status
+
+        try:
+            commitdb()
+
+            # Create status labels for logging
+            status_labels = {
+                1: "approved",
+                0: "pending",
+                -1: "rejected",
+                -2: "flagged"
+            }
+
+            old_label = status_labels.get(old_status, "unknown")
+            new_label = status_labels.get(availability_status, "unknown")
+
+            return ReturnType(
+                message=f"Doctor status updated from {old_label} to {new_label} successfully",
+                status=200
+            )
+        except Exception as e:
+            rollbackdb()
+            print(f"Error updating doctor status: {e}")
+            return ReturnType(message=f"Error updating doctor status: {str(e)}", status=500)
+
 class DoctorMutation(graphene.ObjectType):
     add_doctor = AddDoctor.Field()
     update_doctor = UpdateDoctor.Field()
+    update_doctor_status = UpdateDoctorStatus.Field()

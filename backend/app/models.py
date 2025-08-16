@@ -84,7 +84,7 @@ class DocInfo(db.Model):
     working_hours = db.Column(db.String(64))  
     availability = db.Column(db.JSON)         
     reviews = db.Column(db.Integer)          
-    availability_status = db.Column(db.Integer, default=1)  # 1=active, 0=pending, -1=rejected
+    availability_status = db.Column(db.Integer, default=0)  # 1=active, 0=pending, -1=rejected
     documents = db.Column(db.JSON)
     appointment_window = db.Column(db.Integer, default=30)  # in minutes
 

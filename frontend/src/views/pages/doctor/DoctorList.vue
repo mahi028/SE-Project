@@ -89,32 +89,31 @@ const queryVariables = computed(() => {
         return {
             pincode: pincode.value || null,
             specialization: selectedSpecialization.value || null,
-            status: selectedStatus.value,
-            includeAllStatus: true
+            status: selectedStatus.value !== null ? selectedStatus.value : null,
+            includeAllStatus: selectedStatus.value === null // If no status selected, include all
         };
     } else {
         return {
             pincode: pincode.value || null,
             specialization: selectedSpecialization.value || null,
+            status: 1, // Only approved doctors for regular users
             includeAllStatus: false
         };
     }
 });
 
-// Use the appropriate query based on user role
+// Use the appropriate query - always use GET_DOCTORS_QUERY with proper variables
 const { result, loading, error, refetch } = useQuery(
-    isModeratorView.value ? GET_ALL_DOCTORS_QUERY : GET_DOCTORS_QUERY,
+    GET_DOCTORS_QUERY,
     queryVariables,
-    // {
-    //     fetchPolicy: 'cache-and-network'
-    // }
+    {
+        fetchPolicy: 'cache-and-network'
+    }
 );
 
 // Process doctors data
 const doctors = computed(() => {
-    const rawDoctors = isModeratorView.value
-        ? result.value?.getAllDoctors
-        : result.value?.getDoctors;
+    const rawDoctors = result.value?.getDoctors;
 
     if (!rawDoctors) return [];
 
@@ -236,19 +235,19 @@ const reFetchDoctors = async () => {
     }
 };
 
-// Watch for changes in filter values and refetch - but debounce pincode input
-watch([selectedSpecialization, selectedStatus], () => {
+// Watch for changes in filter values and refetch
+watch([selectedSpecialization, selectedStatus, pincode], () => {
     reFetchDoctors();
 }, { deep: true });
 
 // Manual refetch function for pincode
-const refetchWithPincode = async () => {
-    try {
-        await refetch(queryVariables.value);
-    } catch (error) {
-        console.error('Error refetching doctors:', error);
-    }
-};
+// const refetchWithPincode = async () => {
+//     try {
+//         await refetch(queryVariables.value);
+//     } catch (error) {
+//         console.error('Error refetching doctors:', error);
+//     }
+// };
 
 function getSpecializationColor(specialization) {
     const colors = {
@@ -408,6 +407,7 @@ onMounted(() => {
                                             placeholder="All Status"
                                             class="w-36"
                                             showClear
+                                            @change="reFetchDoctors"
                                         />
                                     </div>
                                     <Button
@@ -429,7 +429,7 @@ onMounted(() => {
                                 <Chip v-if="selectedSpecialization" :label="`Specialization: ${selectedSpecialization}`" removable @remove="clearSpecializationFilter" />
                                 <Chip v-if="selectedRating" :label="`Rating: ${selectedRating}+ stars`" removable @remove="clearRatingFilter" />
                                 <Chip v-if="selectedStatus !== null && isModeratorView" :label="`Status: ${getStatusLabel(selectedStatus)}`" removable @remove="clearStatusFilter" />
-                                <Chip v-if="pincode" :label="`Pincode: ${pincode}`" removable @remove="() => { pincode = ''; refetchWithPincode(); }" />
+                                <Chip v-if="pincode" :label="`Pincode: ${pincode}`" removable @remove="() => { pincode = ''; }" />
                                 <Button label="Clear All" @click="clearAllFilters" text size="small" />
                             </div>
 
@@ -441,30 +441,20 @@ onMounted(() => {
 
                         <!-- Search and Layout Controls -->
                         <div class="flex gap-4 items-center">
-                            <form class="flex gap-2" @submit.prevent="refetchWithPincode">
+                            <div class="flex gap-2">
                                 <div class="flex flex-col">
                                     <label for="pincodeInput" class="text-sm font-medium text-gray-700 mb-1">Pincode</label>
                                     <InputText
                                         id="pincodeInput"
                                         v-model="pincode"
-                                        placeholder="Enter pincode and press Enter"
+                                        placeholder="Enter pincode"
                                         :class="{ 'border-blue-300': pincode }"
-                                        @keyup.enter="refetchWithPincode"
                                     />
                                     <small v-if="pincode" class="text-xs text-blue-600 mt-1">
-                                        Press Enter to search by pincode: {{ pincode }}
+                                        Filtering by pincode: {{ pincode }}
                                     </small>
                                 </div>
-                                <Button
-                                    icon="pi pi-search"
-                                    type="submit"
-                                    rounded
-                                    raised
-                                    class="self-end"
-                                    :loading="loading"
-                                    v-tooltip.top="'Search by pincode'"
-                                />
-                            </form>
+                            </div>
                             <SelectButton v-model="layout" :options="options" :allowEmpty="false" class="self-end">
                                 <template #option="{ option }">
                                     <i :class="[option === 'list' ? 'pi pi-bars' : 'pi pi-table']" />

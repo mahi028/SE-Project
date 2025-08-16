@@ -191,30 +191,106 @@ const getReviewCount = () => {
   return reviews.value?.length || 0
 }
 
-const updateDoctorStatus = async (newStatus) => {
-  try {
-    const updatedDoctor = await doctorService.updateDoctorStatus(route.params.ezId, newStatus)
-    if (updatedDoctor) {
-      userDetails.value.status = newStatus
-      // Show success message
+const UPDATE_DOCTOR_STATUS = gql`
+    mutation UpdateDoctorStatus($ezId: String!, $availabilityStatus: Int!) {
+        updateDoctorStatus(ezId: $ezId, availabilityStatus: $availabilityStatus) {
+            message
+            status
+        }
     }
-  } catch (error) {
-  }
+`;
+
+const { mutate: updateDoctorStatusMutation } = useMutation(UPDATE_DOCTOR_STATUS);
+
+const updateDoctorStatus = async (newStatus) => {
+    const statusLabels = {
+        1: 'Approved',
+        0: 'Pending',
+        [-1]: 'Rejected',  // Use computed property syntax for negative numbers
+        [-2]: 'Flagged'
+    };
+
+    const actionLabels = {
+        1: 'approve',
+        0: 'set to pending',
+        [-1]: 'reject',  // Use computed property syntax for negative numbers
+        [-2]: 'flag'
+    };
+
+    // Confirmation dialog
+    confirm.require({
+        message: `Are you sure you want to ${actionLabels[newStatus]} this doctor?`,
+        header: `${actionLabels[newStatus].charAt(0).toUpperCase() + actionLabels[newStatus].slice(1)} Doctor`,
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: 'Cancel',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: `${actionLabels[newStatus].charAt(0).toUpperCase() + actionLabels[newStatus].slice(1)}`,
+            severity: newStatus === 1 ? 'success' : newStatus === -1 || newStatus === -2 ? 'danger' : 'warning'
+        },
+        accept: async () => {
+            try {
+                // Ensure newStatus is passed as integer to the GraphQL mutation
+                const { data } = await updateDoctorStatusMutation({
+                    ezId: route.params.ezId,
+                    availabilityStatus: parseInt(newStatus) // Ensure it's an integer
+                });
+
+                const response = data?.updateDoctorStatus;
+
+                if (response?.status === 200) {
+                    // Update local data
+                    if (userDetails.value) {
+                        userDetails.value.status = parseInt(newStatus);
+                    }
+
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Status Updated',
+                        detail: response.message || `Doctor status updated to ${statusLabels[newStatus]} successfully`,
+                        life: 4000
+                    });
+
+                    // Refetch doctor data to ensure UI is in sync
+                    await fetchDoctor(GET_DOCTOR_DATA, { ezId: route.params.ezId });
+                } else {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Update Failed',
+                        detail: response?.message || 'Failed to update doctor status',
+                        life: 4000
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating doctor status:', error);
+                toast.add({
+                    severity: 'error',
+                    summary: 'Update Failed',
+                    detail: 'An error occurred while updating the doctor status. Please try again.',
+                    life: 4000
+                });
+            }
+        }
+    });
 }
 
+// Add missing function that was referenced in template
 const getStatusButtonSeverity = (status) => {
-  switch (status) {
-    case 1:
-      return 'success'
-    case 0:
-      return 'warning'
-    case -1:
-      return 'danger'
-    case -2:
-      return 'danger'
-    default:
-      return 'secondary'
-  }
+    switch (status) {
+        case 1:
+            return 'success'
+        case 0:
+            return 'warning'
+        case -1:
+            return 'danger'
+        case -2:
+            return 'danger'
+        default:
+            return 'secondary'
+    }
 }
 
 const openDocument = (documentType, fileName) => {
@@ -887,7 +963,7 @@ const getAppointmentStatusInfo = (appointment) => {
                           v-if="userDetails.status === 1"
                           label="Flag Doctor"
                           icon="pi pi-flag"
-                          severity="danger"
+                          severity="warning"
                           outlined
                           @click="updateDoctorStatus(-2)"
                           class="flex-shrink-0"
@@ -907,7 +983,8 @@ const getAppointmentStatusInfo = (appointment) => {
                           v-if="userDetails.status === -2"
                           label="Un-flag Doctor"
                           icon="pi pi-flag-fill"
-                          severity="warning"
+                          severity="success"
+                          outlined
                           @click="updateDoctorStatus(1)"
                           class="flex-shrink-0"
                       />
@@ -921,7 +998,16 @@ const getAppointmentStatusInfo = (appointment) => {
                           class="flex-shrink-0"
                       />
 
-                      <!-- Rejected (status = -1): No buttons shown -->
+                      <!-- Rejected (status = -1): Show Reconsider for Approval -->
+                      <Button
+                          v-if="userDetails.status === -1"
+                          label="Reconsider for Approval"
+                          icon="pi pi-refresh"
+                          severity="info"
+                          outlined
+                          @click="updateDoctorStatus(0)"
+                          class="flex-shrink-0"
+                      />
                   </div>
 
                   <!-- Suggestion/Request Button for Pending and Flagged Doctors -->
@@ -937,14 +1023,36 @@ const getAppointmentStatusInfo = (appointment) => {
                   </div>
 
                   <!-- Status Descriptions -->
-                  <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <h4 class="font-semibold mb-2">Status Descriptions:</h4>
-                      <ul class="text-sm space-y-1 text-gray-600 dark:text-gray-300">
-                          <li><strong>Approved (1):</strong> Doctor profile is active and visible to patients</li>
-                          <li><strong>Pending (0):</strong> Doctor registration is awaiting approval</li>
-                          <li><strong>Rejected (-1):</strong> Doctor registration has been denied (no actions available)</li>
-                          <li><strong>Flagged (-2):</strong> Doctor profile has been flagged for review</li>
-                      </ul>
+                  <div class="mt-4 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+                      <h4 class="font-semibold mb-3 text-surface-800 dark:text-surface-200">Status Descriptions:</h4>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div class="flex items-start gap-2">
+                              <Tag value="Approved" severity="success" class="flex-shrink-0" />
+                              <span class="text-surface-600 dark:text-surface-400">Profile is active and visible to patients</span>
+                          </div>
+                          <div class="flex items-start gap-2">
+                              <Tag value="Pending" severity="warning" class="flex-shrink-0" />
+                              <span class="text-surface-600 dark:text-surface-400">Registration awaiting approval</span>
+                          </div>
+                          <div class="flex items-start gap-2">
+                              <Tag value="Rejected" severity="danger" class="flex-shrink-0" />
+                              <span class="text-surface-600 dark:text-surface-400">Registration has been denied</span>
+                          </div>
+                          <div class="flex items-start gap-2">
+                              <Tag value="Flagged" severity="danger" class="flex-shrink-0" />
+                              <span class="text-surface-600 dark:text-surface-400">Profile flagged for review</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Recent Status Change Log (if needed in future) -->
+                  <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div class="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                          <i class="pi pi-info-circle"></i>
+                          <span class="text-sm">
+                              Status changes are logged and can be tracked for audit purposes.
+                          </span>
+                      </div>
                   </div>
               </div>
 
