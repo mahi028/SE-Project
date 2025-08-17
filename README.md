@@ -30,7 +30,6 @@ EZCare is a comprehensive Senior Care Management System designed to facilitate h
 | **Apollo Client** | 3.x | GraphQL client |
 | **Tailwind CSS** | Latest | Utility-first CSS framework |
 | **SCSS** | Latest | CSS preprocessor |
-| **Axios** | Latest | HTTP client for REST APIs |
 
 ### **Backend Technologies**
 | Technology | Version | Purpose |
