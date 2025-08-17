@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLoginStore } from '@/store/loginStore'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
-import { useLazyQuery } from '@vue/apollo-composable';
+import { useLazyQuery, useMutation } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 import InfoItem from '@/components/InfoItem.vue'
 import VitalLogs from '@/components/seniorDashboard/VitalLogs.vue'
@@ -39,6 +39,15 @@ const GET_USER_DATA = gql`
         pincode
         alternatePhoneNum
         medicalInfo
+        prescriptions {
+          presId
+          senId
+          docId
+          medicationData
+          time
+          instructions
+          createdAt
+        }
         vitalLogs {
           logId
           senId
@@ -271,33 +280,70 @@ const medicalHistory = computed(() => {
   }
 })
 
+// Update prescriptions computed property to use the extended query data
 const prescriptions = computed(() => {
-  const medicalInfo = result.value?.getUser?.senInfo?.medicalInfo
-  if (!medicalInfo) return []
+  const prescriptionsData = result.value?.getUser?.senInfo?.prescriptions || []
+  
+  return prescriptionsData.map(prescription => {
+    const timeData = typeof prescription.time === 'string'
+      ? JSON.parse(prescription.time)
+      : prescription.time
 
-  try {
-    // Handle double-encoded JSON string from backend
-    const parsedOnce = typeof medicalInfo === 'string' ? JSON.parse(medicalInfo) : medicalInfo
-    const finalInfo = typeof parsedOnce === 'string' ? JSON.parse(parsedOnce) : parsedOnce
+    // Determine if it's doctor-prescribed or self-added
+    const isDoctorPrescribed = prescription.docId !== null && prescription.docId !== undefined
 
-    return finalInfo.medications?.map((med, index) => ({
-      id: `RX${index + 1}`,
-      date: med.startDate || 'Unknown',
-      doctor: 'Medical Professional',
+    return {
+      id: `RX${prescription.presId}`,
+      date: new Date(prescription.createdAt).toLocaleDateString() || 'Unknown',
+      doctor: isDoctorPrescribed ? 'Prescribed by Doctor' : 'Self-Added',
+      isPrescribed: isDoctorPrescribed,
       medications: [{
-        name: med.name || 'Unknown medication',
-        strength: med.dosage || 'As prescribed',
-        frequency: med.frequency || 'As directed',
-        duration: med.endDate === '' ? 'Ongoing' : '30 days',
-        instructions: med.route || 'Take as directed'
+        name: prescription.medicationData || 'Unknown medication',
+        strength: 'As prescribed',
+        frequency: timeData?.frequency || 'As directed',
+        duration: 'Ongoing',
+        instructions: prescription.instructions || 'Take as directed'
       }],
-      notes: `Route: ${med.route || 'Not specified'}`
-    })) || []
-  } catch (e) {
-    console.error('Error parsing medical info:', e)
-    return []
-  }
+      notes: `Schedule: ${timeData?.frequency || 'As needed'} at ${timeData?.times?.join(', ') || 'specified times'}`,
+      rawData: prescription
+    }
+  })
 })
+
+// Add prescription form state
+const showAddPrescriptionDialog = ref(false)
+const submittingPrescription = ref(false)
+const prescriptionForm = ref({
+  medicationData: '',
+  frequency: 'Daily',
+  times: [new Date()],
+  instructions: ''
+})
+
+const frequencyOptions = [
+  { label: 'Daily', value: 'Daily' },
+  { label: 'Weekly', value: 'Weekly' },
+  { label: 'Monday', value: 'Monday' },
+  { label: 'Tuesday', value: 'Tuesday' },
+  { label: 'Wednesday', value: 'Wednesday' },
+  { label: 'Thursday', value: 'Thursday' },
+  { label: 'Friday', value: 'Friday' },
+  { label: 'Saturday', value: 'Saturday' },
+  { label: 'Sunday', value: 'Sunday' },
+  { label: 'As Needed', value: 'As Needed' }
+]
+
+// Add prescription mutation
+const ADD_PRESCRIPTION = gql`
+  mutation AddPrescription($senId: Int!, $medicationData: String!, $time: JSONString!, $instructions: String!) {
+    addPrescription(senId: $senId, medicationData: $medicationData, time: $time, instructions: $instructions) {
+      message
+      status
+    }
+  }
+`
+
+const { mutate: addPrescriptionMutation } = useMutation(ADD_PRESCRIPTION)
 
 // Update dialog functions to use computed data
 const viewMedicalHistory = async () => {
@@ -341,6 +387,123 @@ const getAppointmentStatusInfo = (appointment) => {
             return { label: 'Unknown', severity: 'secondary', canCancel: false };
     }
 };
+
+// Add prescription management functions
+const openAddPrescriptionDialog = () => {
+  prescriptionForm.value = {
+    medicationData: '',
+    frequency: 'Daily',
+    times: [new Date()],
+    instructions: ''
+  }
+  showAddPrescriptionDialog.value = true
+}
+
+const cancelAddPrescription = () => {
+  showAddPrescriptionDialog.value = false
+  prescriptionForm.value = {
+    medicationData: '',
+    frequency: 'Daily',
+    times: [new Date()],
+    instructions: ''
+  }
+}
+
+const addPrescriptionTime = () => {
+  prescriptionForm.value.times.push(new Date())
+}
+
+const removePrescriptionTime = (index) => {
+  if (prescriptionForm.value.times.length > 1) {
+    prescriptionForm.value.times.splice(index, 1)
+  }
+}
+
+const formatTimeForBackend = (timeDate) => {
+  const hours = timeDate.getHours().toString().padStart(2, '0')
+  const minutes = timeDate.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+const isPrescriptionFormValid = () => {
+  return prescriptionForm.value.medicationData.trim() &&
+         prescriptionForm.value.frequency &&
+         prescriptionForm.value.times.length > 0 &&
+         prescriptionForm.value.instructions.trim()
+}
+
+const submitPrescription = async () => {
+  if (!isPrescriptionFormValid()) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Missing Information',
+      detail: 'Please fill in all required fields',
+      life: 3000
+    })
+    return
+  }
+
+  submittingPrescription.value = true
+  try {
+    // Convert time Date objects to string format
+    const timesArray = prescriptionForm.value.times.map(timeDate => formatTimeForBackend(timeDate))
+
+    const timeData = {
+      frequency: prescriptionForm.value.frequency,
+      times: timesArray
+    }
+
+    const senId = result.value?.getUser?.senInfo?.senId
+    if (!senId) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Senior information not available',
+        life: 3000
+      })
+      return
+    }
+
+    const { data } = await addPrescriptionMutation({
+      senId: senId,
+      medicationData: prescriptionForm.value.medicationData.trim(),
+      time: JSON.stringify(timeData),
+      instructions: prescriptionForm.value.instructions.trim()
+    })
+
+    const response = data?.addPrescription
+
+    if (response?.status === 201) {
+      toast.add({
+        severity: 'success',
+        summary: 'Prescription Added',
+        detail: response.message || `Prescription for ${prescriptionForm.value.medicationData} has been added successfully!`,
+        life: 3000
+      })
+
+      // Refetch user data to update prescriptions
+      await fetchUser(GET_USER_DATA, { ezId: route.params.ezId })
+      cancelAddPrescription()
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: response?.message || 'Failed to add prescription. Please try again.',
+        life: 3000
+      })
+    }
+  } catch (error) {
+    console.error('Error adding prescription:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to add prescription. Please try again.',
+      life: 3000
+    })
+  } finally {
+    submittingPrescription.value = false
+  }
+}
 </script>
 
 <template>
@@ -697,76 +860,150 @@ const getAppointmentStatusInfo = (appointment) => {
       <template #header>
         <div class="flex items-center gap-2">
           <i class="pi pi-receipt text-green-500"></i>
-          <span class="text-xl font-semibold">{{ userDetails.name }}'s Prescriptions</span>
+          <span class="text-xl font-semibold">{{ userDetails.name }}'s Medications</span>
         </div>
       </template>
 
       <div class="space-y-6">
-        <div v-if="prescriptions.length === 0" class="text-center py-8">
-          <i class="pi pi-receipt text-4xl text-surface-400 mb-3"></i>
-          <p class="text-surface-500 dark:text-surface-400">No prescription records found.</p>
+        <!-- Add Prescription Button for Doctors -->
+        <div v-if="loginStore.role === 1" class="flex justify-between items-center">
+          <p class="text-surface-600 dark:text-surface-400">
+            Current medications and prescriptions for {{ userDetails.name }}
+          </p>
+          <Button
+            label="Prescribe New Medication"
+            icon="pi pi-plus"
+            severity="success"
+            @click="openAddPrescriptionDialog"
+            class="flex-shrink-0"
+          />
         </div>
 
-        <Card
-          v-for="prescription in prescriptions"
-          :key="prescription.id"
-          class="prescription-card"
-        >
-          <template #content>
-            <div class="mb-4">
-              <div class="flex justify-between items-start mb-3">
-                <div>
-                  <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0">
-                    Prescription #{{ prescription.id }}
-                  </h4>
-                  <p class="text-surface-600 dark:text-surface-400">
-                    Date: {{ prescription.date }} | Doctor: {{ prescription.doctor }}
-                  </p>
-                </div>
-                <Tag value="Active" severity="success" />
-              </div>
+        <div v-if="prescriptions.length === 0" class="text-center py-8">
+          <i class="pi pi-receipt text-4xl text-surface-400 mb-3"></i>
+          <p class="text-surface-500 dark:text-surface-400">No medication records found.</p>
+          <Button 
+            v-if="loginStore.role === 1" 
+            label="Add First Prescription" 
+            icon="pi pi-plus" 
+            severity="success" 
+            @click="openAddPrescriptionDialog"
+            class="mt-3"
+          />
+        </div>
 
-              <div class="medications-section">
-                <h5 class="text-md font-semibold text-surface-900 dark:text-surface-0 mb-3">
-                  Medications
-                </h5>
-                <div class="space-y-3">
-                  <div
-                    v-for="(medication, index) in prescription.medications"
-                    :key="index"
-                    class="medication-item p-3 bg-surface-50 dark:bg-surface-800 rounded-lg"
-                  >
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <!-- Group prescriptions by type -->
+        <div v-else class="space-y-4">
+          <!-- Doctor Prescribed Medications -->
+          <div v-if="prescriptions.filter(p => p.isPrescribed).length > 0">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-user-md text-blue-500"></i>
+              Doctor Prescribed Medications
+            </h4>
+            <div class="space-y-3">
+              <Card
+                v-for="prescription in prescriptions.filter(p => p.isPrescribed)"
+                :key="prescription.id"
+                class="prescription-card prescribed-card"
+              >
+                <template #content>
+                  <div class="mb-4">
+                    <div class="flex justify-between items-start mb-3">
                       <div>
-                        <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Medicine</label>
-                        <p class="text-surface-900 dark:text-surface-0 font-semibold">
-                          {{ medication.name }} {{ medication.strength }}
+                        <h5 class="text-md font-semibold text-surface-900 dark:text-surface-0">
+                          {{ prescription.medications[0].name }}
+                        </h5>
+                        <p class="text-surface-600 dark:text-surface-400 text-sm">
+                          Prescribed on: {{ prescription.date }}
                         </p>
                       </div>
-                      <div>
-                        <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Frequency</label>
-                        <p class="text-surface-900 dark:text-surface-0">{{ medication.frequency }}</p>
-                      </div>
-                      <div>
-                        <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Duration</label>
-                        <p class="text-surface-900 dark:text-surface-0">{{ medication.duration }}</p>
-                      </div>
-                      <div>
-                        <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Instructions</label>
-                        <p class="text-surface-700 dark:text-surface-300 text-sm">{{ medication.instructions }}</p>
+                      <div class="flex items-center gap-2">
+                        <Tag value="Doctor Prescribed" severity="success" />
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              <div v-if="prescription.notes" class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <label class="text-sm font-medium text-blue-700 dark:text-blue-300">Doctor's Notes</label>
-                <p class="text-blue-800 dark:text-blue-200 text-sm">{{ prescription.notes }}</p>
-              </div>
+                    <div class="medication-details">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Frequency</label>
+                          <p class="text-surface-900 dark:text-surface-0">{{ prescription.medications[0].frequency }}</p>
+                        </div>
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Duration</label>
+                          <p class="text-surface-900 dark:text-surface-0">{{ prescription.medications[0].duration }}</p>
+                        </div>
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Instructions</label>
+                          <p class="text-surface-700 dark:text-surface-300 text-sm">{{ prescription.medications[0].instructions }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-if="prescription.notes" class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <label class="text-sm font-medium text-blue-700 dark:text-blue-300">Schedule Notes</label>
+                      <p class="text-blue-800 dark:text-blue-200 text-sm">{{ prescription.notes }}</p>
+                    </div>
+                  </div>
+                </template>
+              </Card>
             </div>
-          </template>
-        </Card>
+          </div>
+
+          <!-- Self-Added Medications -->
+          <div v-if="prescriptions.filter(p => !p.isPrescribed).length > 0">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-user text-green-500"></i>
+              Self-Added Medications
+            </h4>
+            <div class="space-y-3">
+              <Card
+                v-for="prescription in prescriptions.filter(p => !p.isPrescribed)"
+                :key="prescription.id"
+                class="prescription-card self-added-card"
+              >
+                <template #content>
+                  <div class="mb-4">
+                    <div class="flex justify-between items-start mb-3">
+                      <div>
+                        <h5 class="text-md font-semibold text-surface-900 dark:text-surface-0">
+                          {{ prescription.medications[0].name }}
+                        </h5>
+                        <p class="text-surface-600 dark:text-surface-400 text-sm">
+                          Added on: {{ prescription.date }}
+                        </p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <Tag value="Self-Added" severity="info" />
+                      </div>
+                    </div>
+
+                    <div class="medication-details">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Frequency</label>
+                          <p class="text-surface-900 dark:text-surface-0">{{ prescription.medications[0].frequency }}</p>
+                        </div>
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Duration</label>
+                          <p class="text-surface-900 dark:text-surface-0">{{ prescription.medications[0].duration }}</p>
+                        </div>
+                        <div>
+                          <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Instructions</label>
+                          <p class="text-surface-700 dark:text-surface-300 text-sm">{{ prescription.medications[0].instructions }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-if="prescription.notes" class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <label class="text-sm font-medium text-green-700 dark:text-green-300">Schedule Notes</label>
+                      <p class="text-green-800 dark:text-green-200 text-sm">{{ prescription.notes }}</p>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
 
       <template #footer>
@@ -776,6 +1013,191 @@ const getAppointmentStatusInfo = (appointment) => {
             icon="pi pi-times"
             outlined
             @click="showPrescriptionDialog = false"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <!-- Add Prescription Dialog -->
+    <Dialog
+      v-model:visible="showAddPrescriptionDialog"
+      modal
+      header="Add Prescription"
+      :style="{ width: '700px' }"
+      :closable="!submittingPrescription"
+      :dismissableMask="!submittingPrescription"
+      class="add-prescription-dialog"
+    >
+      <template #header>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-plus-circle text-green-500"></i>
+          <span class="text-xl font-semibold">Add Prescription for {{ userDetails.name }}</span>
+        </div>
+      </template>
+
+      <div class="space-y-6">
+        <!-- Patient Information Panel -->
+        <Panel header="Patient Information" class="patient-info-panel">
+          <div class="flex items-center gap-4 p-4">
+            <Avatar
+              :label="userDetails.name?.charAt(0) || 'P'"
+              class="bg-blue-500 text-white text-xl"
+              shape="circle"
+              size="large"
+            />
+            <div class="flex-1">
+              <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-1">
+                {{ userDetails.name }}
+              </h4>
+              <p class="text-surface-600 dark:text-surface-400 text-sm">
+                ID: {{ userDetails.ezId }} • Address: {{ userDetails.address || 'Not provided' }}
+              </p>
+            </div>
+          </div>
+        </Panel>
+
+        <div class="grid formgrid p-fluid">
+          <div class="field col-12 mb-4">
+            <label for="medicationName" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Medication Name *
+            </label>
+            <InputText
+              id="medicationName"
+              v-model="prescriptionForm.medicationData"
+              placeholder="Enter medication name and dosage (e.g., Metformin 500mg)"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field col-12 mb-4">
+            <label for="frequency" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Frequency *
+            </label>
+            <Select
+              id="frequency"
+              v-model="prescriptionForm.frequency"
+              :options="frequencyOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select frequency"
+              class="w-full"
+            />
+          </div>
+
+          <div class="field col-12 mb-4">
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-3">
+              Medication Times *
+            </label>
+
+            <div class="space-y-3">
+              <div v-for="(timeDate, index) in prescriptionForm.times" :key="index" class="flex items-center gap-2">
+                <Calendar
+                  v-model="prescriptionForm.times[index]"
+                  timeOnly
+                  hourFormat="12"
+                  showIcon
+                  placeholder="Select time"
+                  class="flex-1"
+                />
+                <Button
+                  v-if="prescriptionForm.times.length > 1"
+                  icon="pi pi-trash"
+                  size="small"
+                  severity="danger"
+                  outlined
+                  @click="removePrescriptionTime(index)"
+                  v-tooltip.top="'Remove time'"
+                />
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <Button
+                label="Add Time"
+                icon="pi pi-plus"
+                size="small"
+                outlined
+                @click="addPrescriptionTime"
+              />
+            </div>
+          </div>
+
+          <div class="field col-12 mb-4">
+            <label for="instructions" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Instructions *
+            </label>
+            <Textarea
+              id="instructions"
+              v-model="prescriptionForm.instructions"
+              rows="3"
+              class="w-full"
+              placeholder="Enter detailed instructions (e.g., Take with food, after meals, etc.)"
+              :maxlength="500"
+            />
+            <small class="text-surface-500 dark:text-surface-400 mt-1">
+              {{ prescriptionForm.instructions.length }}/500 characters
+            </small>
+          </div>
+        </div>
+
+        <!-- Prescription Preview -->
+        <div v-if="isPrescriptionFormValid()" class="prescription-preview">
+          <Panel header="Prescription Preview" class="preview-panel">
+            <div class="p-4 space-y-3">
+              <div class="flex justify-between">
+                <span class="font-medium">Medication:</span>
+                <span>{{ prescriptionForm.medicationData }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-medium">Frequency:</span>
+                <span>{{ prescriptionForm.frequency }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-medium">Times:</span>
+                <span>{{ prescriptionForm.times.map(t => formatTimeForBackend(t)).join(', ') }}</span>
+              </div>
+              <Divider />
+              <div>
+                <span class="font-medium">Instructions:</span>
+                <p class="mt-1 text-sm">{{ prescriptionForm.instructions }}</p>
+              </div>
+            </div>
+          </Panel>
+        </div>
+
+        <!-- Medical Guidelines -->
+        <div class="info-section">
+          <div class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+            <i class="pi pi-info-circle text-amber-500 mt-1"></i>
+            <div class="text-sm text-amber-700 dark:text-amber-300">
+              <p class="font-medium mb-1">Prescription Guidelines</p>
+              <ul class="space-y-1">
+                <li>• Include complete medication name and dosage</li>
+                <li>• Specify clear timing and frequency instructions</li>
+                <li>• Add any special instructions (with food, before meals, etc.)</li>
+                <li>• Patient will receive automatic reminders based on the schedule</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <Button
+            label="Cancel"
+            icon="pi pi-times"
+            outlined
+            @click="cancelAddPrescription"
+            :disabled="submittingPrescription"
+          />
+          <Button
+            label="Add Prescription"
+            icon="pi pi-check"
+            severity="success"
+            @click="submitPrescription"
+            :loading="submittingPrescription"
+            :disabled="!isPrescriptionFormValid()"
           />
         </div>
       </template>
@@ -806,5 +1228,107 @@ a:hover {
 :global(.p-dark) .medical-history-dialog :deep(.p-dialog),
 :global(.p-dark) .prescription-dialog :deep(.p-dialog) {
   background: var(--surface-card);
+}
+
+.add-prescription-dialog :deep(.p-dialog-content) {
+  padding: 1.5rem;
+}
+
+.patient-info-panel :deep(.p-panel-content) {
+  padding: 0;
+}
+
+.preview-panel :deep(.p-panel-content) {
+  padding: 0;
+  background: var(--surface-50);
+  border-radius: 8px;
+}
+
+:global(.p-dark) .preview-panel :deep(.p-panel-content) {
+  background: var(--surface-800);
+}
+
+.prescription-preview {
+  margin-top: 1.5rem;
+}
+
+.info-section {
+  margin-top: 1.5rem;
+}
+
+/* Form field spacing */
+.field.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+/* Time picker styling */
+:deep(.p-calendar) {
+  width: 100%;
+}
+
+:deep(.p-calendar .p-inputtext) {
+  text-align: center;
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Enhanced medication card styling */
+.prescription-card {
+  border-left: 4px solid var(--green-500);
+}
+
+.prescription-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+:global(.p-dark) .prescription-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced prescribed and self-added card styling */
+.prescribed-card {
+  border-left: 4px solid var(--blue-500);
+}
+
+.self-added-card {
+  border-left: 4px solid var(--green-500);
+}
+
+.prescribed-card:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transition: all 0.3s ease;
+}
+
+.self-added-card:hover {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  transition: all 0.3s ease;
+}
+
+:global(.p-dark) .prescribed-card:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+:global(.p-dark) .self-added-card:hover {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+.medication-details {
+  border-top: 1px solid var(--surface-border);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+/* Enhanced tag styling */
+:deep(.p-tag) {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+}
+
+/* Section headers */
+h4 i {
+  font-size: 1.1rem;
 }
 </style>
