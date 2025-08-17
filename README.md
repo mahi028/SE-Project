@@ -1,8 +1,4 @@
-# SE-Project
-
-### Overview
-
-Add things here
+# EZCare
 
 ### How to contribute
 
@@ -34,8 +30,6 @@ git push origin your_branch_name
 
 > Make sure you only add the files you contributed to. Never use `git add .` to add files.
 
-> Make sure your branch name corresponds to you github username
-
 4. Make a pull request from github
 
 5. Tests 
@@ -44,59 +38,79 @@ There are tests in the project. Make sure you run them before submitting a pull 
 
 After you have pushed your code and created a pull request, make sure all the tests are passing in workflow. Only after all test have passed, your pull request will be merged.
 
-## SE-Project-Backend
+> For production setup, checkout to prod branch and see README.md there
 
-### How to setup
+## EZCare Backend
 
-1. Create and activate virtual environment
-```bash
+This backend application currently **only supports Linux environments**.
+
+## Prerequisites
+
+Before running the backend application, you need to install the following dependencies:
+
+```sh
+sudo apt install cmake
+python3 -m pip install --upgrade pip setuptools wheel
+```
+
+## Setup and Installation
+
+1. Unzip and Navigate to the backend directory:
+```sh
 cd backend
-py -m venv env
-./env/Scripts/activate
 ```
 
-For debien/linux
-
-```bash
-py -m venv env
-source ./env/bin/activate
+2. Create and Activate Virtual Environment (Optional):
+```sh
+python3 -m venv env
+source env/bin/activate
 ```
 
-2. Install required dependencies
-```bash
-py -m pip install --upgrade pip
+3. Install Python dependencies:
+```sh
 pip install -r requirements.txt
 ```
 
-3. Run the application
-```bash
-py run.py
+## Running the Application
+
+To start the backend server:
+
+```sh
+python3 run.py
 ```
 
-4. Check `http://localhost:5000/graphql` endpoint
+## Running the Application Tests
 
+To start the backend server:
 
-### Things to consider before submitting a pull request
-
-Add things here directory-wise
-#### Tests
-After you have added your code, make sure to add tests for it.
-- Only add tests to the tests directory. Do not add any other code to this directory.
-- Only push the files after all tests are passing.
-- To run tests, run the following command:
-```bash
-pytest
+```sh
+pytest tests
 ```
 
+## Running Specific Test modules
 
-### Library used
+To start the backend server:
 
-Add things here
+```sh
+pytest tests/{module_name}
+```
+
+## Environment Requirements
+
+- **Operating System**: Linux (Ubuntu/Debian recommended)
+- **Python**: 3.7 or higher
+- **CMake**: Required for certain Python packages
+
+## Notes
+
+- Make sure all prerequisites are installed before attempting to run the application
+- The application may not work properly on Windows or macOS due to Linux-specific dependencies
+- If you encounter any installation issues, ensure your system is up to date: `sudo apt update && sudo apt upgrade`
 
 
 ---
 
-## SE-Project-Frontend
+## EZCare Frontend
 
 This template should help get you started developing with Vue 3 in Vite.
 
@@ -132,3 +146,29 @@ npm run build
 ```sh
 npm run lint
 ```
+
+---
+
+## 📝 License & Support
+
+This project is exclusively built as a pre-requisite for Software Engineering Course for IIT-Madras by Team 6 | May'2025. For support or questions, please refer to the project documentation or create an issue in the repository.
+
+---
+
+## 👥 Contributors
+
+| Name | Role in Project | Roll Number |
+|------|-----------------|-------------|
+| **Mohit Tewari** | Frontend, Backend, API Integration, Project Design, Code Documentation | 23f1002364 |
+| **Akhileshwer Pandey** | Project Manager, Backend, Testing | 21f3002866 |
+| **Dev Gupta** | Backend, Project Documentation | 22f2000888 |
+| **Rashi Singal** | Frontend, Project Documentation | 21f1005286 |
+| **Affan Bin Nishat** | Testing | 21f1003441 |
+| **Ajay Sharma** | Frontend | 21f1005414 |
+| **Ambuj Pratap** | Frontend | 22f3002778 |
+
+---
+
+**Last Updated**: August 10, 2025  
+**Version**: 1.0.0  
+**Maintainer**: EZCare Development Team
