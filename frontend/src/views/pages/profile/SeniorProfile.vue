@@ -255,35 +255,52 @@ const isUpcomingAppointment = (appointment) => {
   return new Date(appointment.remTime) >= new Date()
 }
 
-// Transform medical info for display
-const medicalHistory = computed(() => {
+// Transform medical info for display - enhanced to show all medical data
+const medicalData = computed(() => {
   const medicalInfo = result.value?.getUser?.senInfo?.medicalInfo
-  if (!medicalInfo) return []
+  if (!medicalInfo) return null
 
   try {
     // Handle double-encoded JSON string from backend
     const parsedOnce = typeof medicalInfo === 'string' ? JSON.parse(medicalInfo) : medicalInfo
     const finalInfo = typeof parsedOnce === 'string' ? JSON.parse(parsedOnce) : parsedOnce
 
-    return finalInfo.medicalConditions?.map((condition, index) => ({
-      id: `MH${index + 1}`,
-      date: condition.diagnosedYear ? `${condition.diagnosedYear}-01-01` : 'Unknown',
-      condition: condition.name || 'Unknown condition',
-      diagnosis: condition.name || 'Unknown diagnosis',
-      treatment: 'As prescribed',
-      doctor: 'Medical Professional',
-      notes: condition.curingYear ? `Treatment until ${condition.curingYear}` : 'Ongoing treatment'
-    })) || []
+    return {
+      medicalConditions: finalInfo.medicalConditions || [],
+      medications: finalInfo.medications || [],
+      vaccinations: finalInfo.vaccinations || [],
+      insurance: finalInfo.insurance || {},
+      healthcareProvider: finalInfo.healthcareProvider || {},
+      lifestyle: finalInfo.lifestyle || {},
+      allergies: finalInfo.allergies || '',
+      documents: finalInfo.documents || {}
+    }
   } catch (e) {
     console.error('Error parsing medical info:', e)
-    return []
+    return null
   }
+})
+
+// Legacy computed for backward compatibility (now uses medicalData)
+const medicalHistory = computed(() => {
+  if (!medicalData.value) return []
+
+  return medicalData.value.medicalConditions.map((condition, index) => ({
+    id: `MH${index + 1}`,
+    date: condition.diagnosedYear ? `${condition.diagnosedYear}-01-01` : 'Unknown',
+    condition: condition.name || 'Unknown condition',
+    diagnosis: condition.name || 'Unknown diagnosis',
+    treatment: condition.curingYear ? `Treatment until ${condition.curingYear}` : 'Ongoing treatment',
+    doctor: 'Medical Professional',
+    notes: condition.curingYear ? `Diagnosed: ${condition.diagnosedYear}, Cured: ${condition.curingYear}` : `Diagnosed: ${condition.diagnosedYear}, Ongoing`,
+    report: condition.report
+  })) || []
 })
 
 // Update prescriptions computed property to use the extended query data
 const prescriptions = computed(() => {
   const prescriptionsData = result.value?.getUser?.senInfo?.prescriptions || []
-  
+
   return prescriptionsData.map(prescription => {
     const timeData = typeof prescription.time === 'string'
       ? JSON.parse(prescription.time)
@@ -780,61 +797,302 @@ const submitPrescription = async () => {
     <Dialog
       v-model:visible="showMedicalHistoryDialog"
       modal
-      header="Medical History"
-      :style="{ width: '800px' }"
+      header="Complete Medical Information"
+      :style="{ width: '1000px' }"
       class="medical-history-dialog"
     >
       <template #header>
         <div class="flex items-center gap-2">
           <i class="pi pi-file-text text-blue-500"></i>
-          <span class="text-xl font-semibold">{{ userDetails.name }}'s Medical History</span>
+          <span class="text-xl font-semibold">{{ userDetails.name }}'s Medical Information</span>
         </div>
       </template>
 
-      <div class="space-y-4">
-        <div v-if="medicalHistory.length === 0" class="text-center py-8">
+      <div class="space-y-6">
+        <div v-if="!medicalData" class="text-center py-8">
           <i class="pi pi-file text-4xl text-surface-400 mb-3"></i>
-          <p class="text-surface-500 dark:text-surface-400">No medical history records found.</p>
+          <p class="text-surface-500 dark:text-surface-400">No medical information available.</p>
         </div>
 
-        <Card
-          v-for="record in medicalHistory"
-          :key="record.id"
-          class="medical-record-card"
-        >
-          <template #content>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Date</label>
-                  <p class="text-surface-900 dark:text-surface-0 font-semibold">{{ record.date }}</p>
-                </div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Condition</label>
-                  <p class="text-surface-900 dark:text-surface-0">{{ record.condition }}</p>
-                </div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Diagnosis</label>
-                  <p class="text-surface-900 dark:text-surface-0">{{ record.diagnosis }}</p>
-                </div>
-              </div>
-              <div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Treating Doctor</label>
-                  <p class="text-surface-900 dark:text-surface-0">{{ record.doctor }}</p>
-                </div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Treatment</label>
-                  <p class="text-surface-900 dark:text-surface-0">{{ record.treatment }}</p>
-                </div>
-                <div class="mb-3">
-                  <label class="text-sm font-medium text-surface-600 dark:text-surface-400">Notes</label>
-                  <p class="text-surface-700 dark:text-surface-300 text-sm">{{ record.notes }}</p>
-                </div>
-              </div>
+        <div v-else class="medical-info-sections">
+          <!-- Medical Conditions Section -->
+          <div v-if="medicalData.medicalConditions.length > 0" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-heart text-red-500"></i>
+              Medical Conditions
+            </h4>
+            <div class="space-y-3">
+              <Card
+                v-for="(condition, index) in medicalData.medicalConditions"
+                :key="index"
+                class="medical-condition-card"
+              >
+                <template #content>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Condition</label>
+                      <p class="text-surface-900 dark:text-surface-0 font-semibold">{{ condition.name || 'Not specified' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Diagnosed Year</label>
+                      <p class="text-surface-900 dark:text-surface-0">{{ condition.diagnosedYear || 'Unknown' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Status</label>
+                      <Tag
+                        :value="condition.curingYear ? 'Cured' : 'Ongoing'"
+                        :severity="condition.curingYear ? 'success' : 'warning'"
+                        class="text-xs"
+                      />
+                      <p v-if="condition.curingYear" class="text-xs text-surface-500 mt-1">Cured in: {{ condition.curingYear }}</p>
+                    </div>
+                  </div>
+                  <div v-if="condition.report" class="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                    <div class="flex items-center gap-2">
+                      <i class="pi pi-file-pdf text-blue-500"></i>
+                      <span class="text-sm text-blue-700 dark:text-blue-300">Medical Report Available</span>
+                      <Button
+                        icon="pi pi-external-link"
+                        size="small"
+                        text
+                        @click="window.open(condition.report, '_blank')"
+                      />
+                    </div>
+                  </div>
+                </template>
+              </Card>
             </div>
-          </template>
-        </Card>
+          </div>
+
+          <!-- Current Medications Section -->
+          <div v-if="medicalData.medications.length > 0" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-heart-fill text-green-500"></i>
+              Current Medications
+            </h4>
+            <div class="space-y-3">
+              <Card
+                v-for="(medication, index) in medicalData.medications"
+                :key="index"
+                class="medication-card"
+              >
+                <template #content>
+                  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Medication</label>
+                      <p class="text-surface-900 dark:text-surface-0 font-semibold">{{ medication.name || 'Not specified' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Dosage</label>
+                      <p class="text-surface-900 dark:text-surface-0">{{ medication.dosage || 'Not specified' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Frequency</label>
+                      <p class="text-surface-900 dark:text-surface-0">{{ medication.frequency || 'As needed' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Route</label>
+                      <p class="text-surface-900 dark:text-surface-0">{{ medication.route || 'Not specified' }}</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Start Date</label>
+                      <p class="text-surface-700 dark:text-surface-300">{{ medication.startDate || 'Unknown' }}</p>
+                    </div>
+                    <div>
+                      <label class="text-xs font-medium text-surface-600 dark:text-surface-400">End Date</label>
+                      <p class="text-surface-700 dark:text-surface-300">
+                        {{ medication.endDate || 'Ongoing' }}
+                        <Tag v-if="!medication.endDate" value="Active" severity="success" class="ml-2 text-xs" />
+                      </p>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
+
+          <!-- Vaccinations Section -->
+          <div v-if="medicalData.vaccinations.length > 0" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-shield text-blue-500"></i>
+              Vaccinations
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <Card
+                v-for="(vaccination, index) in medicalData.vaccinations"
+                :key="index"
+                class="vaccination-card"
+              >
+                <template #content>
+                  <div class="text-center p-2">
+                    <div class="mb-2">
+                      <i class="pi pi-check-circle text-green-500 text-2xl"></i>
+                    </div>
+                    <h5 class="font-semibold text-surface-900 dark:text-surface-0 mb-1">
+                      {{ vaccination.name || 'Unknown Vaccine' }}
+                    </h5>
+                    <p class="text-sm text-surface-600 dark:text-surface-400">
+                      {{ vaccination.date ? new Date(vaccination.date).toLocaleDateString() : 'Date unknown' }}
+                    </p>
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
+
+          <!-- Allergies Section -->
+          <div v-if="medicalData.allergies" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-exclamation-triangle text-orange-500"></i>
+              Allergies
+            </h4>
+            <Card class="allergy-card">
+              <template #content>
+                <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded border-l-4 border-orange-500">
+                  <p class="text-orange-800 dark:text-orange-200">{{ medicalData.allergies }}</p>
+                </div>
+              </template>
+            </Card>
+          </div>
+
+          <!-- Insurance Information -->
+          <div v-if="Object.keys(medicalData.insurance).some(key => medicalData.insurance[key])" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-credit-card text-purple-500"></i>
+              Insurance Information
+            </h4>
+            <Card class="insurance-card">
+              <template #content>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Provider</label>
+                    <p class="text-surface-900 dark:text-surface-0 font-semibold">{{ medicalData.insurance.provider || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Member ID</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.insurance.memberId || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Valid Until</label>
+                    <p class="text-surface-900 dark:text-surface-0">
+                      {{ medicalData.insurance.validUpto ? new Date(medicalData.insurance.validUpto).toLocaleDateString() : 'Not specified' }}
+                    </p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Billing Contact</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.insurance.billingContact || 'Not specified' }}</p>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+
+          <!-- Healthcare Provider -->
+          <div v-if="Object.keys(medicalData.healthcareProvider).some(key => medicalData.healthcareProvider[key])" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-user-md text-teal-500"></i>
+              Primary Healthcare Provider
+            </h4>
+            <Card class="provider-card">
+              <template #content>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Doctor Name</label>
+                    <p class="text-surface-900 dark:text-surface-0 font-semibold">{{ medicalData.healthcareProvider.Name || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Specialty</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.healthcareProvider.specialty || 'General Medicine' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Clinic/Hospital</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.healthcareProvider.clinic || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Contact</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.healthcareProvider.contact || 'Not specified' }}</p>
+                  </div>
+                  <div v-if="medicalData.healthcareProvider.email" class="md:col-span-2">
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Email</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.healthcareProvider.email }}</p>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+
+          <!-- Lifestyle Information -->
+          <div v-if="Object.keys(medicalData.lifestyle).some(key => medicalData.lifestyle[key])" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-home text-indigo-500"></i>
+              Lifestyle & Habits
+            </h4>
+            <Card class="lifestyle-card">
+              <template #content>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Smoking</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.smoking || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Alcohol</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.alcohol || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Diet</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.diet || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Exercise</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.exercise || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Living Status</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.livingStatus || 'Not specified' }}</p>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-surface-600 dark:text-surface-400">Caregiver</label>
+                    <p class="text-surface-900 dark:text-surface-0">{{ medicalData.lifestyle.caregiver || 'Not specified' }}</p>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+
+          <!-- Documents Section -->
+          <div v-if="Object.keys(medicalData.documents).some(key => medicalData.documents[key])" class="medical-section">
+            <h4 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-3 flex items-center gap-2">
+              <i class="pi pi-folder text-cyan-500"></i>
+              Medical Documents
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Card
+                v-for="(docUrl, docType) in medicalData.documents"
+                :key="docType"
+                v-if="docUrl"
+                class="document-card cursor-pointer hover:shadow-md transition-shadow"
+                @click="window.open(docUrl, '_blank')"
+              >
+                <template #content>
+                  <div class="text-center p-3">
+                    <div class="mb-2">
+                      <i class="pi pi-file-pdf text-red-500 text-2xl"></i>
+                    </div>
+                    <h5 class="font-semibold text-surface-900 dark:text-surface-0 mb-1 text-sm">
+                      {{ docType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) }}
+                    </h5>
+                    <div class="flex items-center justify-center gap-1">
+                      <span class="text-xs text-surface-500">Click to view</span>
+                      <i class="pi pi-external-link text-xs text-blue-500"></i>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
 
       <template #footer>
@@ -882,11 +1140,11 @@ const submitPrescription = async () => {
         <div v-if="prescriptions.length === 0" class="text-center py-8">
           <i class="pi pi-receipt text-4xl text-surface-400 mb-3"></i>
           <p class="text-surface-500 dark:text-surface-400">No medication records found.</p>
-          <Button 
-            v-if="loginStore.role === 1" 
-            label="Add First Prescription" 
-            icon="pi pi-plus" 
-            severity="success" 
+          <Button
+            v-if="loginStore.role === 1"
+            label="Add First Prescription"
+            icon="pi pi-plus"
+            severity="success"
             @click="openAddPrescriptionDialog"
             class="mt-3"
           />
@@ -1329,6 +1587,138 @@ a:hover {
 
 /* Section headers */
 h4 i {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+}
+
+/* Enhanced medical dialog styling */
+.medical-info-sections {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.medical-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.medical-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.medical-condition-card,
+.medication-card,
+.vaccination-card,
+.allergy-card,
+.insurance-card,
+.provider-card,
+.lifestyle-card,
+.document-card {
+  border-left: 4px solid var(--primary-500);
+}
+
+.medical-condition-card {
+  border-left-color: var(--red-500);
+}
+
+.medication-card {
+  border-left-color: var(--green-500);
+}
+
+.vaccination-card {
+  border-left-color: var(--blue-500);
+}
+
+.allergy-card {
+  border-left-color: var(--orange-500);
+}
+
+.insurance-card {
+  border-left-color: var(--purple-500);
+}
+
+.provider-card {
+  border-left-color: var(--teal-500);
+}
+
+.lifestyle-card {
+  border-left-color: var(--indigo-500);
+}
+
+.document-card {
+  border-left-color: var(--cyan-500);
+}
+
+/* Card hover effects */
+.medical-condition-card:hover,
+.medication-card:hover,
+.vaccination-card:hover,
+.insurance-card:hover,
+.provider-card:hover,
+.lifestyle-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+:global(.p-dark) .medical-condition-card:hover,
+:global(.p-dark) .medication-card:hover,
+:global(.p-dark) .vaccination-card:hover,
+:global(.p-dark) .insurance-card:hover,
+:global(.p-dark) .provider-card:hover,
+:global(.p-dark) .lifestyle-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .medical-info-sections {
+    max-height: 60vh;
+  }
+
+  .medical-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  h4 {
+    font-size: 1rem;
+  }
+
+  .grid.grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid.grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Enhanced scrollbar styling */
+.medical-info-sections::-webkit-scrollbar {
+  width: 6px;
+}
+
+.medical-info-sections::-webkit-scrollbar-track {
+  background: var(--surface-100);
+  border-radius: 3px;
+}
+
+.medical-info-sections::-webkit-scrollbar-thumb {
+  background: var(--surface-400);
+  border-radius: 3px;
+}
+
+.medical-info-sections::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-500);
+}
+
+:global(.p-dark) .medical-info-sections::-webkit-scrollbar-track {
+  background: var(--surface-800);
+}
+
+:global(.p-dark) .medical-info-sections::-webkit-scrollbar-thumb {
+  background: var(--surface-600);
 }
 </style>

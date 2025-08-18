@@ -1,6 +1,5 @@
 <script setup>
 import AppointmentRequests from '@/components/doctorDashboard/AppointmentRequests.vue';
-import DoctorNotificationsWidget from '@/components/doctorDashboard/DoctorNotificationsWidget.vue';
 import DoctorAppointments from '@/components/doctorDashboard/DoctorAppointments.vue';
 import QuickButtons from '@/components/QuickButtons.vue';
 import Divider from 'primevue/divider';

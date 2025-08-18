@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import Divider from 'primevue/divider';
 import { useLoginStore } from '@/store/loginStore';
-import { userService } from '@/service/UserService';
 import { useToast } from 'primevue';
 import { useRouter } from 'vue-router';
 import { useLazyQuery, useMutation } from '@vue/apollo-composable';
