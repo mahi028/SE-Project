@@ -283,7 +283,7 @@ const medicalHistory = computed(() => {
 // Update prescriptions computed property to use the extended query data
 const prescriptions = computed(() => {
   const prescriptionsData = result.value?.getUser?.senInfo?.prescriptions || []
-  
+
   return prescriptionsData.map(prescription => {
     const timeData = typeof prescription.time === 'string'
       ? JSON.parse(prescription.time)
@@ -882,11 +882,11 @@ const submitPrescription = async () => {
         <div v-if="prescriptions.length === 0" class="text-center py-8">
           <i class="pi pi-receipt text-4xl text-surface-400 mb-3"></i>
           <p class="text-surface-500 dark:text-surface-400">No medication records found.</p>
-          <Button 
-            v-if="loginStore.role === 1" 
-            label="Add First Prescription" 
-            icon="pi pi-plus" 
-            severity="success" 
+          <Button
+            v-if="loginStore.role === 1"
+            label="Add First Prescription"
+            icon="pi pi-plus"
+            severity="success"
             @click="openAddPrescriptionDialog"
             class="mt-3"
           />
