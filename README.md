@@ -162,7 +162,7 @@ This project is exclusively built as a pre-requisite for Software Engineering Co
 | **Mohit Tewari** | Frontend, Backend, API Integration, Project Design, Code Documentation | 23f1002364 |
 | **Akhileshwer Pandey** | Project Manager, Backend, Testing | 21f3002866 |
 | **Dev Gupta** | Backend, Project Documentation | 22f2000888 |
-| **Rashi Singal** | Frontend, Project Documentation | 21f1005286 |
+| **Rashi Singal** | Frontend, Scrum Master | 21f1005286 |
 | **Affan Bin Nishat** | Testing | 21f1003441 |
 | **Ajay Sharma** | Frontend | 21f1005414 |
 | **Ambuj Pratap** | Frontend | 22f3002778 |
